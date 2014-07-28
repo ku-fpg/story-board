@@ -1,7 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings, KindSignatures, GADTs, StandaloneDeriving, TypeFamilies, DataKinds #-}
 module Graphics.Storyboard where
 
-import Graphics.Blank
+import Graphics.Blank hiding (eval)
 import Data.Semigroup
 import Control.Applicative
 import Control.Monad
@@ -13,19 +13,25 @@ import Data.Maybe
 
 -----------------------------------------------------------------------------
 
-type Size  = (Float,Float)
-type Coord = (Float,Float)
+type Size  f = (f,f)
+type Coord f = (f,f)
 
 -----------------------------------------------------------------------------
 
--- A Tile has a specific size
-data Tile a = Tile Size (Canvas a)
+-- A Tile has a specific, fixed size
+data Tile a = Tile (Size Float) (Canvas a)
+
+-----------------------------------------------------------------------------
+
+-- A Parcel can be stretched to different sizes.
+-- You give a size to fit into, and return the actual size.
+data Parcel a = Parcel { runParcel :: (Size Float) -> Canvas (a,Size Float) }
 
 -----------------------------------------------------------------------------
 
 data Cavity = Cavity
-  { cavityCorner :: Coord
-  , cavitySize   :: Size
+  { cavityCorner :: Coord E
+  , cavitySize   :: Size E
   }
 
 -- A Fill is a computation that fills a cavity.
@@ -46,22 +52,49 @@ instance Monad Filling where
     runFilling (k a) sz'
 
 -----------------------------------------------------------------------------
-
+{-
 tile :: (Size -> Cavity -> Cavity) -> (Size -> Cavity -> Coord) -> Tile a -> Filling a
 tile f g (Tile (w,h) m) = Filling $ \ cavity -> do
   a <- saveRestore $ do
     translate (g (w,h) cavity)
     m
   return (a,f (w,h) cavity)
+-}
 
 tileTop :: Tile a -> Filling a
 tileTop (Tile (w,h) m) = Filling $ \ (Cavity (cx,cy) (cw,ch)) -> do
   a <- saveRestore $ do
-    translate (cx,cy)
+    translate (eval cx,eval cy)
     m
-  return (a,Cavity (cx,cy + h) (cw,ch - h))
+  return (a,Cavity (cx,cy `Add` Lit h) (cw,ch `Sub` Lit h))
 
-fillTile :: Size -> Filling a -> Tile a
+
+--fillingSize :: Filling (Size Float)
+--fillingSize = Filling $ \ cavity@(Cavity _ sz) -> return (sz,cavity)
+
+--wrap :: Filling a -> Tile a
+--wrap (Filling filler) = Tile
+
+--fillTop :: Float -> Filling a -> Filling a
+--fillTop h m = do
+--    (w,_) <- fillingSize
+--    tileTop $ fillTile (w,h) $ m
+
+fillTile :: (Size Float) -> Filling a -> Tile a
+fillTile sz@(x',y') (Filling filler) = Tile sz $ do
+    -- invent two names
+
+    (a,Cavity (x,y) (w,h)) <- filler (Cavity (Lit 0,Lit 0) (Lit x',Lit y'))-- (Var "x",Var "y"))
+    saveRestore $ do
+      beginPath()
+      fillStyle "#abcdef"
+      rect(eval x,eval y,eval w,eval h)
+      closePath()
+      fill()
+      return a
+
+{-
+fillTile :: Filling a -> Parcel a
 fillTile sz (Filling filler) = Tile sz $ do
     (a,Cavity (x,y) (w,h)) <- filler (Cavity (0,0) sz)
     saveRestore $ do
@@ -71,8 +104,24 @@ fillTile sz (Filling filler) = Tile sz $ do
       closePath()
       fill()
       return a
+-}
 
 -----------------------------------------------------------------------------
+
+data E
+    = Lit Float
+    | Var String
+    | Add E E
+    | Sub E E
+  deriving (Eq,Ord,Show)
+
+eval :: E -> Float
+eval (Lit f) = f
+eval (Add e1 e2) = eval e1 + eval e2
+eval (Sub e1 e2) = eval e1 - eval e2
+
+-----------------------------------------------------------------------------
+
 
 example1 :: Text -> Tile ()
 example1 col = Tile (100,100) $ do
@@ -92,7 +141,7 @@ example2 = do
   return ()
 
 -----------------------------------------------------------------------------
-
+{-
 
 -- A Box is just a function from size to canvas
 type Box a = Size -> Canvas a
@@ -424,6 +473,7 @@ example_text = "In the process we've discovered that concatenate vanishes and tu
 
 instance IsString Markup where
    fromString = Markup . intersperse (Leaf Space) . fmap (Leaf . Text . Text.pack) . words
+-}
 
 main = blankCanvas 3000 $ \ context -> do
       send context $ do
