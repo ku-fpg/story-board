@@ -6,7 +6,9 @@ Functor can be used to key animation, and there is good support for
 laying out both narritive, and highlighted code. There is support for
 building stand-alone JavaScript, as well as movies of slides.
 
-
+```haskell
+main = print "Hello"
+```
 
 
 
