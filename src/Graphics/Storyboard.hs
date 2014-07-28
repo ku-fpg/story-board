@@ -47,6 +47,13 @@ instance Monad Filling where
 
 -----------------------------------------------------------------------------
 
+tile :: (Size -> Cavity -> Cavity) -> (Size -> Cavity -> Coord) -> Tile a -> Filling a
+tile f g (Tile (w,h) m) = Filling $ \ cavity -> do
+  a <- saveRestore $ do
+    translate (g (w,h) cavity)
+    m
+  return (a,f (w,h) cavity)
+
 tileTop :: Tile a -> Filling a
 tileTop (Tile (w,h) m) = Filling $ \ (Cavity (cx,cy) (cw,ch)) -> do
   a <- saveRestore $ do
@@ -56,8 +63,14 @@ tileTop (Tile (w,h) m) = Filling $ \ (Cavity (cx,cy) (cw,ch)) -> do
 
 fillTile :: Size -> Filling a -> Tile a
 fillTile sz (Filling filler) = Tile sz $ do
-    (a,_) <- filler (Cavity (0,0) sz)
-    return a
+    (a,Cavity (x,y) (w,h)) <- filler (Cavity (0,0) sz)
+    saveRestore $ do
+      beginPath()
+      fillStyle "#abcdef"
+      rect(x,y,w,h)
+      closePath()
+      fill()
+      return a
 
 -----------------------------------------------------------------------------
 
@@ -416,7 +429,7 @@ main = blankCanvas 3000 $ \ context -> do
       send context $ do
         fillStyle "orange"
         translate (100,100)
-        let Tile _ m = fillTile (width context,height context) example2
+        let Tile _ m = fillTile (width context - 200,height context - 200) $ example2
         _ <- m
         return ()
 {-
