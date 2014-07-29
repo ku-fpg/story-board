@@ -83,18 +83,19 @@ data Cavity f = Cavity
 
 -- A Fill is a computation that fills a cavity.
 data Filling a = Filling
-  { runFilling :: ([(Spacing,Spacing)],Cavity Float -> Canvas (a,Cavity Float))
+  { fillingSpace :: [(Spacing,Spacing)]
+  , runFilling   :: Cavity Float -> Canvas (a,Cavity Float)
   }
 
 instance Functor Filling where
  fmap f m = pure f <*> m
 
 instance Applicative Filling where
- pure a = Filling ([],\ sz0 -> return (a,sz0))
- Filling (fs,f) <*> Filling (xs,x) = Filling (fs ++ xs,\ sz0 -> do
+ pure a = Filling [] $ \ sz0 -> return (a,sz0)
+ Filling fs f <*> Filling xs x = Filling (fs ++ xs) $ \ sz0 -> do
                     (f',sz1) <- f sz0
                     (x',sz2) <- x sz1
-                    return (f' x',sz2))
+                    return (f' x',sz2)
 
 {-
 instance Monad Filling where
@@ -108,6 +109,7 @@ instance Monad Filling where
 data Spacing
   = Alloc Float    -- take up space
   | AtLeast Float  -- be at least this wide
+  | Space          -- space filling
   deriving (Eq, Ord, Show)
 
 spaceSize :: Spacing -> Float -> Float
@@ -127,25 +129,24 @@ tile f g (Tile (w,h) m) = Filling $ \ cavity -> do
   return (a,f (w,h) cavity)
 -}
 
+--vfill :: Filling a
+--vfill = Filling ()
+
 tileTop :: Tile a -> Filling a
-tileTop (Tile (w,h) k) = Filling ([(AtLeast w,Alloc h)],
+tileTop (Tile (w,h) k) = Filling [(AtLeast w,Alloc h)] $
     \ (Cavity (cx',cy') (cw',ch')) -> do
         a <- saveRestore $ do
                 translate (cx',cy')
                 k (cw',h)
         return (a,Cavity (cx',cy' + h) (cw',ch' - h))
-  )
 
 tileLeft :: Tile a -> Filling a
-tileLeft (Tile (w,h) k) = Filling ([(Alloc w, AtLeast h)],
+tileLeft (Tile (w,h) k) = Filling [(Alloc w, AtLeast h)] $
     \ (Cavity (cx',cy') (cw',ch')) -> do
         a <- saveRestore $ do
                 translate (cx',cy')
                 k (w,ch')
         return (a,Cavity (cx' + w,cy') (cw' - w,ch'))
-  )
-
-
 
 {-
   let (Tile (w,h) m) = theTile
@@ -171,10 +172,11 @@ tileLeft (Tile (w,h) k) = Filling ([(Alloc w, AtLeast h)],
 -- turn a Filling into a tile.
 
 fillTile :: Filling a -> Tile a
-fillTile filling = Tile (w,h) $ \ (w',h') -> fst <$> k (Cavity (0,0) (w',h'))
+fillTile (Filling cavity k) = Tile (w,h) $ \ (w',h') -> fst <$> k (Cavity (0,0) (w',h'))
   where
-    (w,h)      = (500,500)
-    (cavity,k) = runFilling filling
+    w = foldr spaceSize 0 $ map fst $ cavity
+    h = foldr spaceSize 0 $ map snd $ cavity
+
 
 --    return (undefined,undefined)
 {-
@@ -274,7 +276,7 @@ main = do
     print $ foldr spaceSize 0 $ map snd $ cavity
 --    putStrLn $ unlines $ map prettyEq $ nub eqs
   where
-    (cavity,_) = runFilling example2
+    Filling cavity _ = example2
 
 --          Tile _ m = fillTile (width context - 200,height context - 200) $ example2
 
@@ -618,8 +620,8 @@ main2 = blankCanvas 3000 $ \ context -> do
       send context $ do
         fillStyle "orange"
         translate (100,100)
-        let Tile _ m = fillTile example2
-        _ <- m (800,800)
+        let Tile sz m = fillTile example2
+        _ <- m sz
         return ()
 {-
         case roundedBox 50 of
