@@ -31,16 +31,15 @@ tile :: (Float,Float) -> ((Float,Float) -> Canvas a) -> Tile a
 tile = Tile
 
 --center :: Tile a -> Tile a
-center t = hfill *> left t <* hfill
+center t = vfill *> (hfill *> left t <* hfill) <* vfill
 
 class Place f where
     left   :: Tile a -> f a
     right  :: Tile a -> f a
     top    :: Tile a -> f a
     bottom :: Tile a -> f a
-    pack   :: f a -> Tile a
 
-instance Place Filling where
+instance Place Filler where
     left = tileLeft
 
 instance Place Tile where
@@ -54,37 +53,37 @@ row = undefined
 -----------------------------------------------------------------------------
 
 
-vfill :: Filling ()
-vfill = Filling [(Space,Alloc 0)] $
+vfill :: Filler ()
+vfill = Filler [(Space,Alloc 0)] $
   \ (Cavity (cx',cy') (cw',ch') spaces@(sw,sh)) -> do
       return ((),Cavity (cx' + sw,cy') (cw' - sw,ch') spaces)
 
 
-hfill :: Filling ()
-hfill = Filling [(Alloc 0,Space)] $
+hfill :: Filler ()
+hfill = Filler [(Alloc 0,Space)] $
   \ (Cavity (cx',cy') (cw',ch') spaces@(sw,sh)) -> do
       return ((),Cavity (cx',cy' + sh) (cw',ch' - sh) spaces)
 
 
-tileTop :: Tile a -> Filling a
-tileTop (Tile (w,h) k) = Filling [(AtLeast w,Alloc h)] $
+tileTop :: Tile a -> Filler a
+tileTop (Tile (w,h) k) = Filler [(AtLeast w,Alloc h)] $
     \ (Cavity (cx',cy') (cw',ch') spaces) -> do
         a <- saveRestore $ do
                 translate (cx',cy')
                 k (cw',h)
         return (a,Cavity (cx',cy' + h) (cw',ch' - h) spaces)
 
-tileLeft :: Tile a -> Filling a
-tileLeft (Tile (w,h) k) = Filling [(Alloc w, AtLeast h)] $
+tileLeft :: Tile a -> Filler a
+tileLeft (Tile (w,h) k) = Filler [(Alloc w, AtLeast h)] $
     \ (Cavity (cx',cy') (cw',ch') spaces) -> do
         a <- saveRestore $ do
                 translate (cx',cy')
                 k (w,ch')
         return (a,Cavity (cx' + w,cy') (cw' - w,ch') spaces)
 
-box = fillTile
-fillTile :: Filling a -> Tile a
-fillTile (Filling cavity k) = Tile (w,h) $ \ (w',h') -> do
+pack = fillTile
+fillTile :: Filler a -> Tile a
+fillTile (Filler cavity k) = Tile (w,h) $ \ (w',h') -> do
       let sw = if w' <= w then 0 else (w' - w) / w_sps
       let sh = if h' <= h then 0 else (h' - h) / h_sps
       fst <$> k (Cavity (0,0) (w',h') (sw,sh))
@@ -114,7 +113,7 @@ example1 col = Tile (100,100) $ \ sz@(w,h) -> do
         fill()
 
 
-example2 :: Filling ()
+example2 :: Filler ()
 example2 =
   hfill *>
   (tileTop $ example1 "red")    *>
@@ -135,7 +134,7 @@ main = do
     print $ foldr spaceSize 0 $ map snd $ cavity
 --    putStrLn $ unlines $ map prettyEq $ nub eqs
   where
-    Filling cavity _ = example2
+    Filler cavity _ = example2
 
 --          Tile _ m = fillTile (width context - 200,height context - 200) $ example2
 

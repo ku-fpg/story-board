@@ -44,30 +44,30 @@ data Cavity f = Cavity
 data Spacing
   = Alloc Float    -- take up space
   | AtLeast Float  -- be at least this wide
-  | Space          -- space filling
+  | Space          -- space Filler
   deriving (Eq, Ord, Show)
 
 -----------------------------------------------------------------------------
 
-data Filling a = Filling
-  { fillingSpace :: [(Spacing,Spacing)]
-  , runFilling   :: Cavity Float -> Canvas (a,Cavity Float)
+data Filler a = Filler
+  { fillerSpace :: [(Spacing,Spacing)]
+  , runFiller   :: Cavity Float -> Canvas (a,Cavity Float)
   }
 
-instance Functor Filling where
+instance Functor Filler where
  fmap f m = pure f <*> m
 
-instance Applicative Filling where
- pure a = Filling [] $ \ sz0 -> return (a,sz0)
- Filling fs f <*> Filling xs x = Filling (fs ++ xs) $ \ sz0 -> do
+instance Applicative Filler where
+ pure a = Filler [] $ \ sz0 -> return (a,sz0)
+ Filler fs f <*> Filler xs x = Filler (fs ++ xs) $ \ sz0 -> do
                     (f',sz1) <- f sz0
                     (x',sz2) <- x sz1
                     return (f' x',sz2)
 
-instance Semigroup a => Semigroup (Filling a) where
+instance Semigroup a => Semigroup (Filler a) where
   (<>) = liftA2 (<>)
 
-instance Monoid a => Monoid (Filling a) where
+instance Monoid a => Monoid (Filler a) where
   mempty = pure mempty
   mappend = liftA2 mappend
 
