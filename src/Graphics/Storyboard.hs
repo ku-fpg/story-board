@@ -13,43 +13,100 @@ import Data.Maybe
 
 -----------------------------------------------------------------------------
 
+data EMState = EMState Int [(E,Op,E)] deriving Show
+
+data Op = LessEq deriving (Eq,Ord,Show)
+
+newtype EM a = EM { runEM :: EMState -> (a,EMState) }
+
+instance Functor EM where
+ fmap f m = pure f <*> m
+
+instance Applicative EM where
+ pure    = return
+ f <*> m = liftM2 ($) f m
+
+instance Monad EM where
+  return a = EM $ \ st -> (a,st)
+  EM f >>= k = EM $ \ st ->
+    case f st of
+       (a,st') -> runEM (k a) st'
+
+
+newtype U = U Int deriving Show
+
+newE :: EM U
+newE = EM $ \ st@(EMState u ues) -> (U u,EMState (u+1) ues)
+
+
+--assign :: U -> E -> EM ()
+--assign v e = EM $ \ (EMState u ues) -> ((),EMState u $ (v,e):ues)
+
+le :: E -> E -> EM ()
+le e1 e2 = EM $ \ (EMState u ues) -> ((),EMState u $ (e1,LessEq,e2):ues)
+
+
+prettyEq :: (E,Op,E) -> String
+prettyEq (e1,op,e2) = prettyE e1 ++ showOp ++ prettyE e2
+   where
+       showOp = case op of {LessEq -> "<=" }
+
+
+-----------------------------------------------------------------------------
+
 type Size  f = (f,f)
 type Coord f = (f,f)
 
 -----------------------------------------------------------------------------
 
--- A Tile has a specific, fixed size
-data Tile a = Tile (Size Float) (Canvas a)
+-- A Tile has a specific, fixed size.
+-- When rendered, it is given a specific size to operate inside of,
+-- that typically would be *at least* the size of the original fixed size.
+-- The tile can choose to put any extra space on the inside or outside
+-- of any border, etc.
+
+data Tile a = Tile (Size Float) (Size Float -> Canvas a)
 
 -----------------------------------------------------------------------------
 
 -- A Parcel can be stretched to different sizes.
 -- You give a size to fit into, and return the actual size.
-data Parcel a = Parcel { runParcel :: (Size Float) -> Canvas (a,Size Float) }
+--data Parcel a = Parcel { runParcel :: (Size Float) -> Canvas (a,Size Float) }
 
 -----------------------------------------------------------------------------
 
-data Cavity = Cavity
-  { cavityCorner :: Coord E
-  , cavitySize   :: Size E
+data Cavity f = Cavity
+  { cavityCorner :: Coord f
+  , cavitySize   :: Size f
   }
+  deriving Show
 
 -- A Fill is a computation that fills a cavity.
-newtype Filling a = Filling { runFilling :: Cavity -> Canvas (a,Cavity) }
+newtype Filling a = Filling
+  { runFilling :: Cavity E -> (Cavity E,Cavity Float -> Canvas (a,Cavity Float))
+  }
 
 instance Functor Filling where
  fmap f m = pure f <*> m
 
 instance Applicative Filling where
- pure    = return
- f <*> m = liftM2 ($) f m
+ pure a = Filling $ \ sz -> (sz,\ sz0 -> return (a,sz0))
+ Filling f <*> Filling x = Filling $ \ sz ->
+    let
+      (sz',kf) = f sz
+      (sz'',kx) = x sz'
+    in
+      (sz'',\ sz0 -> do
+                    (f',sz1) <- kf sz0
+                    (x',sz2) <- kx sz1
+                    return (f' x',sz2))
 
+{-
 instance Monad Filling where
   -- A state monad, where the state is the size of the cavity
-  return a = Filling $ \ sz -> return (a,sz)
+  return a = Filling $ \ sz -> return (return a,sz)
   Filling f >>= k = Filling $ \ sz -> do
-    (a,sz') <- f sz
-    runFilling (k a) sz'
+-}
 
 -----------------------------------------------------------------------------
 {-
@@ -62,12 +119,32 @@ tile f g (Tile (w,h) m) = Filling $ \ cavity -> do
 -}
 
 tileTop :: Tile a -> Filling a
-tileTop (Tile (w,h) m) = Filling $ \ (Cavity (cx,cy) (cw,ch)) -> do
-  a <- saveRestore $ do
-    translate (eval cx,eval cy)
-    m
-  return (a,Cavity (cx,cy `Add` Lit h) (cw,ch `Sub` Lit h))
+tileTop (Tile (w,h) k) = Filling $ \ (Cavity (cx,cy) (cw,ch)) ->
+  ( Cavity (cx,cy `add` Lit h) (Mx cw (Lit w),ch `sub` Lit h)
+  , \ (Cavity (cx',cy') (cw',ch')) -> do
+        a <- k (cw',h)
+        return (a,Cavity (cx',cy' + h) (cw',ch' - h))
+  )
 
+tileLeft :: Tile a -> Filling a
+tileLeft (Tile (w,h) k) = Filling $ \ (Cavity (cx,cy) (cw,ch)) ->
+  ( Cavity (cx `add` Lit w,cy) (cw `sub` Lit w,ch `Mx` Lit h)
+  , \ (Cavity (cx',cy') (cw',ch')) -> do
+        a <- k (w,ch')
+        return (a,Cavity (cx' + w,cy') (cw' - w,ch'))
+  )
+
+
+
+{-
+  let (Tile (w,h) m) = theTile
+  w     `le` cw
+  Lit 0 `le` (ch `sub` h)  -- this can move to a "Filling" wrapper
+  return ( saveRestore $ do
+             translate (eval cx,eval cy)
+             m (w,h)
+         )
+-}
 
 --fillingSize :: Filling (Size Float)
 --fillingSize = Filling $ \ cavity@(Cavity _ sz) -> return (sz,cavity)
@@ -80,10 +157,16 @@ tileTop (Tile (w,h) m) = Filling $ \ (Cavity (cx,cy) (cw,ch)) -> do
 --    (w,_) <- fillingSize
 --    tileTop $ fillTile (w,h) $ m
 
-fillTile :: (Size Float) -> Filling a -> Tile a
-fillTile sz@(x',y') (Filling filler) = Tile sz $ do
-    -- invent two names
+-- turn a Filling into a tile.
 
+fillTile :: Filling a -> Tile a
+fillTile filling = Tile (w,h) $ \ (w',h') -> fst <$> k (Cavity (0,0) (w',h'))
+  where
+    (w,h)      = (100,100)
+    (cavity,k) = runFilling filling (Cavity (Lit 0,Lit 0) (Width,Height))
+
+--    return (undefined,undefined)
+{-
     (a,Cavity (x,y) (w,h)) <- filler (Cavity (Lit 0,Lit 0) (Lit x',Lit y'))-- (Var "x",Var "y"))
     saveRestore $ do
       beginPath()
@@ -92,7 +175,7 @@ fillTile sz@(x',y') (Filling filler) = Tile sz $ do
       closePath()
       fill()
       return a
-
+-}
 {-
 fillTile :: Filling a -> Parcel a
 fillTile sz (Filling filler) = Tile sz $ do
@@ -110,21 +193,41 @@ fillTile sz (Filling filler) = Tile sz $ do
 
 data E
     = Lit Float
-    | Var String
+    | Width
+    | Height
     | Add E E
     | Sub E E
-  deriving (Eq,Ord,Show)
+    | Mx E E
+  deriving (Eq,Ord)
+
+instance Show E where show = prettyE
+
+prettyE :: E -> String
+prettyE (Lit f) = show f
+prettyE (Width)  = "w"
+prettyE (Height) = "h"
+prettyE (Add e1 e2) = "(" ++ prettyE e1 ++ "+" ++ prettyE e2 ++ ")"
+prettyE (Sub e1 e2) = "(" ++ prettyE e1 ++ "-" ++ prettyE e2 ++ ")"
+prettyE (Mx e1 e2) = "(" ++ prettyE e1 ++ "`max`" ++ prettyE e2 ++ ")"
+
+add (Lit i) (Lit j) = Lit (i + j)
+add (Add e1 e2) e3  = add e1 (add e2 e3)
+add a b = Add a b
+sub (Lit i) (Lit j) = Lit (i - j)
+sub (Sub e1 e2) e3  = sub e1 (add e2 e3)
+sub a b = Sub a b
 
 eval :: E -> Float
 eval (Lit f) = f
 eval (Add e1 e2) = eval e1 + eval e2
 eval (Sub e1 e2) = eval e1 - eval e2
 
+--lit <= u - lit
+
 -----------------------------------------------------------------------------
 
-
 example1 :: Text -> Tile ()
-example1 col = Tile (100,100) $ do
+example1 col = Tile (100,100) $ \ sz -> do
         -- assumes 100 x 100 pixels sized viewport
         beginPath()
         fillStyle col
@@ -133,12 +236,21 @@ example1 col = Tile (100,100) $ do
         fill()
 
 example2 :: Filling ()
-example2 = do
-  tileTop $ example1 "red"
-  tileTop $ example1 "green"
-  tileTop $ example1 "orange"
+example2 =
+  (tileTop $ example1 "red")    *>
+  (tileTop $ example1 "green")  *>
+  (tileLeft $ example1 "red")    *>
+  (tileLeft$ example1 "green")  *>
+  (tileTop $ example1 "orange")
 
-  return ()
+
+main = do
+    print cavity
+--    putStrLn $ unlines $ map prettyEq $ nub eqs
+  where
+    (cavity,_) = (runFilling example2 (Cavity (Lit 0,Lit 0) (Width,Height) ))
+
+--          Tile _ m = fillTile (width context - 200,height context - 200) $ example2
 
 -----------------------------------------------------------------------------
 {-
@@ -475,12 +587,12 @@ instance IsString Markup where
    fromString = Markup . intersperse (Leaf Space) . fmap (Leaf . Text . Text.pack) . words
 -}
 
-main = blankCanvas 3000 $ \ context -> do
+main2 = blankCanvas 3000 $ \ context -> do
       send context $ do
         fillStyle "orange"
         translate (100,100)
-        let Tile _ m = fillTile (width context - 200,height context - 200) $ example2
-        _ <- m
+--        let Tile _ m = fillTile (width context - 200,height context - 200) $ example2
+--        _ <- m
         return ()
 {-
         case roundedBox 50 of
