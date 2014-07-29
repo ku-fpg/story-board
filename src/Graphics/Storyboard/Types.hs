@@ -41,16 +41,19 @@ data Cavity f = Cavity
   }
   deriving Show
 
-data Spacing
+data Spacing'
   = Alloc Float    -- take up space
   | AtLeast Float  -- be at least this wide
-  | Space          -- space Filler
+  | Space'         -- space Filler
   deriving (Eq, Ord, Show)
 
 -----------------------------------------------------------------------------
 
+-- Anchored ??
+-- Placed ??
+
 data Filler a = Filler
-  { fillerSpace :: [(Spacing,Spacing)]
+  { fillerSpace :: [(Spacing',Spacing')]
   , runFiller   :: Cavity Float -> Canvas (a,Cavity Float)
   }
 

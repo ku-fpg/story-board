@@ -15,10 +15,10 @@ import Graphics.Storyboard.Types
 
 -----------------------------------------------------------------------------
 
-spaceSize :: Spacing -> Float -> Float
+spaceSize :: Spacing' -> Float -> Float
 spaceSize (Alloc n)   sz = sz + n
 spaceSize (AtLeast n) sz = sz `max` n
-spaceSize (Space)     sz = sz
+spaceSize (Space')     sz = sz
 
 -----------------------------------------------------------------------------
 
@@ -30,20 +30,54 @@ spaceSize (Space)     sz = sz
 tile :: (Float,Float) -> ((Float,Float) -> Canvas a) -> Tile a
 tile = Tile
 
---center :: Tile a -> Tile a
-center t = vfill *> (hfill *> left t <* hfill) <* vfill
+center :: Tile a -> Filler a
+center t = vfill *> (left gap *> left t <* hfill) <* vfill
 
-class Place f where
-    left   :: Tile a -> f a
-    right  :: Tile a -> f a
-    top    :: Tile a -> f a
-    bottom :: Tile a -> f a
+data Side = T | B | L | R
 
-instance Place Filler where
-    left = tileLeft
+-- Anchor?
+class Filling f where
+    anchor :: Side -> f a -> Filler a
 
-instance Place Tile where
-    left t = fillTile (left t <* hfill)
+left   :: Filling f => f a -> Filler a
+left   = anchor L
+right  :: Filling f => f a -> Filler a
+right  = anchor R
+top    :: Filling f => f a -> Filler a
+top    = anchor T
+bottom :: Filling f => f a -> Filler a
+bottom = anchor B
+
+instance Filling Tile where
+  anchor side (Tile (w,h) k) = Filler [newSpacing side (w,h)] $
+     \ cavity -> do
+          a <- saveRestore $ do
+              translate $ newOffset side (w,h) cavity
+              k $ realTileSize side (w,h) cavity
+          return (a,newCavity side (w,h) cavity)
+instance Filling Gap where
+  anchor L Gap = hfill
+
+{-
+instance Filling Parcel where
+  left (Parcel n) = Filler [] $ \ (Cavity (cx,cy) (cw,ch) (sw,sh)) ->
+    return ((),Cavity (cx,cy + sh) (cw,ch - sh) (sw,sh))
+
+data Parcel :: * -> * where
+  Parcel :: Float -> Parcel ()
+-}
+{-
+    Filler [(Alloc 0,Space')] return <>
+-}
+
+--instance Filling Filler where
+--  left f = f <* right gap
+
+data Gap :: * -> * where
+  Gap :: Gap ()
+
+gap :: Gap ()
+gap = Gap
 
 column :: [Tile ()] -> Tile ()
 column xs = fillTile $ mconcat $ intersperse vfill $ map tileLeft $ xs
@@ -52,15 +86,54 @@ row = undefined
 
 -----------------------------------------------------------------------------
 
+vfillSpacing = [(Space', Alloc 0)]
+hfillSpacing = [(Alloc 0, Space')]
+
+-----------------------------------------------------------------------------
+
+newSpacing :: Side -> Size Float -> (Spacing',Spacing')
+newSpacing T (w,h) = (AtLeast w, Alloc h)
+newSpacing B (w,h) = (AtLeast w, Alloc h)
+newSpacing L (w,h) = (Alloc w, AtLeast h)
+newSpacing R (w,h) = (Alloc w, AtLeast h)
+
+newCavity :: Side -> Size Float -> Cavity Float -> Cavity Float
+newCavity side (w,h) cavity = case side of
+    T -> Cavity (cx,cy + h) (cw,ch - h) (sw,sh)
+    B -> Cavity (cx,cy)     (cw,ch - h) (sw,sh)
+    L -> Cavity (cx + w,cy) (cw - w,ch) (sw,sh)
+    R -> Cavity (cx,cy)     (cw - w,ch) (sw,sh)
+  where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
+
+newOffset :: Side -> Size Float -> Cavity Float -> Coord Float
+newOffset side (w,h) cavity = case side of
+    T -> (cx,cy)
+    B -> (cx,cy + ch - h)
+    L -> (cx,cy)
+    R -> (cx + cw - w,cy)
+  where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
+
+realTileSize :: Side -> Size Float -> Cavity Float -> Size Float
+realTileSize side (w,h) cavity = case side of
+    T -> (cw,h)
+    B -> (cw,h)
+    L -> (w,ch)
+    R -> (w,ch)
+  where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
+
+--tileSide :: Side -> Cavity Float ->
+
+-----------------------------------------------------------------------------
+
 
 vfill :: Filler ()
-vfill = Filler [(Space,Alloc 0)] $
+vfill = Filler [(Space',Alloc 0)] $
   \ (Cavity (cx',cy') (cw',ch') spaces@(sw,sh)) -> do
       return ((),Cavity (cx' + sw,cy') (cw' - sw,ch') spaces)
 
 
 hfill :: Filler ()
-hfill = Filler [(Alloc 0,Space)] $
+hfill = Filler [(Alloc 0,Space')] $
   \ (Cavity (cx',cy') (cw',ch') spaces@(sw,sh)) -> do
       return ((),Cavity (cx',cy' + sh) (cw',ch' - sh) spaces)
 
@@ -90,8 +163,8 @@ fillTile (Filler cavity k) = Tile (w,h) $ \ (w',h') -> do
   where
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
-    w_sps = fromIntegral $ length [ () | Space <- map fst cavity ]
-    h_sps = fromIntegral $ length [ () | Space <- map snd cavity ]
+    w_sps = fromIntegral $ length [ () | Space' <- map fst cavity ]
+    h_sps = fromIntegral $ length [ () | Space' <- map snd cavity ]
 
 -----------------------------------------------------------------------------
 
@@ -116,16 +189,17 @@ example1 col = Tile (100,100) $ \ sz@(w,h) -> do
 example2 :: Filler ()
 example2 =
   hfill *>
-  (tileTop $ example1 "red")    *>
-  (tileTop $ column [ example1 "red" | i <- [0..10]]) *>
-  (tileTop $ example1 "green")  *>
-  (tileLeft $ example1 "pink")    *> vfill *>
-  (tileLeft$ example1 "blue")  *>
-  (tileTop $ example1 "orange")  *>
-  (tileLeft $ example1 "pink")    *>
-  (tileLeft$ example1 "blue")  *> vfill *>
-  (tileLeft $ example1 "pink")    *>
-  (tileLeft$ example1 "blue")  *>
+  (top $ example1 "red")    *>
+  (top $ column [ example1 "red" | i <- [0..7]]) *>
+  (top $ example1 "green")  *>
+  (left $ example1 "pink")    *> vfill *>
+  (left$ example1 "blue")  *>
+  (top $ example1 "orange")  *>
+  (left $ example1 "pink")    *>
+  (left$ example1 "blue")  *> vfill *>
+  (left $ example1 "pink")    *>
+  (left$ example1 "blue")  *>
+  (right$ example1 "#123456")  *>
   pure ()
 
 main = do
