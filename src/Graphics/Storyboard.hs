@@ -82,23 +82,18 @@ data Cavity f = Cavity
   deriving Show
 
 -- A Fill is a computation that fills a cavity.
-newtype Filling a = Filling
-  { runFilling :: Cavity E -> (Cavity E,Cavity Float -> Canvas (a,Cavity Float))
+data Filling a = Filling
+  { runFilling :: ([(Spacing,Spacing)],Cavity Float -> Canvas (a,Cavity Float))
   }
 
 instance Functor Filling where
  fmap f m = pure f <*> m
 
 instance Applicative Filling where
- pure a = Filling $ \ sz -> (sz,\ sz0 -> return (a,sz0))
- Filling f <*> Filling x = Filling $ \ sz ->
-    let
-      (sz',kf) = f sz
-      (sz'',kx) = x sz'
-    in
-      (sz'',\ sz0 -> do
-                    (f',sz1) <- kf sz0
-                    (x',sz2) <- kx sz1
+ pure a = Filling ([],\ sz0 -> return (a,sz0))
+ Filling (fs,f) <*> Filling (xs,x) = Filling (fs ++ xs,\ sz0 -> do
+                    (f',sz1) <- f sz0
+                    (x',sz2) <- x sz1
                     return (f' x',sz2))
 
 {-
@@ -109,7 +104,21 @@ instance Monad Filling where
 -}
 
 -----------------------------------------------------------------------------
+
+data Spacing
+  = Alloc Float    -- take up space
+  | AtLeast Float  -- be at least this wide
+  deriving (Eq, Ord, Show)
+
+spaceSize :: Spacing -> Float -> Float
+spaceSize (Alloc n)   sz = sz + n
+spaceSize (AtLeast n) sz = sz `max` n
+
+-----------------------------------------------------------------------------
+
 {-
+
+
 tile :: (Size -> Cavity -> Cavity) -> (Size -> Cavity -> Coord) -> Tile a -> Filling a
 tile f g (Tile (w,h) m) = Filling $ \ cavity -> do
   a <- saveRestore $ do
@@ -119,9 +128,8 @@ tile f g (Tile (w,h) m) = Filling $ \ cavity -> do
 -}
 
 tileTop :: Tile a -> Filling a
-tileTop (Tile (w,h) k) = Filling $ \ (Cavity (cx,cy) (cw,ch)) ->
-  ( Cavity (cx,cy `add` Lit h) (Mx cw (Lit w),ch `sub` Lit h)
-  , \ (Cavity (cx',cy') (cw',ch')) -> do
+tileTop (Tile (w,h) k) = Filling ([(AtLeast w,Alloc h)],
+    \ (Cavity (cx',cy') (cw',ch')) -> do
         a <- saveRestore $ do
                 translate (cx',cy')
                 k (cw',h)
@@ -129,9 +137,8 @@ tileTop (Tile (w,h) k) = Filling $ \ (Cavity (cx,cy) (cw,ch)) ->
   )
 
 tileLeft :: Tile a -> Filling a
-tileLeft (Tile (w,h) k) = Filling $ \ (Cavity (cx,cy) (cw,ch)) ->
-  ( Cavity (cx `add` Lit w,cy) (cw `sub` Lit w,ch `Mx` Lit h)
-  , \ (Cavity (cx',cy') (cw',ch')) -> do
+tileLeft (Tile (w,h) k) = Filling ([(Alloc w, AtLeast h)],
+    \ (Cavity (cx',cy') (cw',ch')) -> do
         a <- saveRestore $ do
                 translate (cx',cy')
                 k (w,ch')
@@ -167,7 +174,7 @@ fillTile :: Filling a -> Tile a
 fillTile filling = Tile (w,h) $ \ (w',h') -> fst <$> k (Cavity (0,0) (w',h'))
   where
     (w,h)      = (500,500)
-    (cavity,k) = runFilling filling (Cavity (Lit 0,Lit 0) (Width,Height))
+    (cavity,k) = runFilling filling
 
 --    return (undefined,undefined)
 {-
@@ -231,7 +238,15 @@ eval (Sub e1 e2) = eval e1 - eval e2
 -----------------------------------------------------------------------------
 
 example1 :: Text -> Tile ()
-example1 col = Tile (100,100) $ \ sz -> do
+example1 col = Tile (100,100) $ \ sz@(w,h) -> do
+
+        -- background
+        beginPath()
+        strokeStyle "#dddddd"
+        rect(0,0,w,h)
+        closePath()
+        stroke()
+
         -- assumes 100 x 100 pixels sized viewport
         beginPath()
         fillStyle col
@@ -239,22 +254,30 @@ example1 col = Tile (100,100) $ \ sz -> do
         closePath()
         fill()
 
+
 example2 :: Filling ()
 example2 =
   (tileTop $ example1 "red")    *>
   (tileTop $ example1 "green")  *>
   (tileLeft $ example1 "pink")    *>
   (tileLeft$ example1 "blue")  *>
-  (tileTop $ example1 "orange")
-
+  (tileTop $ example1 "orange")  *>
+  (tileLeft $ example1 "pink")    *>
+  (tileLeft$ example1 "blue")  *>
+  (tileLeft $ example1 "pink")    *>
+  (tileLeft$ example1 "blue")  *>
+  pure ()
 
 main = do
     print cavity
+    print $ foldr spaceSize 0 $ map fst $ cavity
+    print $ foldr spaceSize 0 $ map snd $ cavity
 --    putStrLn $ unlines $ map prettyEq $ nub eqs
   where
-    (cavity,_) = (runFilling example2 (Cavity (Lit 0,Lit 0) (Width,Height) ))
+    (cavity,_) = runFilling example2
 
 --          Tile _ m = fillTile (width context - 200,height context - 200) $ example2
+
 
 -----------------------------------------------------------------------------
 {-
@@ -596,7 +619,7 @@ main2 = blankCanvas 3000 $ \ context -> do
         fillStyle "orange"
         translate (100,100)
         let Tile _ m = fillTile example2
-        _ <- m (500,500)
+        _ <- m (800,800)
         return ()
 {-
         case roundedBox 50 of
