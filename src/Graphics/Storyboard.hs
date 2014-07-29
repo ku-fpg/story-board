@@ -122,7 +122,9 @@ tileTop :: Tile a -> Filling a
 tileTop (Tile (w,h) k) = Filling $ \ (Cavity (cx,cy) (cw,ch)) ->
   ( Cavity (cx,cy `add` Lit h) (Mx cw (Lit w),ch `sub` Lit h)
   , \ (Cavity (cx',cy') (cw',ch')) -> do
-        a <- k (cw',h)
+        a <- saveRestore $ do
+                translate (cx',cy')
+                k (cw',h)
         return (a,Cavity (cx',cy' + h) (cw',ch' - h))
   )
 
@@ -130,7 +132,9 @@ tileLeft :: Tile a -> Filling a
 tileLeft (Tile (w,h) k) = Filling $ \ (Cavity (cx,cy) (cw,ch)) ->
   ( Cavity (cx `add` Lit w,cy) (cw `sub` Lit w,ch `Mx` Lit h)
   , \ (Cavity (cx',cy') (cw',ch')) -> do
-        a <- k (w,ch')
+        a <- saveRestore $ do
+                translate (cx',cy')
+                k (w,ch')
         return (a,Cavity (cx' + w,cy') (cw' - w,ch'))
   )
 
@@ -162,7 +166,7 @@ tileLeft (Tile (w,h) k) = Filling $ \ (Cavity (cx,cy) (cw,ch)) ->
 fillTile :: Filling a -> Tile a
 fillTile filling = Tile (w,h) $ \ (w',h') -> fst <$> k (Cavity (0,0) (w',h'))
   where
-    (w,h)      = (100,100)
+    (w,h)      = (500,500)
     (cavity,k) = runFilling filling (Cavity (Lit 0,Lit 0) (Width,Height))
 
 --    return (undefined,undefined)
@@ -239,8 +243,8 @@ example2 :: Filling ()
 example2 =
   (tileTop $ example1 "red")    *>
   (tileTop $ example1 "green")  *>
-  (tileLeft $ example1 "red")    *>
-  (tileLeft$ example1 "green")  *>
+  (tileLeft $ example1 "pink")    *>
+  (tileLeft$ example1 "blue")  *>
   (tileTop $ example1 "orange")
 
 
@@ -591,8 +595,8 @@ main2 = blankCanvas 3000 $ \ context -> do
       send context $ do
         fillStyle "orange"
         translate (100,100)
---        let Tile _ m = fillTile (width context - 200,height context - 200) $ example2
---        _ <- m
+        let Tile _ m = fillTile example2
+        _ <- m (500,500)
         return ()
 {-
         case roundedBox 50 of
