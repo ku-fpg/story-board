@@ -19,6 +19,17 @@ type Coord f = (f,f)
 
 data Tile a = Tile (Size Float) (Size Float -> Canvas a)
 
+instance Show (Tile a) where
+  show (Tile sz _) = show sz
+
+-- | tile requests a specific (minimum) size, and provides
+-- a paint routine that takes the *actual* size.
+-- The paint routine can assume the canvas starts at (0,0),
+-- and is the given size. No masking is done by default.
+
+tile :: Size Float -> (Size Float -> Canvas a) -> Tile a
+tile = Tile
+
 instance Semigroup a => Semigroup (Tile a) where
   (Tile (x1,y1) c1) <> (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ sz ->
         do r1 <- c1 sz
