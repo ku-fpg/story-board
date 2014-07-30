@@ -56,7 +56,10 @@ instance Filling Tile where
               k $ realTileSize side (w,h) cavity
           return (a,newCavity side (w,h) cavity)
 instance Filling Gap where
-  anchor L Gap = hfill
+  anchor side Gap = Filler [fillSpacing side] $
+    \ cavity -> return ((),newSpacingCavity side cavity)
+
+--  anchor T Gap = hfill
 
 {-
 instance Filling Parcel where
@@ -97,6 +100,7 @@ newSpacing B (w,h) = (AtLeast w, Alloc h)
 newSpacing L (w,h) = (Alloc w, AtLeast h)
 newSpacing R (w,h) = (Alloc w, AtLeast h)
 
+-- Note that newCavity ignores either the width or height, as appropreate
 newCavity :: Side -> Size Float -> Cavity Float -> Cavity Float
 newCavity side (w,h) cavity = case side of
     T -> Cavity (cx,cy + h) (cw,ch - h) (sw,sh)
@@ -121,7 +125,16 @@ realTileSize side (w,h) cavity = case side of
     R -> (w,ch)
   where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
 
---tileSide :: Side -> Cavity Float ->
+fillSpacing :: Side -> (Spacing',Spacing')
+fillSpacing side = case side of
+    T -> (Alloc 0,Space')
+    B -> (Alloc 0,Space')
+    L -> (Space',Alloc 0)
+    R -> (Space',Alloc 0)
+
+newSpacingCavity :: Side -> Cavity Float -> Cavity Float
+newSpacingCavity side cavity = newCavity side (sw,sh) cavity
+  where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
 
 -----------------------------------------------------------------------------
 
@@ -168,6 +181,8 @@ fillTile (Filler cavity k) = Tile (w,h) $ \ (w',h') -> do
 
 -----------------------------------------------------------------------------
 
+
+
 example1 :: Text -> Tile ()
 example1 col = Tile (100,100) $ \ sz@(w,h) -> do
 
@@ -188,15 +203,15 @@ example1 col = Tile (100,100) $ \ sz@(w,h) -> do
 
 example2 :: Filler ()
 example2 =
-  hfill *>
+  top gap *>
   (top $ example1 "red")    *>
   (top $ column [ example1 "red" | i <- [0..7]]) *>
   (top $ example1 "green")  *>
-  (left $ example1 "pink")    *> vfill *>
+  (left $ example1 "pink")    *> left gap *>
   (left$ example1 "blue")  *>
   (top $ example1 "orange")  *>
   (left $ example1 "pink")    *>
-  (left$ example1 "blue")  *> vfill *>
+  (left$ example1 "blue")  *> left gap *>
   (left $ example1 "pink")    *>
   (left$ example1 "blue")  *>
   (right$ example1 "#123456")  *>
