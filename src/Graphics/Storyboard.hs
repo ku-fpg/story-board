@@ -14,6 +14,7 @@ import Data.Maybe
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
+import Graphics.Storyboard.Markup
 
 -----------------------------------------------------------------------------
 
@@ -47,7 +48,15 @@ example1 size col = id
 example2 :: Filler ()
 example2 =
 --  top gap *>
+  (top $
+   layoutLine (500,50)
+              "10px sans-serif"
+              3
+              JustLeft
+              [(Word [] "Hello",23),(Word [] "World",26)])
+                                                *>
   (top $ example1 100 "red")    *>
+{-
   (top $ column [ example1 (i ^ 2 * 10) "red" | i <- [0..7]]) *>
   (top $ example1 100 "green")  *>
   (left $ example1 100 "pink")    *> left gap *>
@@ -56,6 +65,7 @@ example2 =
   (left $ example1 100 "pink")    *>
   (left$ example1 100 "blue")  *> left gap *>
   (left $ example1 100 "pink")    *>
+-}
   (left$ example1 100 "blue")  *>
   (right$ example1 100 "#123456")  *>
   pure ()
