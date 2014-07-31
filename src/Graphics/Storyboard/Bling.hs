@@ -14,9 +14,15 @@ border wd col (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ (w',h') -> do
   -- then print a border
   saveRestore $ do
     beginPath()
+{-
+    shadowColor "pink"
+    shadowOffsetX 5
+    shadowOffsetY 5
+    shadowBlur 0
+-}
     strokeStyle col
     lineWidth 1
-    rect(wd*0.5,wd*0.5,w'-wd*0.5,h'-wd*0.5)
+    rect(0,0,w',h')
     closePath()
     stroke()
   return r
