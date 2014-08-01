@@ -1,26 +1,147 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Graphics.Storyboard.Markup where
 
 import qualified Data.Text as Text
 import Data.Text(Text)
-import Data.Monoid
+import Data.Semigroup
 import Graphics.Blank
 import Data.List as List
 
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
+import Control.Monad.IO.Class
 
 import GHC.Exts (IsString(fromString))
+
+------------------------------------------------------------------------
 
 data Emphasis
   = Italics
   | Bold
   | Color Text       -- not supported yet
   | Font Int Text    -- not supported yet
+
+
+instance Show Emphasis where
+  show (Italics)     = "i"
+  show (Bold)        = "b"
+  show (Color col)   = "#" ++ show col
+  show (Font sz txt) = show sz ++ "-" ++ show txt
+
+------------------------------------------------------------------------
+
+data Word
+      = Word [Emphasis] Text
+      | WordSpace Float      -- 1 for space, 0 for (breakable) 0-width-space
+
+instance Show Word where
+   show (Word [] txt)   = show $ Text.unpack txt
+   show (Word emph txt) = show emph ++ show (Text.unpack txt)
+   show (WordSpace n)       = show n
+
+------------------------------------------------------------------------
+
+newtype Prose = Prose [Word]
   deriving Show
 
-data Word = Word [Emphasis] Text
-  deriving Show
+
+instance IsString Prose where
+  fromString txt = Prose $ List.intersperse (WordSpace 1)
+      [ Word [] (Text.pack wd) -- default is *no* annotations
+      | wd <- words txt
+      ]
+
+
+instance Semigroup Prose where
+  (Prose xs) <> (Prose ys) = Prose (xs++ys)
+
+instance Monoid Prose where
+  mempty = Prose []
+  mappend (Prose xs) (Prose ys) = Prose (xs++ys)
+
+
+sp :: Float -> Prose
+sp n = Prose [WordSpace n]
+
+space :: Prose
+space = sp 1
+
+(<+>) :: Prose -> Prose -> Prose
+p1 <+> p2 = p1 <> space <> p2
+
+------------------------------------------------------------------------
+
+data MarkupContext = MarkupContext
+  {  baseFont    :: Text      -- which font, "sans-serif"
+  ,  fontSize    :: Int       -- how big, 10
+  ,  spaceWidth  :: Float     -- size of space, 3.0 (perhaps 2.8)
+  ,  baseColor   :: Text      -- current color
+  ,  baseJust    :: Justify   -- What justification method are we using
+  ,  columnWidth :: Float     -- how wide is the current column
+  }
+
+data Justify = JustLeft | JustCenter | JustRight | Justified
+
+------------------------------------------------------------------------
+
+--tileProse :: MarkupContext -> Prose -> Canvas [Either Float (Canvas (Tile ())]
+tileProse cxt (Prose xs) = do
+
+    -- get all the tiles and spaces
+    proseTiles <- sequence
+        [ case x of
+            Word emph txt -> do
+              font $ emphasisFont (baseFont cxt) emph
+              TextMetrics w <- measureText txt
+              return $ Right $ tile (w,fromIntegral $ fontSize cxt + 5) $ const $ do
+                font $ emphasisFont (baseFont cxt) emph
+                fillStyle (baseColor cxt)
+                fillText (txt,0,fromIntegral $ fontSize cxt)    -- time will tell for this offset
+            WordSpace n -> return $ Left $ n * spaceWidth cxt
+        | x <- xs
+        ]
+
+    liftIO $ sequence_
+            [ case v of
+                Left n -> print ("SP",n)
+                Right t -> print ("T",tileWidth t)
+            | v <- proseTiles
+            ]
+
+    let
+        findT (Left n:xs) ts = findS xs (ts,n)
+        findT (Right t:xs) ts = findT xs (ts++[t])
+        findT [] ts = [(ts,0)]
+
+        findS (Left n:xs) (ts,w) = findS xs (ts,w + n)
+        findS (Right t:xs) (ts,w) = (ts,w) : findT xs [t]
+        findS [] (ts,w) = [(ts,w)]
+
+
+    let glyphs2 = findT proseTiles []
+
+    liftIO $ sequence_
+        [ print (map tileWidth ts,w)
+        | (ts,w) <- glyphs2
+        ]
+
+
+    liftIO $ print $ splitLines (columnWidth cxt) [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
+
+    -- now finally laydown the tiles
+{-
+    let loop []     [] = return ()
+        loop (n:ns) xs = do
+            write (take n xs)
+-}
+
+    return ()
+--    splitLine :: Float -> Float -> [(Float,Bool)] -> Int
+
+--    return proseTiles
+
+------------------------------------------------------------------------
 
 newtype Paragraph = Paragraph [Word]
 
@@ -33,11 +154,6 @@ instance IsString Paragraph where
       | wd <- words txt
       ]
 
-data MarkupContext = MarkupContext
-  {  baseFont   :: Text      -- which font, "sans-serif"
-  ,  fontSize   :: Int       -- how big, 10
-  ,  spaceWidth :: Float     -- size of space, 3.0 (perhaps 2.8)
-  }
 
 {- Notes about spaces
    (from http://www.microsoft.com/typography/developers/fdsspec/spaces.aspx)
@@ -80,8 +196,8 @@ wordTile baseFont wd@(Word emph txt) = do
 
 -- Given the (min) width of a space, the width of the line,
 -- and a list of word widths, how many words can we accept.
-splitLine :: Float -> Float -> [Float] -> Int
-splitLine spaceWidth lineWidth widths = length $ takeWhile (<= lineWidth) szs
+splitLine' :: Float -> Float -> [Float] -> Int
+splitLine' spaceWidth lineWidth widths = length $ takeWhile (<= lineWidth) szs
   where
     szs = [ sz + sp + rest
           | (sz,sp,rest) <-
@@ -90,7 +206,24 @@ splitLine spaceWidth lineWidth widths = length $ takeWhile (<= lineWidth) szs
                      (0 : szs)
           ]
 
-data Justify = JustLeft | JustCenter | JustRight | Justified
+-- Given the (min) width of a space, the width of the line,
+-- and a list of word widths, how many words can we accept.
+splitLine :: Float -> [(Float,Float)] -> Int
+splitLine lineWidth widths = length $ takeWhile (<= lineWidth) szs
+  where
+    szs = [ sz + sp + rest
+          | (sz,sp,rest) <-
+                zip3 (map fst widths)
+                     (0 : map snd widths)
+                     (0 : szs)
+          ]
+
+splitLines :: Float -> [(Float,Float)] -> [Int]
+splitLines lineWidth [] = []
+splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
+  where
+    n = splitLine lineWidth xs `max` 1 -- hfill warning here
+
 
 layoutLine :: (Float,Float) -> Text -> Float -> Justify -> [(Word,Float)] -> Tile ()
 layoutLine (w,h) baseFont spaceWidth JustLeft theWords = border 1 "blue" $

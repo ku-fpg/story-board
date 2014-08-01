@@ -70,7 +70,11 @@ example2 =
   (right$ example1 100 "#123456")  *>
   pure ()
 
+
 main = blankCanvas 3000 $ \ context -> do
+      send context $ do
+        let cxt = MarkupContext "sans-serif" 10 3 "black" JustLeft 200
+        tileProse cxt "Hello, World. This is a larger example of text layout"
       send context $ do
         fillStyle "orange"
         translate (0,0)
