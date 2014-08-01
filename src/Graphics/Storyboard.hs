@@ -74,10 +74,16 @@ example2 =
 main = blankCanvas 3000 $ \ context -> do
       send context $ do
         let cxt = MarkupContext "sans-serif" 10 3 "black" JustLeft 200
-        tileProse cxt "Hello, World. This is a larger example of text layout"
+        filler <- tileProse cxt "Hello, World. This is a larger example of text layout"
+        let Tile (w,h) m = fillTile filler
+        _ <- m (w + 100,h + 100)
+        return ()
+
+{-
       send context $ do
         fillStyle "orange"
         translate (0,0)
         let Tile (w,h) m = fillTile example2
         _ <- m (w + 100,h + 100)
         return ()
+-}

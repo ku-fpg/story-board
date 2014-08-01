@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Graphics.Storyboard.Markup where
 
 import qualified Data.Text as Text
@@ -6,6 +6,7 @@ import Data.Text(Text)
 import Data.Semigroup
 import Graphics.Blank
 import Data.List as List
+import Control.Applicative
 
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Layout
@@ -85,7 +86,7 @@ data Justify = JustLeft | JustCenter | JustRight | Justified
 
 ------------------------------------------------------------------------
 
---tileProse :: MarkupContext -> Prose -> Canvas [Either Float (Canvas (Tile ())]
+tileProse :: MarkupContext -> Prose -> Canvas (Filler ())
 tileProse cxt (Prose xs) = do
 
     -- get all the tiles and spaces
@@ -119,27 +120,36 @@ tileProse cxt (Prose xs) = do
         findS [] (ts,w) = [(ts,w)]
 
 
-    let glyphs2 = findT proseTiles []
+    let glyphs2 :: [([Tile ()],Float)] = findT proseTiles []
 
     liftIO $ sequence_
         [ print (map tileWidth ts,w)
         | (ts,w) <- glyphs2
         ]
 
+    let splits = splitLines (columnWidth cxt) [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
 
-    liftIO $ print $ splitLines (columnWidth cxt) [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
 
+    liftIO $ print $ splits
     -- now finally laydown the tiles
-{-
-    let loop []     [] = return ()
-        loop (n:ns) xs = do
-            write (take n xs)
--}
 
-    return ()
---    splitLine :: Float -> Float -> [(Float,Bool)] -> Int
+    let
+        write :: [([Tile ()],Float)] -> Filler ()
+        write xs = top $ pack $ mconcat
+              [ mconcat [ left $ border 1 "red" $ tile | tile <- tiles ] <>
+                (if sp == 0
+                 then pure ()
+                 else left $ tile (sp,0) $ const $ return ()
+                )
+              | (tiles,sp) <- xs
+              ]
 
---    return proseTiles
+        loop []     [] = pure ()
+        loop (n:ns) xs =
+            write (take n xs) <>
+            loop ns (drop n xs)
+
+    return $ loop splits glyphs2
 
 ------------------------------------------------------------------------
 
