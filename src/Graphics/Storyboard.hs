@@ -15,6 +15,7 @@ import Graphics.Storyboard.Types
 import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Markup
+import Graphics.Storyboard.Images
 
 -----------------------------------------------------------------------------
 
@@ -88,7 +89,7 @@ main = blankCanvas 3000 $ \ context -> do
         filler <- tileProse cxt txt
         let Tile (w,h) m = border 1 "red" $ fillTile filler
         saveRestore $ do
-          translate (10,100)
+          translate (10,200)
           _ <- m (w,h)
           return ()
 
@@ -99,6 +100,14 @@ main = blankCanvas 3000 $ \ context -> do
           translate (550,100)
           _ <- m (w,h)
           return ()
+
+        tile <- imageTile "Haskell.jpg"
+        let Tile (w,h) m = tile
+        saveRestore $ do
+          translate (10,10)
+          _ <- m (w,h)
+          return ()
+
 
         return ()
 
