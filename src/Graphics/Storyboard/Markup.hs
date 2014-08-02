@@ -83,6 +83,7 @@ data MarkupContext = MarkupContext
   }
 
 data Justify = JustLeft | JustCenter | JustRight | Justified
+  deriving (Eq,Ord,Show)
 
 ------------------------------------------------------------------------
 
@@ -93,10 +94,10 @@ tileProse cxt (Prose xs) = do
     proseTiles <- sequence
         [ case x of
             Word emph txt -> do
-              font $ emphasisFont (baseFont cxt) emph
+              font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
               TextMetrics w <- measureText txt
               return $ Right $ tile (w,fromIntegral $ fontSize cxt + 5) $ const $ do
-                font $ emphasisFont (baseFont cxt) emph
+                font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
                 fillStyle (baseColor cxt)
                 fillText (txt,0,fromIntegral $ fontSize cxt)    -- time will tell for this offset
             WordSpace n -> return $ Left $ n * spaceWidth cxt
@@ -134,19 +135,26 @@ tileProse cxt (Prose xs) = do
     -- now finally laydown the tiles
 
     let
-        write :: [([Tile ()],Float)] -> Filler ()
-        write xs = top $ pack $ mconcat
-              [ mconcat [ left $ border 1 "red" $ tile | tile <- tiles ] <>
+        write :: Bool -> [([Tile ()],Float)] -> Filler ()
+        write lastLine xs = top $ pack $ mconcat $
+              [ left gap | True <- [just `elem` [ JustCenter, JustRight]]] ++
+              [ mconcat [ left $ tile | tile <- tiles ] <>
                 (if sp == 0
                  then pure ()
-                 else left $ tile (sp,0) $ const $ return ()
+                 else if just == Justified
+                      then left gap
+                      else left $ tile (sp,0) $ const $ return ()
                 )
-              | (tiles,sp) <- xs
-              ]
+              | (tiles,sp) <- init xs ++ [(fst (last xs),0)]
+              ] ++
+              [ left gap | True <- [just `elem` [ JustLeft, JustCenter]]]
+           where just = if lastLine && baseJust cxt == Justified
+                        then JustLeft
+                        else baseJust cxt
 
-        loop []     [] = pure ()
+        loop []     [] = hbrace $ columnWidth $ cxt
         loop (n:ns) xs =
-            write (take n xs) <>
+            write (null ns) (take n xs) <>
             loop ns (drop n xs)
 
     return $ loop splits glyphs2
@@ -178,15 +186,16 @@ Advance width rule :
  -}
 
 -- figure out the font for this word
-emphasisFont :: Text -> [Emphasis] -> Text
-emphasisFont baseFont emph = Text.intercalate " " $
-    [ t | e <- emph, Just t <- [f e] ] ++ [baseFont]
+emphasisFont :: Int -> Text -> [Emphasis] -> Text
+emphasisFont fontSize baseFont emph = Text.intercalate " " $
+    [ t | e <- emph, Just t <- [f e] ] ++ [Text.pack $ show fontSize, baseFont]
   where
     f :: Emphasis -> Maybe Text
     f Italics   = return "italics"
     f Bold      = return "bold"
     f _         = fail "no match"
 
+{-
 -- This function should be memoize; it will return
 -- the same answer for *every* call.
 wordWidth :: Text -> Word -> Canvas Float
@@ -216,6 +225,20 @@ splitLine' spaceWidth lineWidth widths = length $ takeWhile (<= lineWidth) szs
                      (0 : szs)
           ]
 
+
+
+layoutLine :: (Float,Float) -> Text -> Float -> Justify -> [(Word,Float)] -> Tile ()
+layoutLine (w,h) baseFont spaceWidth JustLeft theWords = border 1 "blue" $
+    pack $ mconcat $ List.intersperse spaceTile $
+      [ left $ border 1 "red" $ tile (wd_w,h) $ const $ do
+          font $ emphasisFont baseFont emph
+          fillStyle "black"
+          fillText (wd,0,10)    -- time will tell for this offset
+      | (Word emph wd,wd_w) <- theWords
+      ]
+ where spaceTile = left $ tile (spaceWidth,h) $ const $ return ()
+-}
+
 -- Given the (min) width of a space, the width of the line,
 -- and a list of word widths, how many words can we accept.
 splitLine :: Float -> [(Float,Float)] -> Int
@@ -233,15 +256,3 @@ splitLines lineWidth [] = []
 splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
   where
     n = splitLine lineWidth xs `max` 1 -- hfill warning here
-
-
-layoutLine :: (Float,Float) -> Text -> Float -> Justify -> [(Word,Float)] -> Tile ()
-layoutLine (w,h) baseFont spaceWidth JustLeft theWords = border 1 "blue" $
-    pack $ mconcat $ List.intersperse spaceTile $
-      [ left $ border 1 "red" $ tile (wd_w,h) $ const $ do
-          font $ emphasisFont baseFont emph
-          fillStyle "black"
-          fillText (wd,0,10)    -- time will tell for this offset
-      | (Word emph wd,wd_w) <- theWords
-      ]
- where spaceTile = left $ tile (spaceWidth,h) $ const $ return ()

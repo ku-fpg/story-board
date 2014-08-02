@@ -148,4 +148,4 @@ fillTile (Filler cavity k) = Tile (w,h) $ \ (w',h') -> do
     spaceSize :: Spacing' -> Float -> Float
     spaceSize (Alloc n)   sz = sz + n
     spaceSize (AtLeast n) sz = sz `max` n
-    spaceSize (Space')     sz = sz
+    spaceSize (Space')    sz = sz

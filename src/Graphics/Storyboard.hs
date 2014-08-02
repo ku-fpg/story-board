@@ -47,7 +47,8 @@ example1 size col = id
 
 example2 :: Filler ()
 example2 =
---  top gap *>
+  top gap *>
+{-
   (top $
    layoutLine (500,50)
               "10px sans-serif"
@@ -56,6 +57,7 @@ example2 =
               [(Word [] "Hello",23),(Word [] "World",26)])
                                                 *>
   (top $ example1 100 "red")    *>
+-}
 {-
   (top $ column [ example1 (i ^ 2 * 10) "red" | i <- [0..7]]) *>
   (top $ example1 100 "green")  *>
@@ -70,13 +72,34 @@ example2 =
   (right$ example1 100 "#123456")  *>
   pure ()
 
+txt :: Prose
+txt =
+  "The Canvas monad forms a JavaScript/Canvas DSL, and we, where possible," <+>
+  "stick to the JavaScript idioms. So a method call with no arguments takes a" <+>
+  "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
+  "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
+  "as needed (it turns out that all var-args functions take a variable number" <+>
+  "of JavaScript numbers.)"
+
 
 main = blankCanvas 3000 $ \ context -> do
       send context $ do
-        let cxt = MarkupContext "sans-serif" 10 3 "black" JustLeft 200
-        filler <- tileProse cxt "Hello, World. This is a larger example of text layout"
-        let Tile (w,h) m = fillTile filler
-        _ <- m (w + 100,h + 100)
+        let cxt = MarkupContext "sans-serif" 32 (3 * 3.2) "black" JustLeft 470
+        filler <- tileProse cxt txt
+        let Tile (w,h) m = border 1 "red" $ fillTile filler
+        saveRestore $ do
+          translate (10,100)
+          _ <- m (w,h)
+          return ()
+
+        let cxt = MarkupContext "sans-serif" 32 (3 * 3.2) "black" Justified 470
+        filler <- tileProse cxt txt
+        let Tile (w,h) m = border 1 "red" $ fillTile filler
+        saveRestore $ do
+          translate (550,100)
+          _ <- m (w,h)
+          return ()
+
         return ()
 
 {-
