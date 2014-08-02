@@ -71,24 +71,11 @@ space = sp 1
 (<+>) :: Prose -> Prose -> Prose
 p1 <+> p2 = p1 <> space <> p2
 
-------------------------------------------------------------------------
-
-data MarkupContext = MarkupContext
-  {  baseFont    :: Text      -- which font, "sans-serif"
-  ,  fontSize    :: Int       -- how big, 10
-  ,  spaceWidth  :: Float     -- size of space, 3.0 (perhaps 2.8)
-  ,  baseColor   :: Text      -- current color
-  ,  baseJust    :: Justify   -- What justification method are we using
-  ,  columnWidth :: Float     -- how wide is the current column
-  }
-
-data Justify = JustLeft | JustCenter | JustRight | Justified
-  deriving (Eq,Ord,Show)
 
 ------------------------------------------------------------------------
 
-tileProse :: MarkupContext -> Prose -> Canvas (Filler ())
-tileProse cxt (Prose xs) = do
+p :: Prose -> Layout ()
+p (Prose xs) = Layout $ \ cxt -> do
 
     -- get all the tiles and spaces
     proseTiles <- sequence
@@ -157,7 +144,7 @@ tileProse cxt (Prose xs) = do
             write (null ns) (take n xs) <>
             loop ns (drop n xs)
 
-    return $ loop splits glyphs2
+    return $ ((),loop splits glyphs2)
 
 ------------------------------------------------------------------------
 
@@ -256,3 +243,5 @@ splitLines lineWidth [] = []
 splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
   where
     n = splitLine lineWidth xs `max` 1 -- hfill warning here
+
+------------------------------------------------------------------------

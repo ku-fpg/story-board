@@ -1,8 +1,11 @@
 module Graphics.Storyboard.Types where
 
 import Control.Applicative
+import Control.Monad (liftM2)
 import Data.Semigroup
+import Data.Text(Text)
 import Graphics.Blank (Canvas)
+
 
 -----------------------------------------------------------------------------
 
@@ -92,3 +95,48 @@ instance Monoid a => Monoid (Filler a) where
   mappend = liftA2 mappend
 
 -----------------------------------------------------------------------------
+
+data MarkupContext = MarkupContext
+  {  baseFont    :: Text      -- which font, "sans-serif"
+  ,  fontSize    :: Int       -- how big, 10
+  ,  spaceWidth  :: Float     -- size of space, 3.0 (perhaps 2.8)
+  ,  baseColor   :: Text      -- current color
+  ,  baseJust    :: Justify   -- What justification method are we using
+  ,  columnWidth :: Float     -- how wide is the current target column
+  }
+
+data Justify = JustLeft | JustCenter | JustRight | Justified
+  deriving (Eq,Ord,Show)
+
+------------------------------------------------------------------------
+
+-- | The Layout Monad is intentually transparent. It is just a convenence.
+
+newtype Layout a = Layout { runLayout :: MarkupContext -> Canvas (a,Filler ()) }
+
+instance Functor Layout where
+ fmap f m = pure f <*> m
+
+instance Applicative Layout where
+  pure = return
+  f <*> a = liftM2 ($) f a
+
+instance Monad Layout where
+  return a = Layout $ \ _ -> return (a,pure ())
+  Layout f >>= k = Layout $ \ st -> do
+    (a,f1) <- f st
+    (r,f2) <- runLayout (k a) st
+    return (r,f1 <> f2)
+
+instance Semigroup a => Semigroup (Layout a) where
+  (<>) = liftM2 (<>)
+
+instance Monoid a => Monoid (Layout a) where
+  mempty = pure $ mempty
+  mappend = liftM2 mappend
+
+
+scopeContext :: (MarkupContext -> MarkupContext) -> Layout a -> Layout a
+scopeContext f (Layout g) = (Layout $ g . f)
+
+------------------------------------------------------------------------

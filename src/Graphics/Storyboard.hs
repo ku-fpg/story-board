@@ -73,6 +73,17 @@ example2 =
   (right$ example1 100 "#123456")  *>
   pure ()
 
+example3 :: Layout ()
+example3 = do
+  p $ "The Canvas monad forms a JavaScript/Canvas DSL, and we, where possible," <+>
+      "stick to the JavaScript idioms. So a method call with no arguments takes a" <+>
+      "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of"
+
+  p $ "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
+      "as needed (it turns out that all var-args functions take a variable number" <+>
+      "of JavaScript numbers.)"
+
+
 txt :: Prose
 txt =
   "The Canvas monad forms a JavaScript/Canvas DSL, and we, where possible," <+>
@@ -82,11 +93,10 @@ txt =
   "as needed (it turns out that all var-args functions take a variable number" <+>
   "of JavaScript numbers.)"
 
-
 main = blankCanvas 3000 $ \ context -> do
       send context $ do
         let cxt = MarkupContext "sans-serif" 32 (3 * 3.2) "black" JustLeft 470
-        filler <- tileProse cxt txt
+        (_,filler) <- runLayout example3 cxt
         let Tile (w,h) m = border 1 "red" $ fillTile filler
         saveRestore $ do
           translate (10,200)
@@ -94,7 +104,7 @@ main = blankCanvas 3000 $ \ context -> do
           return ()
 
         let cxt = MarkupContext "sans-serif" 32 (3 * 3.2) "black" Justified 470
-        filler <- tileProse cxt txt
+        (_,filler) <- runLayout example3 cxt
         let Tile (w,h) m = border 1 "red" $ fillTile filler
         saveRestore $ do
           translate (550,100)
