@@ -81,8 +81,7 @@ p (Prose xs) = Story $ \ cxt -> do
     proseTiles <- sequence
         [ case x of
             Word emph txt -> do
-              font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
-              TextMetrics w <- measureText txt
+              w <- wordWidth cxt (Word emph txt)
               return $ Right $ tile (w,fromIntegral $ fontSize cxt + 5) $ const $ do
                 font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
                 fillStyle (baseColor cxt)
@@ -91,13 +90,14 @@ p (Prose xs) = Story $ \ cxt -> do
         | x <- xs
         ]
 
+{-
     liftIO $ sequence_
             [ case v of
                 Left n -> print ("SP",n)
                 Right t -> print ("T",tileWidth t)
             | v <- proseTiles
             ]
-
+-}
     let
         findT (Left n:xs) ts = findS xs (ts,n)
         findT (Right t:xs) ts = findT xs (ts++[t])
@@ -110,15 +110,16 @@ p (Prose xs) = Story $ \ cxt -> do
 
     let glyphs2 :: [([Tile ()],Float)] = findT proseTiles []
 
+{-
     liftIO $ sequence_
         [ print (map tileWidth ts,w)
         | (ts,w) <- glyphs2
         ]
-
+-}
     let splits = splitLines (columnWidth cxt) [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
 
 
-    liftIO $ print $ splits
+--    liftIO $ print $ splits
     -- now finally laydown the tiles
 
     let
@@ -182,49 +183,14 @@ emphasisFont fontSize baseFont emph = Text.intercalate " " $
     f Bold      = return "bold"
     f _         = fail "no match"
 
-{-
+
 -- This function should be memoize; it will return
 -- the same answer for *every* call.
-wordWidth :: Text -> Word -> Canvas Float
-wordWidth baseFont (Word emph txt) = saveRestore $ do
-  font (emphasisFont baseFont emph)
-  TextMetrics w <- measureText txt
-  return w
-
--- a tile has a height and width. The assumption is that the top of the
-wordTile :: Text -> Word -> Canvas (Tile ())
-wordTile baseFont wd@(Word emph txt) = do
-  wd_w <- wordWidth baseFont wd
-  return $ border 1 "red" $ tile (wd_w,20) $ const $ do
-    font $ emphasisFont baseFont emph
-    fillStyle "black"
-    fillText (txt,0,10)
-
--- Given the (min) width of a space, the width of the line,
--- and a list of word widths, how many words can we accept.
-splitLine' :: Float -> Float -> [Float] -> Int
-splitLine' spaceWidth lineWidth widths = length $ takeWhile (<= lineWidth) szs
-  where
-    szs = [ sz + sp + rest
-          | (sz,sp,rest) <-
-                zip3 widths
-                     (0 : repeat spaceWidth) -- spaces count from 2nd word on
-                     (0 : szs)
-          ]
-
-
-
-layoutLine :: (Float,Float) -> Text -> Float -> Justify -> [(Word,Float)] -> Tile ()
-layoutLine (w,h) baseFont spaceWidth JustLeft theWords = border 1 "blue" $
-    pack $ mconcat $ List.intersperse spaceTile $
-      [ left $ border 1 "red" $ tile (wd_w,h) $ const $ do
-          font $ emphasisFont baseFont emph
-          fillStyle "black"
-          fillText (wd,0,10)    -- time will tell for this offset
-      | (Word emph wd,wd_w) <- theWords
-      ]
- where spaceTile = left $ tile (spaceWidth,h) $ const $ return ()
--}
+wordWidth :: MarkupContext -> Word -> Prelude Float
+wordWidth cxt (Word emph txt) = Prelude $ saveRestore $ do
+    font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
+    TextMetrics w <- measureText txt
+    return w
 
 -- Given the (min) width of a space, the width of the line,
 -- and a list of word widths, how many words can we accept.

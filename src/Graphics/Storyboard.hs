@@ -104,7 +104,7 @@ storyBoard :: Story a -> Canvas a
 storyBoard story = do
     context <- myCanvasContext
     let cxt = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" JustLeft (width context)
-    (a,filler) <- runStory story cxt
+    (a,filler) <- runPrelude $ runStory story cxt
     let Tile (w,h) m = fillTile filler
     saveRestore $ do
       _ <- m (w,h)

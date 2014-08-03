@@ -1,3 +1,5 @@
+{-# LANGUAGE KindSignatures, GADTs, GeneralizedNewtypeDeriving #-}
+
 module Graphics.Storyboard.Types where
 
 import Control.Applicative
@@ -118,7 +120,7 @@ spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
 
 -- | The Story Monad is intentually transparent. It is just a convenence.
 
-newtype Story a = Story { runStory :: MarkupContext -> Canvas (a,Filler ()) }
+newtype Story a = Story { runStory :: MarkupContext -> Prelude (a,Filler ()) }
 
 instance Functor Story where
  fmap f m = pure f <*> m
@@ -144,5 +146,10 @@ instance Monoid a => Monoid (Story a) where
 
 storyContext :: (MarkupContext -> MarkupContext) -> Story a -> Story a
 storyContext f (Story g) = (Story $ g . f)
+
+------------------------------------------------------------------------
+
+newtype Prelude a = Prelude { runPrelude :: Canvas a }
+  deriving (Functor, Applicative, Monad)
 
 ------------------------------------------------------------------------
