@@ -13,56 +13,9 @@ import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
 import Control.Monad.IO.Class
 
-import GHC.Exts (IsString(fromString))
-
-------------------------------------------------------------------------
-
-data Emphasis
-  = Italics
-  | Bold
-  | Color Text       -- not supported yet
-  | Font Int Text    -- not supported yet
-
-
-instance Show Emphasis where
-  show (Italics)     = "i"
-  show (Bold)        = "b"
-  show (Color col)   = "#" ++ show col
-  show (Font sz txt) = show sz ++ "-" ++ show txt
-
-------------------------------------------------------------------------
-
-data Word
-      = Word [Emphasis] Text
-      | WordSpace Float      -- 1 for space, 0 for (breakable) 0-width-space
-
-instance Show Word where
-   show (Word [] txt)   = show $ Text.unpack txt
-   show (Word emph txt) = show emph ++ show (Text.unpack txt)
-   show (WordSpace n)       = show n
-
-------------------------------------------------------------------------
-
-newtype Prose = Prose [Word]
-  deriving Show
-
-
-instance IsString Prose where
-  fromString txt = Prose $ List.intersperse (WordSpace 1)
-      [ Word [] (Text.pack wd) -- default is *no* annotations
-      | wd <- words txt
-      ]
-
-instance Semigroup Prose where
-  (Prose xs) <> (Prose ys) = Prose (xs++ys)
-
-instance Monoid Prose where
-  mempty = Prose []
-  mappend (Prose xs) (Prose ys) = Prose (xs++ys)
-
 
 sp :: Float -> Prose
-sp n = Prose [WordSpace n]
+sp n = Prose [Left n]
 
 space :: Prose
 space = sp 1
@@ -78,13 +31,13 @@ p (Prose xs) = Story $ \ cxt -> do
     -- get all the tiles and spaces
     proseTiles <- sequence
         [ case x of
-            Word emph txt -> do
+            Right (Word emph txt) -> do
               w <- wordWidth cxt (Word emph txt)
               return $ Right $ tile (w,fromIntegral $ fontSize cxt + 5) $ const $ do
                 font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
                 fillStyle (baseColor cxt)
                 fillText (txt,0,fromIntegral $ fontSize cxt)    -- time will tell for this offset
-            WordSpace n -> return $ Left $ n * spaceWidth cxt
+            Left n -> return $ Left $ n * spaceWidth cxt
         | x <- xs
         ]
 

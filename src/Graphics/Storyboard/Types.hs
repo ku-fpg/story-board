@@ -2,11 +2,16 @@
 
 module Graphics.Storyboard.Types where
 
+import qualified Data.Text as Text
+import Data.Text(Text)
+import Data.List as List
 import Control.Applicative
 import Control.Monad (liftM2)
 import Data.Semigroup
 import Data.Text(Text)
 import Graphics.Blank (Canvas)
+
+import GHC.Exts (IsString(fromString))
 
 
 -----------------------------------------------------------------------------
@@ -153,3 +158,48 @@ newtype Prelude a = Prelude { runPrelude :: Canvas a }
   deriving (Functor, Applicative, Monad)
 
 ------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+data Emphasis
+  = Italics
+  | Bold
+  | Color Text       -- not supported yet
+  | Font Int Text    -- not supported yet
+
+
+instance Show Emphasis where
+  show (Italics)     = "i"
+  show (Bold)        = "b"
+  show (Color col)   = "#" ++ show col
+  show (Font sz txt) = show sz ++ "-" ++ show txt
+
+------------------------------------------------------------------------
+
+data Word
+      = Word [Emphasis] Text
+--      | WordSpace Float      -- 1 for space, 0 for (breakable) 0-width-space
+
+instance Show Word where
+   show (Word [] txt)   = show $ Text.unpack txt
+   show (Word emph txt) = show emph ++ show (Text.unpack txt)
+--   show (WordSpace n)   = show n
+
+------------------------------------------------------------------------
+
+newtype Prose = Prose [Either Float Word]
+  deriving Show
+
+
+instance IsString Prose where
+  fromString txt = Prose $ List.intersperse (Left 1)
+      [ Right $ Word [] $ Text.pack $ wd -- default is *no* annotations
+      | wd <- words txt
+      ]
+
+instance Semigroup Prose where
+  (Prose xs) <> (Prose ys) = Prose (xs++ys)
+
+instance Monoid Prose where
+  mempty = Prose []
+  mappend (Prose xs) (Prose ys) = Prose (xs++ys)
