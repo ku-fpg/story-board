@@ -73,15 +73,21 @@ example2 =
   (right$ example1 100 "#123456")  *>
   pure ()
 
-example3 :: Layout ()
+example3 :: Story ()
 example3 = do
   p $ "The Canvas monad forms a JavaScript/Canvas DSL, and we, where possible," <+>
       "stick to the JavaScript idioms. So a method call with no arguments takes a" <+>
       "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of"
 
-  p $ "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
-      "as needed (it turns out that all var-args functions take a variable number" <+>
-      "of JavaScript numbers.)"
+  storyContext (justify Justified . spaceWidthX (* 1)) $ do
+
+    p $ "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
+        "as needed (it turns out that all var-args functions take a variable number" <+>
+        "of JavaScript numbers.)" <+>
+        "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
+        "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
+        "as needed (it turns out that all var-args functions take a variable number" <+>
+        "of JavaScript numbers.)"
 
 
 txt :: Prose
@@ -93,39 +99,18 @@ txt =
   "as needed (it turns out that all var-args functions take a variable number" <+>
   "of JavaScript numbers.)"
 
+
+storyBoard :: Story a -> Canvas a
+storyBoard story = do
+    context <- myCanvasContext
+    let cxt = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" JustLeft (width context)
+    (a,filler) <- runStory story cxt
+    let Tile (w,h) m = fillTile filler
+    saveRestore $ do
+      _ <- m (w,h)
+      return ()
+    return a
+
 main = blankCanvas 3000 $ \ context -> do
       send context $ do
-        let cxt = MarkupContext "sans-serif" 32 (3 * 3.2) "black" JustLeft 470
-        (_,filler) <- runLayout example3 cxt
-        let Tile (w,h) m = border 1 "red" $ fillTile filler
-        saveRestore $ do
-          translate (10,200)
-          _ <- m (w,h)
-          return ()
-
-        let cxt = MarkupContext "sans-serif" 32 (3 * 3.2) "black" Justified 470
-        (_,filler) <- runLayout example3 cxt
-        let Tile (w,h) m = border 1 "red" $ fillTile filler
-        saveRestore $ do
-          translate (550,100)
-          _ <- m (w,h)
-          return ()
-
-        tile <- imageTile "Haskell.jpg"
-        let Tile (w,h) m = tile
-        saveRestore $ do
-          translate (10,10)
-          _ <- m (w,h)
-          return ()
-
-
-        return ()
-
-{-
-      send context $ do
-        fillStyle "orange"
-        translate (0,0)
-        let Tile (w,h) m = fillTile example2
-        _ <- m (w + 100,h + 100)
-        return ()
--}
+        storyBoard example3

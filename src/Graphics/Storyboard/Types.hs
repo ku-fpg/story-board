@@ -108,35 +108,41 @@ data MarkupContext = MarkupContext
 data Justify = JustLeft | JustCenter | JustRight | Justified
   deriving (Eq,Ord,Show)
 
+justify :: Justify -> MarkupContext -> MarkupContext
+justify j m = m { baseJust = j }
+
+spaceWidthX :: (Float -> Float) -> MarkupContext -> MarkupContext
+spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
+
 ------------------------------------------------------------------------
 
--- | The Layout Monad is intentually transparent. It is just a convenence.
+-- | The Story Monad is intentually transparent. It is just a convenence.
 
-newtype Layout a = Layout { runLayout :: MarkupContext -> Canvas (a,Filler ()) }
+newtype Story a = Story { runStory :: MarkupContext -> Canvas (a,Filler ()) }
 
-instance Functor Layout where
+instance Functor Story where
  fmap f m = pure f <*> m
 
-instance Applicative Layout where
+instance Applicative Story where
   pure = return
   f <*> a = liftM2 ($) f a
 
-instance Monad Layout where
-  return a = Layout $ \ _ -> return (a,pure ())
-  Layout f >>= k = Layout $ \ st -> do
+instance Monad Story where
+  return a = Story $ \ _ -> return (a,pure ())
+  Story f >>= k = Story $ \ st -> do
     (a,f1) <- f st
-    (r,f2) <- runLayout (k a) st
+    (r,f2) <- runStory (k a) st
     return (r,f1 <> f2)
 
-instance Semigroup a => Semigroup (Layout a) where
+instance Semigroup a => Semigroup (Story a) where
   (<>) = liftM2 (<>)
 
-instance Monoid a => Monoid (Layout a) where
+instance Monoid a => Monoid (Story a) where
   mempty = pure $ mempty
   mappend = liftM2 mappend
 
 
-scopeContext :: (MarkupContext -> MarkupContext) -> Layout a -> Layout a
-scopeContext f (Layout g) = (Layout $ g . f)
+storyContext :: (MarkupContext -> MarkupContext) -> Story a -> Story a
+storyContext f (Story g) = (Story $ g . f)
 
 ------------------------------------------------------------------------

@@ -74,8 +74,8 @@ p1 <+> p2 = p1 <> space <> p2
 
 ------------------------------------------------------------------------
 
-p :: Prose -> Layout ()
-p (Prose xs) = Layout $ \ cxt -> do
+p :: Prose -> Story ()
+p (Prose xs) = Story $ \ cxt -> do
 
     -- get all the tiles and spaces
     proseTiles <- sequence
