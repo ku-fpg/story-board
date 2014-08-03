@@ -53,7 +53,6 @@ instance IsString Prose where
       | wd <- words txt
       ]
 
-
 instance Semigroup Prose where
   (Prose xs) <> (Prose ys) = Prose (xs++ys)
 
@@ -70,7 +69,6 @@ space = sp 1
 
 (<+>) :: Prose -> Prose -> Prose
 p1 <+> p2 = p1 <> space <> p2
-
 
 ------------------------------------------------------------------------
 
@@ -149,18 +147,6 @@ p (Prose xs) = Story $ \ cxt -> do
 
 ------------------------------------------------------------------------
 
-newtype Paragraph = Paragraph [Word]
-
-instance Show Paragraph where
-  show (Paragraph wds) = unwords [ show $ Text.unpack wd | Word _ wd <- wds ]
-
-instance IsString Paragraph where
-  fromString txt = Paragraph
-      [ Word [] (Text.pack wd) -- default is *no* annotations
-      | wd <- words txt
-      ]
-
-
 {- Notes about spaces
    (from http://www.microsoft.com/typography/developers/fdsspec/spaces.aspx)
 
@@ -184,14 +170,6 @@ emphasisFont fontSize baseFont emph = Text.intercalate " " $
     f _         = fail "no match"
 
 
--- This function should be memoize; it will return
--- the same answer for *every* call.
-wordWidth :: MarkupContext -> Word -> Prelude Float
-wordWidth cxt (Word emph txt) = Prelude $ saveRestore $ do
-    font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
-    TextMetrics w <- measureText txt
-    return w
-
 -- Given the (min) width of a space, the width of the line,
 -- and a list of word widths, how many words can we accept.
 splitLine :: Float -> [(Float,Float)] -> Int
@@ -211,3 +189,11 @@ splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
     n = splitLine lineWidth xs `max` 1 -- hfill warning here
 
 ------------------------------------------------------------------------
+
+-- This function should be memoize; it will return
+-- the same answer for *every* call.
+wordWidth :: MarkupContext -> Word -> Prelude Float
+wordWidth cxt (Word emph txt) = Prelude $ saveRestore $ do
+    font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
+    TextMetrics w <- measureText txt
+    return w
