@@ -184,8 +184,8 @@ data MarkupContext = MarkupContext
   }
   deriving (Show)
 
-justify :: Justify -> MarkupContext -> MarkupContext
-justify j m = m { baseJust = j }
+--justify :: Justify -> MarkupContext -> MarkupContext
+--justify j m = m { baseJust = j }
 
 spaceWidthX :: (Float -> Float) -> MarkupContext -> MarkupContext
 spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
@@ -222,6 +222,10 @@ storyCavity = Story $ \ _ sz -> return (sz,pure ())
 
 storyContext :: (MarkupContext -> MarkupContext) -> Story a -> Story a
 storyContext f (Story g) = (Story $ \ cxt sz -> g (f cxt) sz)
+
+justify :: Justify -> Story a -> Story a
+justify j = storyContext (\ m -> m { baseJust = j })
+
 
 {-
 -- Pull out the inner Mosaic.
