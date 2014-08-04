@@ -84,8 +84,8 @@ data Gap :: * -> * where
 gap :: Gap ()
 gap = Gap
 
-blankTile :: Size Float -> Tile ()
-blankTile sz = tile sz $ const $ return ()
+blank :: Size Float -> Tile ()
+blank sz = tile sz $ const $ return ()
 
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)

@@ -77,10 +77,10 @@ example2 =
 -- blank margin around a story.
 margin :: Float -> Story a -> Story a
 margin m inside = do
-  storyMosaic (anchor top    (blankTile (0,m)))
-  storyMosaic (anchor bottom (blankTile (0,m)))
-  storyMosaic (anchor left   (blankTile (m,0)))
-  storyMosaic (anchor right  (blankTile (m,0)))
+  storyMosaic (anchor top    (blank (0,m)))
+  storyMosaic (anchor bottom (blank (0,m)))
+  storyMosaic (anchor left   (blank (m,0)))
+  storyMosaic (anchor right  (blank (m,0)))
   inside
 
 -- horizontal rule
@@ -95,6 +95,10 @@ hr = do
               strokeStyle "black"
               stroke()
 
+vspace :: Float -> Story ()
+vspace h = do
+  storyMosaic $ anchor top $ blank (0,h)
+
 (</>) :: Prose -> Prose -> Prose
 (</>) = (<+>)
 
@@ -102,6 +106,7 @@ titlePage :: Story ()
 titlePage = margin 20 $ align center $ do
 --  align center $ p $ "EECS 776"
   size 72 $ p $ "Functional Programming" </> "and Domain Specific Languages"
+  vspace 100
   size 28 $ p $ "Andy Gill"
   size 20 $ p $ "University of Kansas"
   size 18 $ p $ "August 26th 2013"  -- fix super
@@ -128,7 +133,7 @@ example3 = margin 20 $ do
   img <- imageTile "jhwk_LF_200px.gif"
 
   storyMosaic (anchor left img)
-  storyMosaic (anchor left (blankTile (20,0)))
+  storyMosaic (anchor left (blank (20,0)))
 
   align justified $ do
 
