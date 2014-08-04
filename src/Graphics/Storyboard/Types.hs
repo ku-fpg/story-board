@@ -90,13 +90,13 @@ instance TB Vertical where
   bottom_ = VB
 
 class Center a where
-  center_ :: a
+  center :: a
 
 instance Center Horizontal where
-  center_ = HC
+  center = HC
 
 instance Center Vertical where
-  center_ = VC
+  center = VC
 
 
 

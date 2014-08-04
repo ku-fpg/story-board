@@ -18,8 +18,8 @@ import Graphics.Storyboard.Types
 
 -----------------------------------------------------------------------------
 
-center :: Tile a -> Mosaic a
-center t = top gap *> (left gap *> left t <* right gap) <* bottom gap
+--center :: Tile a -> Mosaic a
+--center t = top gap *> (left gap *> left t <* right gap) <* bottom gap
 
 --data Side = T | B | L | R
 
