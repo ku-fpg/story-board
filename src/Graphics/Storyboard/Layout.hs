@@ -19,7 +19,7 @@ import Graphics.Storyboard.Types
 -----------------------------------------------------------------------------
 
 --center :: Tile a -> Mosaic a
---center t = anchor top_ gap *> (anchor left_ gap *> anchor left_ t <* right gap) <* bottom gap
+--center t = anchor top gap *> (anchor left gap *> anchor left t <* right gap) <* bottom gap
 
 --data Side = T | B | L | R
 
@@ -90,16 +90,16 @@ blankTile sz = tile sz $ const $ return ()
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)
 vbrace :: Float -> Mosaic ()
-vbrace h = anchor left_ (tile (0,h) $ const $ return ())
+vbrace h = anchor left (tile (0,h) $ const $ return ())
 
 hbrace :: Float -> Mosaic ()
-hbrace w = anchor top_ (tile (w,0) $ const $ return ())
+hbrace w = anchor top (tile (w,0) $ const $ return ())
 
 column :: [Tile ()] -> Tile ()
-column = fillTile . mconcat . intersperse (anchor left_ gap) . map (anchor left_)
+column = fillTile . mconcat . intersperse (anchor left gap) . map (anchor left)
 
 row :: [Tile ()] -> Tile ()
-row = fillTile . mconcat . intersperse (anchor top_ gap) . map (anchor top_)
+row = fillTile . mconcat . intersperse (anchor top gap) . map (anchor top)
 
 -----------------------------------------------------------------------------
 

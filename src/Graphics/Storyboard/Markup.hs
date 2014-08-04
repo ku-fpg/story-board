@@ -77,18 +77,18 @@ p (Prose xs) = Story $ \ cxt (w,h) -> do
 
     let
         write :: Bool -> [([Tile ()],Float)] -> Mosaic ()
-        write lastLine xs = anchor top_ $ pack $ mconcat $
-              [ anchor left_ gap | True <- [just `elem` [ JustCenter, JustRight]]] ++
-              [ mconcat [ anchor left_ $ tile | tile <- tiles ] <>
+        write lastLine xs = anchor top $ pack $ mconcat $
+              [ anchor left gap | True <- [just `elem` [ JustCenter, JustRight]]] ++
+              [ mconcat [ anchor left $ tile | tile <- tiles ] <>
                 (if sp == 0
                  then pure ()
                  else if just == Justified
-                      then anchor left_ gap
-                      else anchor left_ $ tile (sp,0) $ const $ return ()
+                      then anchor left gap
+                      else anchor left $ tile (sp,0) $ const $ return ()
                 )
               | (tiles,sp) <- init xs ++ [(fst (last xs),0)]
               ] ++
-              [ anchor left_ gap | True <- [just `elem` [ JustLeft, JustCenter]]]
+              [ anchor left gap | True <- [just `elem` [ JustLeft, JustCenter]]]
            where just = if lastLine && baseJust cxt == Justified
                         then JustLeft
                         else baseJust cxt

@@ -66,28 +66,28 @@ data Horizontal = HL | HC | HR
 
 -- Short cut classes
 class LR a where
-  left_ :: a
-  right_ :: a
+  left :: a
+  right :: a
 
 instance LR Side where
-  left_ = L
-  right_ = R
+  left = L
+  right = R
 
 instance LR Horizontal where
-  left_ = HL
-  right_ = HR
+  left = HL
+  right = HR
 
 class TB a where
-  top_ :: a
-  bottom_ :: a
+  top :: a
+  bottom :: a
 
 instance TB Side where
-  top_ = T
-  bottom_ = B
+  top = T
+  bottom = B
 
 instance TB Vertical where
-  top_ = VT
-  bottom_ = VB
+  top = VT
+  bottom = VB
 
 class Center a where
   center :: a
