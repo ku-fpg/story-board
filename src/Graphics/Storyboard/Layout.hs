@@ -44,11 +44,13 @@ instance Filling Tile where
               k' $ realTileSize side (w,h) cavity
           return (a,newCavity side (w,h) cavity)
      where k' (w,h) = do
+{-
               strokeStyle "red"
               lineWidth 1
               rect(0,0,w,h)
               closePath()
               stroke()
+-}
               k (w,h)
 
 

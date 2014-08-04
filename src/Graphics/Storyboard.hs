@@ -100,18 +100,15 @@ example3 = do
   storyFiller (left img)
 --  storyFiller (left gap)
 
-  storyContext (justify Justified . spaceWidthX (* 1) . (\ m -> m { columnWidth = 500 })) $ do
+  storyContext (justify Justified . spaceWidthX (* 1)) $ do
 
-    p $ "!"
-{-
-    Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
+    p $ " Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
         "as needed (it turns out that all var-args functions take a variable number" <+>
         "of JavaScript numbers.)" <+>
         "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
         "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
         "as needed (it turns out that all var-args functions take a variable number" <+>
         "of JavaScript numbers.)"
--}
 
 txt :: Prose
 txt =

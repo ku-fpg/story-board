@@ -67,7 +67,7 @@ p (Prose xs) = Story $ \ cxt (w,h) -> do
         | (ts,w) <- glyphs2
         ]
 
-    let splits = splitLines (columnWidth cxt) [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
+    let splits = splitLines w [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
 
 
     liftIO $ print $ splits
