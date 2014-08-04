@@ -54,7 +54,7 @@ example2 =
    layoutLine (500,50)
               "10px sans-serif"
               3
-              JustLeft
+              left
               [(Word [] "Hello",23),(Word [] "World",26)])
                                                 *>
   (anchor top $ example1 100 "red")    *>
@@ -153,9 +153,9 @@ txt =
 storyBoard :: Story a -> Canvas a
 storyBoard story = do
     context <- myCanvasContext
-    let cxt = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" JustLeft
-    let cxt = MarkupContext "serif" 32 (2.6 * 3.2) "black" JustLeft
-    let cxt = MarkupContext "Gill Sans" 32 (2.6 * 3.2) "black" JustLeft
+    let cxt = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" left
+    let cxt = MarkupContext "serif" 32 (2.6 * 3.2) "black" left
+    let cxt = MarkupContext "Gill Sans" 32 (2.6 * 3.2) "black" left
     (a,mosaic) <- runPrelude $ runStory story cxt (width context,height context)
     let Tile (w,h) m = fillTile mosaic
     saveRestore $ do

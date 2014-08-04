@@ -88,9 +88,9 @@ p (Prose xs) = Story $ \ cxt (w,h) -> do
                 )
               | (tiles,sp) <- init xs ++ [(fst (last xs),0)]
               ] ++
-              [ anchor left gap | True <- [just `elem` [ JustLeft, JustCenter]]]
-           where just = if lastLine && baseJust cxt == Justified
-                        then JustLeft
+              [ anchor left gap | True <- [just `elem` [ left, center]]]
+           where just = if lastLine && baseJust cxt == justified
+                        then left
                         else baseJust cxt
 
         loop []     [] = hbrace w

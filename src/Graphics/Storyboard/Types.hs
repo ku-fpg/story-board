@@ -60,63 +60,71 @@ instance Monoid a => Monoid (Tile a) where
 
 -----------------------------------------------------------------------------
 
-data Side       = T | B | L | R
-data Vertical   = VT | VC | VB
-data Horizontal = HL | HC | HR
-
--- Short cut classes
+-- Short cut literal/DSL-keyword classes
 class LR a where
   left :: a
   right :: a
-
-instance LR Side where
-  left = L
-  right = R
-
-instance LR Horizontal where
-  left = HL
-  right = HR
 
 class TB a where
   top :: a
   bottom :: a
 
+class Center a where
+  center :: a
+
+-----------------------------------------------------------------------------
+
+data Side       = T | B | L | R
+  deriving (Eq,Ord,Show)
+
+instance LR Side where
+  left = L
+  right = R
+
 instance TB Side where
   top = T
   bottom = B
+
+-----------------------------------------------------------------------------
+
+data Vertical   = VT | VC | VB
+  deriving (Eq,Ord,Show)
 
 instance TB Vertical where
   top = VT
   bottom = VB
 
-class Center a where
-  center :: a
+instance Center Vertical where
+  center = VC
+
+-----------------------------------------------------------------------------
+
+data Horizontal = HL | HC | HR
+  deriving (Eq,Ord,Show)
+
+instance LR Horizontal where
+  left = HL
+  right = HR
 
 instance Center Horizontal where
   center = HC
 
-instance Center Vertical where
-  center = VC
-
-
-
--- can want a
--- * Side
--- * Vertical
--- *
-
-{-
-data LR :: * -> * where
-  LEFT :: LR L
-
-center' = LR ()
-
-data TB = TOP | BOTTOM
-
-middle ::
--}
 -----------------------------------------------------------------------------
 
+data Justify = JustLeft | JustCenter | JustRight | Justified
+  deriving (Eq,Ord,Show)
+
+instance LR Justify where
+  left = JustLeft
+  right = JustRight
+
+instance Center Justify where
+  center = JustCenter
+
+justified :: Justify
+justified = Justified
+
+-----------------------------------------------------------------------------
 
 data Cavity f = Cavity
   { cavityCorner :: Coord f
@@ -175,9 +183,6 @@ data MarkupContext = MarkupContext
   ,  baseJust    :: Justify   -- What justification method are we using
   }
   deriving (Show)
-
-data Justify = JustLeft | JustCenter | JustRight | Justified
-  deriving (Eq,Ord,Show)
 
 justify :: Justify -> MarkupContext -> MarkupContext
 justify j m = m { baseJust = j }
