@@ -74,7 +74,7 @@ example2 =
   pure ()
 
 
-
+-- blank margin around a story.
 margin :: Float -> Story a -> Story a
 margin m inside = do
   storyMosaic (top    (blankTile (0,m)))
@@ -94,6 +94,17 @@ hr = do
               lineWidth 2
               strokeStyle "black"
               stroke()
+
+(</>) :: Prose -> Prose -> Prose
+(</>) = (<+>)
+
+titlePage :: Story ()
+titlePage = margin 20 $ do
+--  align center $ p $ "EECS 776"
+  p $ "Functional Programming" </> "and Domain Specific Languages"
+  p $ "Andy Gill"
+  p $ "University of Kansas"
+  p $ "August 26th 2013"  -- fix super
 
 example3 :: Story ()
 example3 = margin 20 $ do
@@ -154,4 +165,4 @@ storyBoard story = do
 
 main = blankCanvas 3000 $ \ context -> do
       send context $ do
-        storyBoard example3
+        storyBoard titlePage
