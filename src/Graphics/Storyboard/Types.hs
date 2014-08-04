@@ -117,7 +117,6 @@ data MarkupContext = MarkupContext
   ,  spaceWidth  :: Float     -- size of space, 3.0 (perhaps 2.8)
   ,  baseColor   :: Text      -- current color
   ,  baseJust    :: Justify   -- What justification method are we using
-  ,  columnWidth :: Float     -- how wide is the current target column
   }
   deriving (Show)
 
