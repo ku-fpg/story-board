@@ -26,7 +26,7 @@ p1 <+> p2 = p1 <> space <> p2
 ------------------------------------------------------------------------
 
 p :: Prose -> Story ()
-p (Prose xs) = Story $ \ cxt -> do
+p (Prose xs) = Story $ \ cxt (w,h) -> do
 
     -- get all the tiles and spaces
     proseTiles <- sequence
@@ -61,16 +61,18 @@ p (Prose xs) = Story $ \ cxt -> do
 
     let glyphs2 :: [([Tile ()],Float)] = findT proseTiles []
 
-{-
+    liftIO $ putStrLn "----------------"
     liftIO $ sequence_
         [ print (map tileWidth ts,w)
         | (ts,w) <- glyphs2
         ]
--}
+
     let splits = splitLines (columnWidth cxt) [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
 
 
---    liftIO $ print $ splits
+    liftIO $ print $ splits
+
+    liftIO $ print $ cxt
     -- now finally laydown the tiles
 
     let
@@ -91,7 +93,7 @@ p (Prose xs) = Story $ \ cxt -> do
                         then JustLeft
                         else baseJust cxt
 
-        loop []     [] = hbrace $ columnWidth $ cxt
+        loop []     [] = hbrace w
         loop (n:ns) xs =
             write (null ns) (take n xs) <>
             loop ns (drop n xs)

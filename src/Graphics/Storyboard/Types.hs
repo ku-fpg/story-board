@@ -10,6 +10,7 @@ import Control.Monad (liftM2)
 import Data.Semigroup
 import Data.Text(Text)
 import Graphics.Blank (Canvas)
+import Control.Monad.IO.Class
 
 import GHC.Exts (IsString(fromString))
 
@@ -74,6 +75,7 @@ data Spacing'
   | Space'         -- space Filler
   deriving (Eq, Ord, Show)
 
+
 -----------------------------------------------------------------------------
 
 -- Anchored ??
@@ -101,6 +103,12 @@ instance Monoid a => Monoid (Filler a) where
   mempty = pure mempty
   mappend = liftA2 mappend
 
+cavitySize' :: Filler a -> Size Float -> Size Float
+cavitySize' (Filler sps _) (h,w) = (foldl f h $ map fst sps,foldl f w $ map snd sps)
+    where f x (Alloc n)   = x - n
+          f x (AtLeast n) = n `max` x
+          f x (Space')    = x      -- assumes you want the max cavity??
+
 -----------------------------------------------------------------------------
 
 data MarkupContext = MarkupContext
@@ -111,6 +119,7 @@ data MarkupContext = MarkupContext
   ,  baseJust    :: Justify   -- What justification method are we using
   ,  columnWidth :: Float     -- how wide is the current target column
   }
+  deriving (Show)
 
 data Justify = JustLeft | JustCenter | JustRight | Justified
   deriving (Eq,Ord,Show)
@@ -125,7 +134,7 @@ spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
 
 -- | The Story Monad is intentually transparent. It is just a convenence.
 
-newtype Story a = Story { runStory :: MarkupContext -> Prelude (a,Filler ()) }
+newtype Story a = Story { runStory :: MarkupContext -> Size Float -> Prelude (a,Filler ()) }
 
 instance Functor Story where
  fmap f m = pure f <*> m
@@ -135,10 +144,10 @@ instance Applicative Story where
   f <*> a = liftM2 ($) f a
 
 instance Monad Story where
-  return a = Story $ \ _ -> return (a,pure ())
-  Story f >>= k = Story $ \ st -> do
-    (a,f1) <- f st
-    (r,f2) <- runStory (k a) st
+  return a = Story $ \ _ _ -> return (a,pure ())
+  Story f >>= k = Story $ \ st sz -> do
+    (a,f1) <- f st sz
+    (r,f2) <- runStory (k a) st (cavitySize' f1 sz)
     return (r,f1 <> f2)
 
 instance Semigroup a => Semigroup (Story a) where
@@ -150,12 +159,30 @@ instance Monoid a => Monoid (Story a) where
 
 
 storyContext :: (MarkupContext -> MarkupContext) -> Story a -> Story a
-storyContext f (Story g) = (Story $ g . f)
+storyContext f (Story g) = (Story $ \ cxt sz -> g (f cxt) sz)
+
+{-
+-- Pull out the inner filler.
+getStory :: Story () -> Story (Filler ())
+getStory (Story f) = Story $ \ cxt -> do
+    ((),filler) <- f cxt
+    return (filler, pure ())
+-}
+
+storyFiller :: Filler () -> Story ()
+storyFiller filler = Story $ \ cxt sz -> return ((),filler)
 
 ------------------------------------------------------------------------
+-- The idea behind the prelude monad is that we can cache
+-- answers asked at Prelude time (always about size)
+-- by running in simulation mode.
 
 newtype Prelude a = Prelude { runPrelude :: Canvas a }
-  deriving (Functor, Applicative, Monad)
+  deriving (Functor, Applicative, Monad, MonadIO)
+
+-- wordWidth :: MarkupContext -> Word -> Prelude Float
+-- imageTile :: FilePath -> Prelude (Tile ())
+--
 
 ------------------------------------------------------------------------
 

@@ -41,8 +41,17 @@ instance Filling Tile where
      \ cavity -> do
           a <- saveRestore $ do
               translate $ newOffset side (w,h) cavity
-              k $ realTileSize side (w,h) cavity
+              k' $ realTileSize side (w,h) cavity
           return (a,newCavity side (w,h) cavity)
+     where k' (w,h) = do
+              strokeStyle "red"
+              lineWidth 1
+              rect(0,0,w,h)
+              closePath()
+              stroke()
+              k (w,h)
+
+
 
 instance Filling Gap where
   anchor side Gap = Filler [fillSpacing side] $
@@ -135,13 +144,16 @@ newSpacingCavity side cavity = newCavity side (sw,sh) cavity
 pack = fillTile
 
 fillTile :: Filler a -> Tile a
-fillTile (Filler cavity k) = Tile (w,h) $ \ (w',h') -> do
-      let sw = if w' <= w then 0 else (w' - w) / w_sps
-      let sh = if h' <= h then 0 else (h' - h) / h_sps
+fillTile filler@(Filler cavity k) = Tile (w,h) $ \ (w',h') -> do
+      let sw = if w' <= w then 0 else (cw + w' - w) / w_sps
+      let sh = if h' <= h then 0 else (ch + h' - h) / h_sps
       fst <$> k (Cavity (0,0) (w',h') (sw,sh))
   where
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
+
+    (cw,ch) = cavitySize' filler (w,h)
+
     w_sps = fromIntegral $ length [ () | Space' <- map fst cavity ]
     h_sps = fromIntegral $ length [ () | Space' <- map snd cavity ]
 

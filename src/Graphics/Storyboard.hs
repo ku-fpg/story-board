@@ -73,22 +73,45 @@ example2 =
   (right$ example1 100 "#123456")  *>
   pure ()
 
+
+
+
+
+
 example3 :: Story ()
 example3 = do
   p $ "The Canvas monad forms a JavaScript/Canvas DSL, and we, where possible," <+>
       "stick to the JavaScript idioms. So a method call with no arguments takes a" <+>
       "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of"
 
-  storyContext (justify Justified . spaceWidthX (* 1)) $ do
+-- imageTile :: FilePath -> Story (Tile ())
 
+  storyContext (justify Justified . spaceWidthX (* 1)) $ do
     p $ "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
+      "as needed (it turns out that all var-args functions take a variable number" <+>
+      "of JavaScript numbers.)" <+>
+      "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
+      "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
+      "as needed (it turns out that all var-args functions take a variable number" <+>
+      "of JavaScript numbers.)"
+
+  img <- imageTile "jhwk_LF_200px.gif"
+
+  storyFiller (left img)
+--  storyFiller (left gap)
+
+  storyContext (justify Justified . spaceWidthX (* 1) . (\ m -> m { columnWidth = 500 })) $ do
+
+    p $ "!"
+{-
+    Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
         "as needed (it turns out that all var-args functions take a variable number" <+>
         "of JavaScript numbers.)" <+>
         "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
         "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
         "as needed (it turns out that all var-args functions take a variable number" <+>
         "of JavaScript numbers.)"
-
+-}
 
 txt :: Prose
 txt =
@@ -104,7 +127,7 @@ storyBoard :: Story a -> Canvas a
 storyBoard story = do
     context <- myCanvasContext
     let cxt = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" JustLeft (width context)
-    (a,filler) <- runPrelude $ runStory story cxt
+    (a,filler) <- runPrelude $ runStory story cxt (width context,height context)
     let Tile (w,h) m = fillTile filler
     saveRestore $ do
       _ <- m (w,h)
