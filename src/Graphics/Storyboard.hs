@@ -101,10 +101,10 @@ hr = do
 titlePage :: Story ()
 titlePage = margin 20 $ align center $ do
 --  align center $ p $ "EECS 776"
-  p $ "Functional Programming" </> "and Domain Specific Languages"
-  p $ "Andy Gill"
-  p $ "University of Kansas"
-  p $ "August 26th 2013"  -- fix super
+  size 72 $ p $ "Functional Programming" </> "and Domain Specific Languages"
+  size 28 $ p $ "Andy Gill"
+  size 20 $ p $ "University of Kansas"
+  size 18 $ p $ "August 26th 2013"  -- fix super
 
 example3 :: Story ()
 example3 = margin 20 $ do

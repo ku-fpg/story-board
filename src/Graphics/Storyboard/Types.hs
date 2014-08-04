@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, GADTs, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE KindSignatures, GADTs, GeneralizedNewtypeDeriving, InstanceSigs #-}
 
 module Graphics.Storyboard.Types where
 
@@ -185,11 +185,19 @@ data MarkupContext = MarkupContext
   }
   deriving (Show)
 
---justify :: Justify -> MarkupContext -> MarkupContext
---justify j m = m { baseJust = j }
-
 spaceWidthX :: (Float -> Float) -> MarkupContext -> MarkupContext
 spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
+
+class Context a where
+  align :: Alignment -> a -> a
+  color :: Text      -> a -> a
+  size  :: Int       -> a -> a
+
+instance Context MarkupContext where
+  align j m = m { baseAlign = j }
+  color c m = m { baseColor = c }
+  size  i m = m { fontSize = i, spaceWidth = fromIntegral i * 0.28 }
+
 
 ------------------------------------------------------------------------
 
@@ -224,8 +232,14 @@ storyCavity = Story $ \ _ sz -> return (sz,pure ())
 storyContext :: (MarkupContext -> MarkupContext) -> Story a -> Story a
 storyContext f (Story g) = (Story $ \ cxt sz -> g (f cxt) sz)
 
-align :: Alignment -> Story a -> Story a
-align j = storyContext (\ m -> m { baseAlign = j })
+instance Context (Story a) where
+  align :: Alignment -> Story a -> Story a
+  align = storyContext . align
+  color = storyContext . color
+  size  = storyContext . size
+
+--size :: Float -> Story a -> Story a
+--size s = storyContext (\ m -> m { baseAlign = j })
 
 {-
 -- Pull out the inner Mosaic.
