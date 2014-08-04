@@ -110,18 +110,19 @@ instance Center Horizontal where
   center = HC
 
 -----------------------------------------------------------------------------
+-- http://en.wikipedia.org/wiki/Typographic_alignment
 
-data Justify = JustLeft | JustCenter | JustRight | Justified
+data Alignment = JustLeft | JustCenter | JustRight | Justified
   deriving (Eq,Ord,Show)
 
-instance LR Justify where
+instance LR Alignment where
   left = JustLeft
   right = JustRight
 
-instance Center Justify where
+instance Center Alignment where
   center = JustCenter
 
-justified :: Justify
+justified :: Alignment
 justified = Justified
 
 -----------------------------------------------------------------------------
@@ -180,7 +181,7 @@ data MarkupContext = MarkupContext
   ,  fontSize    :: Int       -- how big, 10
   ,  spaceWidth  :: Float     -- size of space, 3.0 (perhaps 2.8)
   ,  baseColor   :: Text      -- current color
-  ,  baseJust    :: Justify   -- What justification method are we using
+  ,  baseAlign   :: Alignment -- What alignment method are we using
   }
   deriving (Show)
 
@@ -223,9 +224,8 @@ storyCavity = Story $ \ _ sz -> return (sz,pure ())
 storyContext :: (MarkupContext -> MarkupContext) -> Story a -> Story a
 storyContext f (Story g) = (Story $ \ cxt sz -> g (f cxt) sz)
 
-justify :: Justify -> Story a -> Story a
-justify j = storyContext (\ m -> m { baseJust = j })
-
+align :: Alignment -> Story a -> Story a
+align j = storyContext (\ m -> m { baseAlign = j })
 
 {-
 -- Pull out the inner Mosaic.

@@ -99,7 +99,7 @@ hr = do
 (</>) = (<+>)
 
 titlePage :: Story ()
-titlePage = margin 20 $ justify center $ do
+titlePage = margin 20 $ align center $ do
 --  align center $ p $ "EECS 776"
   p $ "Functional Programming" </> "and Domain Specific Languages"
   p $ "Andy Gill"
@@ -114,7 +114,7 @@ example3 = margin 20 $ do
 
 -- imageTile :: FilePath -> Story (Tile ())
 
-  justify justified $ do
+  align justified $ do
     p $ "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
       "as needed (it turns out that all var-args functions take a variable number" <+>
       "of JavaScript numbers.)" <+>
@@ -130,7 +130,7 @@ example3 = margin 20 $ do
   storyMosaic (anchor left img)
   storyMosaic (anchor left (blankTile (20,0)))
 
-  justify justified $ do
+  align justified $ do
 
     p $ " Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
         "as needed (it turns out that all var-args functions take a variable number" <+>
