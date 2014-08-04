@@ -46,7 +46,7 @@ example1 size col = id
           fill()
 
 
-example2 :: Filler ()
+example2 :: Mosaic ()
 example2 =
   top gap *>
 {-
@@ -77,10 +77,10 @@ example2 =
 
 margin :: Float -> Story a -> Story a
 margin m inside = do
-  storyFiller (top    (blankTile (0,m)))
-  storyFiller (bottom (blankTile (0,m)))
-  storyFiller (left   (blankTile (m,0)))
-  storyFiller (right  (blankTile (m,0)))
+  storyMosaic (top    (blankTile (0,m)))
+  storyMosaic (bottom (blankTile (0,m)))
+  storyMosaic (left   (blankTile (m,0)))
+  storyMosaic (right  (blankTile (m,0)))
   inside
 
 example3 :: Story ()
@@ -102,8 +102,8 @@ example3 = margin 20 $ do
 
   img <- imageTile "jhwk_LF_200px.gif"
 
-  storyFiller (left img)
---  storyFiller (left gap)
+  storyMosaic (left img)
+--  storyMosaic (left gap)
 
   storyContext (justify Justified . spaceWidthX (* 1)) $ do
 
@@ -129,8 +129,8 @@ storyBoard :: Story a -> Canvas a
 storyBoard story = do
     context <- myCanvasContext
     let cxt = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" JustLeft
-    (a,filler) <- runPrelude $ runStory story cxt (width context,height context)
-    let Tile (w,h) m = fillTile filler
+    (a,mosaic) <- runPrelude $ runStory story cxt (width context,height context)
+    let Tile (w,h) m = fillTile mosaic
     saveRestore $ do
       _ <- m (w,h)
       return ()

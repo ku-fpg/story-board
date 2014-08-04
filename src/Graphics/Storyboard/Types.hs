@@ -72,7 +72,7 @@ data Cavity f = Cavity
 data Spacing'
   = Alloc Float    -- take up space
   | AtLeast Float  -- be at least this wide
-  | Space'         -- space Filler
+  | Space'         -- space Mosaic
   deriving (Eq, Ord, Show)
 
 
@@ -81,30 +81,30 @@ data Spacing'
 -- Anchored ??
 -- Placed ??
 
-data Filler a = Filler
-  { fillerSpace :: [(Spacing',Spacing')]
-  , runFiller   :: Cavity Float -> Canvas (a,Cavity Float)
+data Mosaic a = Mosaic
+  { mosaicSpace :: [(Spacing',Spacing')]
+  , runMosaic   :: Cavity Float -> Canvas (a,Cavity Float)
   }
 
-instance Functor Filler where
+instance Functor Mosaic where
  fmap f m = pure f <*> m
 
-instance Applicative Filler where
- pure a = Filler [] $ \ sz0 -> return (a,sz0)
- Filler fs f <*> Filler xs x = Filler (fs ++ xs) $ \ sz0 -> do
+instance Applicative Mosaic where
+ pure a = Mosaic [] $ \ sz0 -> return (a,sz0)
+ Mosaic fs f <*> Mosaic xs x = Mosaic (fs ++ xs) $ \ sz0 -> do
                     (f',sz1) <- f sz0
                     (x',sz2) <- x sz1
                     return (f' x',sz2)
 
-instance Semigroup a => Semigroup (Filler a) where
+instance Semigroup a => Semigroup (Mosaic a) where
   (<>) = liftA2 (<>)
 
-instance Monoid a => Monoid (Filler a) where
+instance Monoid a => Monoid (Mosaic a) where
   mempty = pure mempty
   mappend = liftA2 mappend
 
-cavitySize' :: Filler a -> Size Float -> Size Float
-cavitySize' (Filler sps _) (h,w) = (foldl f h $ map fst sps,foldl f w $ map snd sps)
+cavitySize' :: Mosaic a -> Size Float -> Size Float
+cavitySize' (Mosaic sps _) (h,w) = (foldl f h $ map fst sps,foldl f w $ map snd sps)
     where f x (Alloc n)   = x - n
           f x (AtLeast n) = n `max` x
           f x (Space')    = x      -- assumes you want the max cavity??
@@ -133,7 +133,7 @@ spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
 
 -- | The Story Monad is intentually transparent. It is just a convenence.
 
-newtype Story a = Story { runStory :: MarkupContext -> Size Float -> Prelude (a,Filler ()) }
+newtype Story a = Story { runStory :: MarkupContext -> Size Float -> Prelude (a,Mosaic ()) }
 
 instance Functor Story where
  fmap f m = pure f <*> m
@@ -161,15 +161,15 @@ storyContext :: (MarkupContext -> MarkupContext) -> Story a -> Story a
 storyContext f (Story g) = (Story $ \ cxt sz -> g (f cxt) sz)
 
 {-
--- Pull out the inner filler.
-getStory :: Story () -> Story (Filler ())
+-- Pull out the inner Mosaic.
+getStory :: Story () -> Story (Mosaic ())
 getStory (Story f) = Story $ \ cxt -> do
-    ((),filler) <- f cxt
-    return (filler, pure ())
+    ((),Mosaic) <- f cxt
+    return (Mosaic, pure ())
 -}
 
-storyFiller :: Filler () -> Story ()
-storyFiller filler = Story $ \ cxt sz -> return ((),filler)
+storyMosaic :: Mosaic () -> Story ()
+storyMosaic mosaic = Story $ \ cxt sz -> return ((),mosaic)
 
 ------------------------------------------------------------------------
 -- The idea behind the prelude monad is that we can cache

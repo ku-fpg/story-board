@@ -18,26 +18,26 @@ import Graphics.Storyboard.Types
 
 -----------------------------------------------------------------------------
 
-center :: Tile a -> Filler a
+center :: Tile a -> Mosaic a
 center t = top gap *> (left gap *> left t <* right gap) <* bottom gap
 
 data Side = T | B | L | R
 
 -- Anchor?
 class Filling f where
-    anchor :: Side -> f a -> Filler a
+    anchor :: Side -> f a -> Mosaic a
 
-left   :: Filling f => f a -> Filler a
+left   :: Filling f => f a -> Mosaic a
 left   = anchor L
-right  :: Filling f => f a -> Filler a
+right  :: Filling f => f a -> Mosaic a
 right  = anchor R
-top    :: Filling f => f a -> Filler a
+top    :: Filling f => f a -> Mosaic a
 top    = anchor T
-bottom :: Filling f => f a -> Filler a
+bottom :: Filling f => f a -> Mosaic a
 bottom = anchor B
 
 instance Filling Tile where
-  anchor side (Tile (w,h) k) = Filler [newSpacing side (w,h)] $
+  anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
      \ cavity -> do
           a <- saveRestore $ do
               translate $ newOffset side (w,h) cavity
@@ -56,7 +56,7 @@ instance Filling Tile where
 
 
 instance Filling Gap where
-  anchor side Gap = Filler [fillSpacing side] $
+  anchor side Gap = Mosaic [fillSpacing side] $
     \ cavity -> return ((),newSpacingCavity side cavity)
 
 
@@ -64,17 +64,17 @@ instance Filling Gap where
 
 {-
 instance Filling Parcel where
-  left (Parcel n) = Filler [] $ \ (Cavity (cx,cy) (cw,ch) (sw,sh)) ->
+  left (Parcel n) = Mosaic [] $ \ (Cavity (cx,cy) (cw,ch) (sw,sh)) ->
     return ((),Cavity (cx,cy + sh) (cw,ch - sh) (sw,sh))
 
 data Parcel :: * -> * where
   Parcel :: Float -> Parcel ()
 -}
 {-
-    Filler [(Alloc 0,Space')] return <>
+    Mosaic [(Alloc 0,Space')] return <>
 -}
 
---instance Filling Filler where
+--instance Filling Mosaic where
 --  left f = f <* right gap
 
 data Gap :: * -> * where
@@ -88,10 +88,10 @@ blankTile sz = tile sz $ const $ return ()
 
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)
-vbrace :: Float -> Filler ()
+vbrace :: Float -> Mosaic ()
 vbrace h = left (tile (0,h) $ const $ return ())
 
-hbrace :: Float -> Filler ()
+hbrace :: Float -> Mosaic ()
 hbrace w = top (tile (w,0) $ const $ return ())
 
 column :: [Tile ()] -> Tile ()
@@ -148,8 +148,8 @@ newSpacingCavity side cavity = newCavity side (sw,sh) cavity
 
 pack = fillTile
 
-fillTile :: Filler a -> Tile a
-fillTile filler@(Filler cavity k) = Tile (w,h) $ \ (w',h') -> do
+fillTile :: Mosaic a -> Tile a
+fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (w',h') -> do
       let sw = if w' <= w then 0 else (cw + w' - w) / w_sps
       let sh = if h' <= h then 0 else (ch + h' - h) / h_sps
       fst <$> k (Cavity (0,0) (w',h') (sw,sh))
@@ -157,7 +157,7 @@ fillTile filler@(Filler cavity k) = Tile (w,h) $ \ (w',h') -> do
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
 
-    (cw,ch) = cavitySize' filler (w,h)
+    (cw,ch) = cavitySize' mosaic (w,h)
 
     w_sps = fromIntegral $ length [ () | Space' <- map fst cavity ]
     h_sps = fromIntegral $ length [ () | Space' <- map snd cavity ]

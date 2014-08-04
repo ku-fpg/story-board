@@ -76,7 +76,7 @@ p (Prose xs) = Story $ \ cxt (w,h) -> do
     -- now finally laydown the tiles
 
     let
-        write :: Bool -> [([Tile ()],Float)] -> Filler ()
+        write :: Bool -> [([Tile ()],Float)] -> Mosaic ()
         write lastLine xs = top $ pack $ mconcat $
               [ left gap | True <- [just `elem` [ JustCenter, JustRight]]] ++
               [ mconcat [ left $ tile | tile <- tiles ] <>
