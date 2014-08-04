@@ -156,6 +156,8 @@ instance Monoid a => Monoid (Story a) where
   mempty = pure $ mempty
   mappend = liftM2 mappend
 
+storyCavity :: Story (Size Float)
+storyCavity = Story $ \ _ sz -> return (sz,pure ())
 
 storyContext :: (MarkupContext -> MarkupContext) -> Story a -> Story a
 storyContext f (Story g) = (Story $ \ cxt sz -> g (f cxt) sz)

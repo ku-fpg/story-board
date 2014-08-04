@@ -83,6 +83,18 @@ margin m inside = do
   storyMosaic (right  (blankTile (m,0)))
   inside
 
+-- horizontal rule
+hr :: Story ()
+hr = do
+  (_,w) <- storyCavity
+  storyMosaic $ top $ tile (w,2) $ \ (w',h') -> do
+              beginPath()
+              moveTo(0,1)
+              lineTo(w',0)
+              lineWidth 2
+              strokeStyle "black"
+              stroke()
+
 example3 :: Story ()
 example3 = margin 20 $ do
   p $ "The Canvas monad forms a JavaScript/Canvas DSL, and we, where possible," <+>
@@ -100,10 +112,12 @@ example3 = margin 20 $ do
       "as needed (it turns out that all var-args functions take a variable number" <+>
       "of JavaScript numbers.)"
 
+  hr
+
   img <- imageTile "jhwk_LF_200px.gif"
 
   storyMosaic (left img)
---  storyMosaic (left gap)
+  storyMosaic (left (blankTile (20,0)))
 
   storyContext (justify Justified . spaceWidthX (* 1)) $ do
 
@@ -129,6 +143,8 @@ storyBoard :: Story a -> Canvas a
 storyBoard story = do
     context <- myCanvasContext
     let cxt = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" JustLeft
+    let cxt = MarkupContext "serif" 32 (2.6 * 3.2) "black" JustLeft
+    let cxt = MarkupContext "Gill Sans" 32 (2.6 * 3.2) "black" JustLeft
     (a,mosaic) <- runPrelude $ runStory story cxt (width context,height context)
     let Tile (w,h) m = fillTile mosaic
     saveRestore $ do
