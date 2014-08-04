@@ -14,7 +14,6 @@ import Control.Monad.IO.Class
 
 import GHC.Exts (IsString(fromString))
 
-
 -----------------------------------------------------------------------------
 
 type Size  f = (f,f)
@@ -46,7 +45,6 @@ tileWidth (Tile (w,_) _) = w
 tileHeight :: Tile a -> Float
 tileHeight (Tile (_,h) _) = h
 
-
 instance Semigroup a => Semigroup (Tile a) where
   (Tile (x1,y1) c1) <> (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ sz ->
         do r1 <- c1 sz
@@ -61,6 +59,64 @@ instance Monoid a => Monoid (Tile a) where
          return (r1 `mappend` r2)
 
 -----------------------------------------------------------------------------
+
+data Side       = T | B | L | R
+data Vertical   = VT | VC | VB
+data Horizontal = HL | HC | HR
+
+-- Short cut classes
+class LR a where
+  left_ :: a
+  right_ :: a
+
+instance LR Side where
+  left_ = L
+  right_ = R
+
+instance LR Horizontal where
+  left_ = HL
+  right_ = HR
+
+class TB a where
+  top_ :: a
+  bottom_ :: a
+
+instance TB Side where
+  top_ = T
+  bottom_ = B
+
+instance TB Vertical where
+  top_ = VT
+  bottom_ = VB
+
+class Center a where
+  center_ :: a
+
+instance Center Horizontal where
+  center_ = HC
+
+instance Center Vertical where
+  center_ = VC
+
+
+
+-- can want a
+-- * Side
+-- * Vertical
+-- *
+
+{-
+data LR :: * -> * where
+  LEFT :: LR L
+
+center' = LR ()
+
+data TB = TOP | BOTTOM
+
+middle ::
+-}
+-----------------------------------------------------------------------------
+
 
 data Cavity f = Cavity
   { cavityCorner :: Coord f
