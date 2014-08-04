@@ -48,46 +48,46 @@ example1 size col = id
 
 example2 :: Mosaic ()
 example2 =
-  top gap *>
+  anchor top_ gap *>
 {-
-  (top $
+  (anchor top_ $
    layoutLine (500,50)
               "10px sans-serif"
               3
               JustLeft
               [(Word [] "Hello",23),(Word [] "World",26)])
                                                 *>
-  (top $ example1 100 "red")    *>
+  (anchor top_ $ example1 100 "red")    *>
 -}
 {-
-  (top $ column [ example1 (i ^ 2 * 10) "red" | i <- [0..7]]) *>
-  (top $ example1 100 "green")  *>
+  (anchor top_ $ column [ example1 (i ^ 2 * 10) "red" | i <- [0..7]]) *>
+  (anchor top_ $ example1 100 "green")  *>
   (left $ example1 100 "pink")    *> left gap *>
   (left$ example1 100 "blue")  *>
-  (top $ example1 200 "orange")  *>
+  (anchor top_ $ example1 200 "orange")  *>
   (left $ example1 100 "pink")    *>
   (left$ example1 100 "blue")  *> left gap *>
   (left $ example1 100 "pink")    *>
 -}
-  (left$ example1 100 "blue")  *>
-  (right$ example1 100 "#123456")  *>
+  (anchor left_$ example1 100 "blue")  *>
+  (anchor right_$ example1 100 "#123456")  *>
   pure ()
 
 
 -- blank margin around a story.
 margin :: Float -> Story a -> Story a
 margin m inside = do
-  storyMosaic (top    (blankTile (0,m)))
-  storyMosaic (bottom (blankTile (0,m)))
-  storyMosaic (left   (blankTile (m,0)))
-  storyMosaic (right  (blankTile (m,0)))
+  storyMosaic (anchor top_    (blankTile (0,m)))
+  storyMosaic (anchor bottom_ (blankTile (0,m)))
+  storyMosaic (anchor left_   (blankTile (m,0)))
+  storyMosaic (anchor right_  (blankTile (m,0)))
   inside
 
 -- horizontal rule
 hr :: Story ()
 hr = do
   (_,w) <- storyCavity
-  storyMosaic $ top $ tile (w,2) $ \ (w',h') -> do
+  storyMosaic $ anchor top_ $ tile (w,2) $ \ (w',h') -> do
               beginPath()
               moveTo(0,1)
               lineTo(w',0)
@@ -127,8 +127,8 @@ example3 = margin 20 $ do
 
   img <- imageTile "jhwk_LF_200px.gif"
 
-  storyMosaic (left img)
-  storyMosaic (left (blankTile (20,0)))
+  storyMosaic (anchor left_ img)
+  storyMosaic (anchor left_ (blankTile (20,0)))
 
   storyContext (justify Justified . spaceWidthX (* 1)) $ do
 

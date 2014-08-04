@@ -19,14 +19,14 @@ import Graphics.Storyboard.Types
 -----------------------------------------------------------------------------
 
 --center :: Tile a -> Mosaic a
---center t = top gap *> (left gap *> left t <* right gap) <* bottom gap
+--center t = anchor top_ gap *> (anchor left_ gap *> anchor left_ t <* right gap) <* bottom gap
 
 --data Side = T | B | L | R
 
 -- Anchor?
 class Filling f where
     anchor :: Side -> f a -> Mosaic a
-
+{-
 left   :: Filling f => f a -> Mosaic a
 left   = anchor L
 right  :: Filling f => f a -> Mosaic a
@@ -35,6 +35,7 @@ top    :: Filling f => f a -> Mosaic a
 top    = anchor T
 bottom :: Filling f => f a -> Mosaic a
 bottom = anchor B
+-}
 
 instance Filling Tile where
   anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
@@ -89,16 +90,16 @@ blankTile sz = tile sz $ const $ return ()
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)
 vbrace :: Float -> Mosaic ()
-vbrace h = left (tile (0,h) $ const $ return ())
+vbrace h = anchor left_ (tile (0,h) $ const $ return ())
 
 hbrace :: Float -> Mosaic ()
-hbrace w = top (tile (w,0) $ const $ return ())
+hbrace w = anchor top_ (tile (w,0) $ const $ return ())
 
 column :: [Tile ()] -> Tile ()
-column = fillTile . mconcat . intersperse (left gap) . map left
+column = fillTile . mconcat . intersperse (anchor left_ gap) . map (anchor left_)
 
 row :: [Tile ()] -> Tile ()
-row = fillTile . mconcat . intersperse (top gap) . map top
+row = fillTile . mconcat . intersperse (anchor top_ gap) . map (anchor top_)
 
 -----------------------------------------------------------------------------
 
