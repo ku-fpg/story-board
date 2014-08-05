@@ -105,13 +105,45 @@ titlePage = margin 20 $ align center $ do
   size 72 $ p $ "Functional Programming" </> "and Domain Specific Languages"
   vspace 100
   size 28 $ p $ "Andy Gill"
-  vspace 100
   size 20 $ p $ "University of Kansas"
   vspace 100
   size 18 $ p $ "August 26" <> super "th" <+> "2013"  -- fix super
   vspace 100
-  size 18 $ p $ "\xa9" <> "Copyright 2014 Andrew Gill"
+  size 18 $ p $ "Copyright" <> "\xa9" <+> "2014 Andrew Gill"
 
+
+{-
+background :: Story a -> Story a
+background (Story bg) = do
+
+overlay :: Monoid a => Story a -> Story a -> Story a
+overlay (Story storyA) (Story storyB) = Story $ \ cxt sz -> do
+    (a,mA) <- storyA cxt sz
+    (b,mB) <- storyB cxt sz
+    return (a <> b,
+-}
+
+slide_background :: Story ()
+slide_background = margin 10 $ do
+  (w,h) <-storyCavity
+  storyMosaic (vbrace h <> hbrace w)
+  img <- imageTile "jhwk_LF_200px.gif"
+
+  storyMosaic (anchor left gap <> anchor bottom img)
+
+colorTile :: Text -> Size Float -> Tile ()
+colorTile col sz@(w',h') = tile sz $ \ (w,h) -> do
+    globalAlpha 0.2;
+    beginPath()
+    rect(0, 0, w, h);
+    fillStyle col;
+    fill();
+    beginPath()
+    rect(0, 0, w', h');
+    lineWidth 1;
+    strokeStyle "black";
+
+    stroke()
 
 example3 :: Story ()
 example3 = margin 20 $ do
@@ -170,6 +202,6 @@ storyBoard story = do
       return ()
     return a
 
-main = blankCanvas 3000 $ \ context -> do
+main = blankCanvas 3000 { debug = True } $ \ context -> do
       send context $ do
-        storyBoard titlePage
+        storyBoard slide_background -- titlePage

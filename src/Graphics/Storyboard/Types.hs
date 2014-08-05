@@ -168,11 +168,24 @@ instance Monoid a => Monoid (Mosaic a) where
   mempty = pure mempty
   mappend = liftA2 mappend
 
-cavitySize' :: Mosaic a -> Size Float -> Size Float
-cavitySize' (Mosaic sps _) (h,w) = (foldl f h $ map fst sps,foldl f w $ map snd sps)
+cavitySize'' :: Mosaic a -> Size Float -> Size Float
+cavitySize'' (Mosaic sps _) (h,w) = (foldl f h $ map fst sps,foldl f w $ map snd sps)
     where f x (Alloc n)   = x - n
           f x (AtLeast n) = n `max` x
           f x (Space')    = x      -- assumes you want the max cavity??
+
+
+cavitySize' :: Mosaic a -> Size Float -> Size Float
+cavitySize' (Mosaic sps _) (h,w) = (diff $ foldl f (h,0) $ map fst sps
+                                    ,diff $ foldl f (w,0) $ map snd sps
+                                    )
+    where
+          f (x,x') (Alloc n)   = (x - n,(x' - n) `max` 0)
+          f (x,x') (AtLeast n) = (n `max` x,n `max` x')
+          f (x,x') (Space')    = (x,0) -- assumes you want the max cavity??
+
+          diff (a,b) = a - b
+
 
 -----------------------------------------------------------------------------
 
@@ -237,6 +250,7 @@ storyCavity = Story $ \ _ sz -> return (sz,pure ())
 
 storyContext :: (MarkupContext -> MarkupContext) -> Story a -> Story a
 storyContext f (Story g) = (Story $ \ cxt sz -> g (f cxt) sz)
+
 
 instance Context (Story a) where
   align :: Alignment -> Story a -> Story a

@@ -151,10 +151,20 @@ pack = fillTile
 
 fillTile :: Mosaic a -> Tile a
 fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (w',h') -> do
-      let sw = if w' <= w then 0 else (cw + w' - w) / w_sps
-      let sh = if h' <= h then 0 else (ch + h' - h) / h_sps
+      let sw = if cw + w' < w || w_sps == 0 then 0 else (cw + w' - w) / w_sps
+      let sh = if ch + h' < h || h_sps == 0 then 0 else (ch + h' - h) / h_sps
+      console_log $ ("fillTile:" :: Text)
+            <> show' cavity
+            <> show' (w,h)
+            <> show' (w',h')
+            <> show' (w_sps,h_sps)
+            <> show' (cw,ch)
+            <> show' (sw,sh)
       fst <$> k (Cavity (0,0) (w',h') (sw,sh))
   where
+    show' :: Show a => a -> Text
+    show' = Text.pack . show
+
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
 
