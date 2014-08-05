@@ -168,23 +168,18 @@ instance Monoid a => Monoid (Mosaic a) where
   mempty = pure mempty
   mappend = liftA2 mappend
 
-cavitySize'' :: Mosaic a -> Size Float -> Size Float
-cavitySize'' (Mosaic sps _) (h,w) = (foldl f h $ map fst sps,foldl f w $ map snd sps)
-    where f x (Alloc n)   = x - n
-          f x (AtLeast n) = n `max` x
-          f x (Space')    = x      -- assumes you want the max cavity??
+cavityMaxSize :: Mosaic a -> Size Float -> Size Float
+cavityMaxSize moz sz = (fst h,fst w)
+    where (h,w) = cavityRange moz sz
 
-
-cavitySize' :: Mosaic a -> Size Float -> Size Float
-cavitySize' (Mosaic sps _) (h,w) = (diff $ foldl f (h,0) $ map fst sps
-                                    ,diff $ foldl f (w,0) $ map snd sps
-                                    )
+cavityRange :: Mosaic a -> Size Float -> Size (Float,Float)
+cavityRange (Mosaic sps _) (h,w) = ( foldl f (h,0) $ map fst sps
+                                   , foldl f (w,0) $ map snd sps
+                                   )
     where
           f (x,x') (Alloc n)   = (x - n,(x' - n) `max` 0)
           f (x,x') (AtLeast n) = (n `max` x,n `max` x')
           f (x,x') (Space')    = (x,0) -- assumes you want the max cavity??
-
-          diff (a,b) = a - b
 
 
 -----------------------------------------------------------------------------
@@ -235,7 +230,7 @@ instance Monad Story where
   return a = Story $ \ _ _ -> return (a,pure ())
   Story f >>= k = Story $ \ st sz -> do
     (a,f1) <- f st sz
-    (r,f2) <- runStory (k a) st (cavitySize' f1 sz)
+    (r,f2) <- runStory (k a) st (cavityMaxSize f1 sz)
     return (r,f1 <> f2)
 
 instance Semigroup a => Semigroup (Story a) where
@@ -244,6 +239,13 @@ instance Semigroup a => Semigroup (Story a) where
 instance Monoid a => Monoid (Story a) where
   mempty = pure $ mempty
   mappend = liftM2 mappend
+
+
+instance MonadIO Story where
+    liftIO io = Story $ \ cxt st -> do
+      a <- liftIO io
+      return (a, pure ())
+
 
 storyCavity :: Story (Size Float)
 storyCavity = Story $ \ _ sz -> return (sz,pure ())

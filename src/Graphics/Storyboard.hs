@@ -10,6 +10,7 @@ import qualified Data.Text as Text
 import Data.String
 import Data.List
 import Data.Maybe
+import Control.Monad.IO.Class
 
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Layout
@@ -151,10 +152,13 @@ example3 = margin 20 $ do
       "stick to the JavaScript idioms. So a method call with no arguments takes a" <+>
       "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of"
 
+  (w,h) <-storyCavity
+  liftIO $ print (w,h)
+
 -- imageTile :: FilePath -> Story (Tile ())
 
   align justified $ do
-    p $ "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
+    p $ "FXoats, etc. When there is a var-args JavaScript function, we use lists," <+>
       "as needed (it turns out that all var-args functions take a variable number" <+>
       "of JavaScript numbers.)" <+>
       "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
@@ -170,7 +174,6 @@ example3 = margin 20 $ do
   storyMosaic (anchor left (blank (20,0)))
 
   align justified $ do
-
     p $ " Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
         "as needed (it turns out that all var-args functions take a variable number" <+>
         "of JavaScript numbers.)" <+>
@@ -202,6 +205,6 @@ storyBoard story = do
       return ()
     return a
 
-main = blankCanvas 3000 { debug = True } $ \ context -> do
+main = blankCanvas 3000 { debug = False } $ \ context -> do
       send context $ do
-        storyBoard slide_background -- titlePage
+        storyBoard example3 -- slide_background -- titlePage

@@ -168,7 +168,10 @@ fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (w',h') -> do
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
 
-    (cw,ch) = cavitySize' mosaic (w,h)
+    (cwr,chr) = cavityRange mosaic (w,h)
+
+    (cw,ch) = (fst cwr - snd cwr, fst chr - snd chr)
+
 
     w_sps = fromIntegral $ length [ () | Space' <- map fst cavity ]
     h_sps = fromIntegral $ length [ () | Space' <- map snd cavity ]
