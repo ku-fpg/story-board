@@ -13,6 +13,7 @@ import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
 import Control.Monad.IO.Class
 
+------------------------------------------------------------------------
 
 sp :: Float -> Prose
 sp n = Prose [Left n]
@@ -22,6 +23,17 @@ space = sp 1
 
 (<+>) :: Prose -> Prose -> Prose
 p1 <+> p2 = p1 <> space <> p2
+
+br :: Prose
+br = sp (1/0)  -- a bit of a hack
+
+(</>) :: Prose -> Prose -> Prose
+p1 </> p2 = p1 <> br <> p2
+
+
+--super :: Prose -> Prose
+--super = 
+
 
 ------------------------------------------------------------------------
 

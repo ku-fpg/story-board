@@ -99,9 +99,6 @@ vspace :: Float -> Story ()
 vspace h = do
   storyMosaic $ anchor top $ blank (0,h)
 
-(</>) :: Prose -> Prose -> Prose
-(</>) = (<+>)
-
 titlePage :: Story ()
 titlePage = margin 20 $ align center $ do
 --  align center $ p $ "EECS 776"
