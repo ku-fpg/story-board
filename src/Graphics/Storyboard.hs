@@ -105,8 +105,13 @@ titlePage = margin 20 $ align center $ do
   size 72 $ p $ "Functional Programming" </> "and Domain Specific Languages"
   vspace 100
   size 28 $ p $ "Andy Gill"
+  vspace 100
   size 20 $ p $ "University of Kansas"
-  size 18 $ p $ "August 26th 2013"  -- fix super
+  vspace 100
+  size 18 $ p $ "August 26" <> super "th" <+> "2013"  -- fix super
+  vspace 100
+  size 18 $ p $ "\xa9" <> "Copyright 2014 Andrew Gill"
+
 
 example3 :: Story ()
 example3 = margin 20 $ do
@@ -155,9 +160,9 @@ txt =
 storyBoard :: Story a -> Canvas a
 storyBoard story = do
     context <- myCanvasContext
-    let cxt = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" left
-    let cxt = MarkupContext "serif" 32 (2.6 * 3.2) "black" left
-    let cxt = MarkupContext "Gill Sans" 32 (2.6 * 3.2) "black" left
+    let cxt = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" left 0
+    let cxt = MarkupContext "serif" 32 (2.6 * 3.2) "black" left 0
+    let cxt = MarkupContext "Gill Sans" 32 (2.6 * 3.2) "black" left 0
     (a,mosaic) <- runPrelude $ runStory story cxt (width context,height context)
     let Tile (w,h) m = fillTile mosaic
     saveRestore $ do

@@ -32,7 +32,7 @@ p1 </> p2 = p1 <> br <> p2
 
 
 --super :: Prose -> Prose
---super = 
+--super =
 
 
 ------------------------------------------------------------------------
@@ -45,10 +45,11 @@ p (Prose xs) = Story $ \ cxt (w,h) -> do
         [ case x of
             Right (Word emph txt) -> do
               w <- wordWidth cxt (Word emph txt)
+              let off = if Super `elem` emph then (-5) else 0
               return $ Right $ tile (w,fromIntegral $ fontSize cxt + 5) $ const $ do
                 font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
                 fillStyle (baseColor cxt)
-                fillText (txt,0,fromIntegral $ fontSize cxt)    -- time will tell for this offset
+                fillText (txt,0,fromIntegral $ fontSize cxt + off)    -- time will tell for this offset
             Left n -> return $ Left $ n * spaceWidth cxt
         | x <- xs
         ]

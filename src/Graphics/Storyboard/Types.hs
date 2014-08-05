@@ -182,6 +182,7 @@ data MarkupContext = MarkupContext
   ,  spaceWidth  :: Float     -- size of space, 3.0 (perhaps 2.8)
   ,  baseColor   :: Text      -- current color
   ,  baseAlign   :: Alignment -- What alignment method are we using
+  ,  baseOffset  :: Float     -- size of offset from baseline
   }
   deriving (Show)
 
@@ -189,15 +190,20 @@ spaceWidthX :: (Float -> Float) -> MarkupContext -> MarkupContext
 spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
 
 class Context a where
-  align :: Alignment -> a -> a
+  align :: Alignment -> a -> a    -- might be seperate, because of prose
+--  font_ :: Text      -> a -> a
+  raisebox :: Float -> a -> a
+--  sub   :: a -> a
   color :: Text      -> a -> a
   size  :: Int       -> a -> a
+  context :: (MarkupContext -> a) -> a -> a
 
 instance Context MarkupContext where
   align j m = m { baseAlign = j }
   color c m = m { baseColor = c }
+  raisebox o m = m { baseOffset = baseOffset m + o }
   size  i m = m { fontSize = i, spaceWidth = fromIntegral i * 0.28 }
-
+  context f m = f m
 
 ------------------------------------------------------------------------
 
@@ -279,13 +285,17 @@ data Emphasis
   | Bold
   | Color Text       -- not supported yet
   | Font Int Text    -- not supported yet
-
+  | Sub
+  | Super
+    deriving (Eq,Ord)
 
 instance Show Emphasis where
   show (Italics)     = "i"
   show (Bold)        = "b"
-  show (Color col)   = "#" ++ show col
+  show (Color col)   = ":" ++ show col
   show (Font sz txt) = show sz ++ "-" ++ show txt
+  show (Sub)         = "_"
+  show (Super)       = "^"
 
 ------------------------------------------------------------------------
 
@@ -297,6 +307,7 @@ instance Show Word where
    show (Word [] txt)   = show $ Text.unpack txt
    show (Word emph txt) = show emph ++ show (Text.unpack txt)
 --   show (WordSpace n)   = show n
+
 
 ------------------------------------------------------------------------
 
@@ -316,3 +327,8 @@ instance Semigroup Prose where
 instance Monoid Prose where
   mempty = Prose []
   mappend (Prose xs) (Prose ys) = Prose (xs++ys)
+
+super :: Prose -> Prose
+super (Prose ps) = Prose $ map f ps
+  where f (Left n) = Left (n / 0.7)
+        f (Right (Word es txt)) = Right (Word (Super:es) txt)
