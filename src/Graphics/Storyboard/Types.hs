@@ -268,6 +268,12 @@ newtype Prelude a = Prelude { runPrelude :: Canvas a }
 
 ------------------------------------------------------------------------
 
+-- [font style] [font weight] [font size] [font face]
+-- style = normal | italic | oblique | inherit
+-- weight = normal | bold | bolder | lighter | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | inherit | auto
+-- size = 24px (must be an int)
+-- face =  serif, sans-serif, cursive, fantasy, and monospace.
+
 data Emphasis
   = Italics
   | Bold
