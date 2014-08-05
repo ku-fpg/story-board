@@ -146,6 +146,7 @@ colorTile col sz@(w',h') = tile sz $ \ (w,h) -> do
 
     stroke()
 
+
 example3 :: Story ()
 example3 = margin 20 $ do
   p $ "The Canvas monad forms a JavaScript/Canvas DSL, and we, where possible," <+>
@@ -195,9 +196,7 @@ txt =
 storyBoard :: Story a -> Canvas a
 storyBoard story = do
     context <- myCanvasContext
-    let cxt = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" left 0
-    let cxt = MarkupContext "serif" 32 (2.6 * 3.2) "black" left 0
-    let cxt = MarkupContext "Gill Sans" 32 (2.6 * 3.2) "black" left 0
+    let cxt = defaultContext { baseFont = "Gill Sans" }
     (a,mosaic) <- runPrelude $ runStory story cxt (width context,height context)
     let Tile (w,h) m = fillTile mosaic
     saveRestore $ do

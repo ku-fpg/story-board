@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, GADTs, GeneralizedNewtypeDeriving, InstanceSigs #-}
+{-# LANGUAGE KindSignatures, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
 module Graphics.Storyboard.Types where
 
@@ -191,8 +191,12 @@ data MarkupContext = MarkupContext
   ,  baseColor   :: Text      -- current color
   ,  baseAlign   :: Alignment -- What alignment method are we using
   ,  baseOffset  :: Float     -- size of offset from baseline
+  ,  globalDPR   :: Float     -- scaling of whole page; Device Pixel Ratio.
   }
   deriving (Show)
+
+defaultContext :: MarkupContext
+defaultContext = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" left 0 1
 
 spaceWidthX :: (Float -> Float) -> MarkupContext -> MarkupContext
 spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
