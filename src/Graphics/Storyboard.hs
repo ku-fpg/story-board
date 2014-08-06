@@ -19,6 +19,7 @@ import Graphics.Storyboard.Markup
 import Graphics.Storyboard.Images
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals
+import Graphics.Storyboard.Prose
 
 -----------------------------------------------------------------------------
 

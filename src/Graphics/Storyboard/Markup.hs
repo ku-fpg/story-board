@@ -13,6 +13,8 @@ import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals
+import Graphics.Storyboard.Prose
+
 import Control.Monad.IO.Class
 
 ------------------------------------------------------------------------
