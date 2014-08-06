@@ -18,6 +18,7 @@ import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Markup
 import Graphics.Storyboard.Images
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Literals
 
 -----------------------------------------------------------------------------
 

@@ -12,6 +12,7 @@ import Graphics.Storyboard.Types
 import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Literals
 import Control.Monad.IO.Class
 
 ------------------------------------------------------------------------
