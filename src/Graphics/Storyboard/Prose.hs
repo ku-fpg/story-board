@@ -23,7 +23,6 @@ import Graphics.Storyboard.Literals
 newtype Prose = Prose [Either Float Word]
   deriving Show
 
-
 instance IsString Prose where
   fromString txt = Prose $ List.intersperse (Left 1)
       [ Right $ Word [] $ Text.pack $ wd -- default is *no* annotations
@@ -37,10 +36,39 @@ instance Monoid Prose where
   mempty = Prose []
   mappend (Prose xs) (Prose ys) = Prose (xs++ys)
 
+mapProse :: ([Emphasis] -> [Emphasis]) -> Prose -> Prose
+mapProse f (Prose ps) = Prose $ map g ps where
+  g (Right (Word es txt)) = Right (Word (f es) txt)
+  g other = other
+
+i :: Prose -> Prose
+i = mapProse (Italics :)
+
+b :: Prose -> Prose
+b = mapProse (Bold :)
+
+plain :: Prose -> Prose
+plain = mapProse (const [])
+
 super :: Prose -> Prose
 super (Prose ps) = Prose $ map f ps
   where f (Left n) = Left (n / 0.7)
         f (Right (Word es txt)) = Right (Word (Super:es) txt)
+
+sizedSpace :: Float -> Prose
+sizedSpace n = Prose [Left n]
+
+space :: Prose
+space = sizedSpace 1
+
+(<+>) :: Prose -> Prose -> Prose
+p1 <+> p2 = p1 <> space <> p2
+
+br :: Prose
+br = sizedSpace (1/0)  -- a bit of a hack
+
+(</>) :: Prose -> Prose -> Prose
+p1 </> p2 = p1 <> br <> p2
 
 ------------------------------------------------------------------------
 
