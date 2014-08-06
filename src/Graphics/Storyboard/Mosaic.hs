@@ -21,7 +21,6 @@ import Data.Semigroup
 import Data.Text(Text)
 import Graphics.Blank (Canvas,translate,saveRestore, console_log)
 import Control.Monad.IO.Class
-import Control.Lens (makeLenses)
 
 import GHC.Exts (IsString(fromString))
 

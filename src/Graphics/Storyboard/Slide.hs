@@ -19,7 +19,6 @@ import Data.Semigroup
 import Data.Text(Text)
 import Graphics.Blank (Canvas)
 import Control.Monad.IO.Class
-import Control.Lens (makeLenses)
 
 import GHC.Exts (IsString(fromString))
 
