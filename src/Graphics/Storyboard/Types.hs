@@ -20,7 +20,7 @@ import GHC.Exts (IsString(fromString))
 
 import Graphics.Storyboard.Types.Basic
 import Graphics.Storyboard.Literals
-
+import Graphics.Storyboard.Environment
 -----------------------------------------------------------------------------
 
 
@@ -83,52 +83,13 @@ cavityRange (Mosaic sps _) (h,w) = ( foldl f (h,0) $ map fst sps
 
 -----------------------------------------------------------------------------
 
-data MarkupContext = MarkupContext
-  {  baseFont    :: Text      -- which font, "sans-serif"
-  ,  fontSize    :: Int       -- how big, 10
-  ,  spaceWidth  :: Float     -- size of space, 3.0 (perhaps 2.8)
-  ,  baseColor   :: Text      -- current color
-  ,  baseAlign   :: Alignment -- What alignment method are we using
-  ,  baseOffset  :: Float     -- size of offset from baseline
-  ,  globalDPR   :: Float     -- scaling of whole page; Device Pixel Ratio.
---  ,  lineWidth   :: Float   -- default = 1
-  ,  _foo        :: Int
-  , leftMargin   :: Float     -- default 0
-  , rightMargin  :: Float     -- default 0
-  , tabSize      :: Float
-  , afterParagraph :: Float
-  }
-  deriving (Show)
 
-$(makeLenses ''MarkupContext)
-
-defaultContext :: MarkupContext
-defaultContext = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" left 0 1 0 0 0 50 10
-
-spaceWidthX :: (Float -> Float) -> MarkupContext -> MarkupContext
-spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
-
-class Context a where
-  align :: Alignment -> a -> a    -- might be seperate, because of prose
---  font_ :: Text      -> a -> a
-  raisebox :: Float -> a -> a
---  sub   :: a -> a
-  color :: Text      -> a -> a
-  size  :: Int       -> a -> a
-  context :: (MarkupContext -> a) -> a -> a
-
-instance Context MarkupContext where
-  align j m = m { baseAlign = j }
-  color c m = m { baseColor = c }
-  raisebox o m = m { baseOffset = baseOffset m + o }
-  size  i m = m { fontSize = i, spaceWidth = fromIntegral i * 0.28 }
-  context f m = f m
 
 ------------------------------------------------------------------------
 
 -- | The Story Monad is intentually transparent. It is just a convenence.
 
-newtype Story a = Story { runStory :: MarkupContext -> Size Float -> Prelude (a,Mosaic ()) }
+newtype Story a = Story { runStory :: Environment -> Size Float -> Prelude (a,Mosaic ()) }
 
 instance Functor Story where
  fmap f m = pure f <*> m
@@ -161,7 +122,7 @@ instance MonadIO Story where
 storyCavity :: Story (Size Float)
 storyCavity = Story $ \ _ sz -> return (sz,pure ())
 
-storyContext :: (MarkupContext -> MarkupContext) -> Story a -> Story a
+storyContext :: (Environment -> Environment) -> Story a -> Story a
 storyContext f (Story g) = (Story $ \ cxt sz -> g (f cxt) sz)
 
 

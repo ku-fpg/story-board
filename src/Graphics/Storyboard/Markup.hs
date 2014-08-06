@@ -14,6 +14,7 @@ import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Prose
+import Graphics.Storyboard.Environment
 
 import Control.Monad.IO.Class
 
@@ -155,7 +156,7 @@ splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
 
 -- This function should be memoize; it will return
 -- the same answer for *every* call.
-wordWidth :: MarkupContext -> Word -> Prelude Float
+wordWidth :: Environment -> Word -> Prelude Float
 wordWidth cxt (Word emph txt) = Prelude $ saveRestore $ do
     font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
     TextMetrics w <- measureText txt

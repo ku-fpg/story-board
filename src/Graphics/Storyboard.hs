@@ -20,6 +20,7 @@ import Graphics.Storyboard.Images
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Prose
+import Graphics.Storyboard.Environment
 
 -----------------------------------------------------------------------------
 
