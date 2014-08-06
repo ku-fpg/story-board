@@ -31,9 +31,6 @@ class Markup a where
   color :: Text -> a -> a
   plain ::         a -> a
 
-class Align a where
-  align :: Alignment -> a -> a
-
 -----------------------------------------------------------------------------
 
 data Side       = T | B | L | R

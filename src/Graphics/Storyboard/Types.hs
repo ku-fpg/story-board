@@ -125,10 +125,8 @@ storyCavity = Story $ \ _ sz -> return (sz,pure ())
 storyContext :: (Environment -> Environment) -> Story a -> Story a
 storyContext f (Story g) = (Story $ \ cxt sz -> g (f cxt) sz)
 
-
-instance Align (Story a) where
-  align :: Alignment -> Story a -> Story a
-  align = storyContext . align
+instance Layout (Story a) where
+  scoped = storyContext
 
 
 instance Markup (Story a) where
@@ -150,9 +148,6 @@ getStory (Story f) = Story $ \ cxt -> do
 
 storyMosaic :: Mosaic () -> Story ()
 storyMosaic mosaic = Story $ \ cxt sz -> return ((),mosaic)
-
-itemize :: Story a -> Story a
-itemize = storyContext $ \ cxt -> cxt { leftMargin = leftMargin cxt + tabSize cxt }
 
 ------------------------------------------------------------------------
 -- The idea behind the prelude monad is that we can cache

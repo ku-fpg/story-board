@@ -28,9 +28,6 @@ data Environment = Environment
 defaultContext :: Environment
 defaultContext = Environment "sans-serif" 32 (2.6 * 3.2) "black" left 0 1 0 0 0 50 10
 
-spaceWidthX :: (Float -> Float) -> Environment -> Environment
-spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
-
 {-
 class Context a where
   align :: Alignment -> a -> a    -- might be seperate, because of prose
@@ -50,8 +47,17 @@ instance Context Environment where
   context f m = f m
 -}
 
-instance Markup Environment where 
+instance Markup Environment where
 
-instance Align Environment where
-  align :: Alignment -> Environment -> Environment
-  align j m = m { baseAlign = j }
+
+--class Align a where
+--  align :: Alignment -> a -> a
+
+class Layout a where
+  scoped :: (Environment -> Environment) -> a -> a
+
+itemize :: Layout a => a -> a
+itemize = scoped $ \ cxt -> cxt { leftMargin = leftMargin cxt + tabSize cxt }
+
+align :: Layout a => Alignment -> a -> a
+align j = scoped $ \ m -> m { baseAlign = j }
