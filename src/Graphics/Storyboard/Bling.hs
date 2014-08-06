@@ -4,6 +4,8 @@ import Data.Text(Text)
 
 import Graphics.Blank
 import Graphics.Storyboard.Types
+import Graphics.Storyboard.Tile
+
 
 border :: Float -> Text -> Tile a -> Tile a
 border wd col (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ (w',h') -> do

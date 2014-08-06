@@ -13,6 +13,7 @@ import Data.List
 import Data.Maybe
 
 import Graphics.Storyboard.Types
+import Graphics.Storyboard.Tile
 
 -----------------------------------------------------------------------------
 

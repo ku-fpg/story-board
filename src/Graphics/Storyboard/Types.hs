@@ -22,42 +22,6 @@ import Graphics.Storyboard.Types.Basic
 
 -----------------------------------------------------------------------------
 
--- | A Tile has a specific, fixed size.
--- When rendered, it is given a specific size to operate inside of,
--- that typically would be *at least* the size of the original fixed size.
--- The tile can choose to put any extra space on the inside or outside
--- of any border, etc.
-
-data Tile a = Tile (Size Float) (Size Float -> Canvas a)
-
-instance Show (Tile a) where
-  show (Tile sz _) = show sz
-
--- | tile requests a specific (minimum) size, and provides
--- a paint routine that takes the *actual* size.
--- The paint routine can assume the canvas starts at (0,0),
--- and is the given size. No masking is done by default.
-
-tile :: Size Float -> (Size Float -> Canvas a) -> Tile a
-tile = Tile
-
-tileWidth :: Tile a -> Float
-tileWidth (Tile (w,_) _) = w
-tileHeight :: Tile a -> Float
-tileHeight (Tile (_,h) _) = h
-
-instance Semigroup a => Semigroup (Tile a) where
-  (Tile (x1,y1) c1) <> (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ sz ->
-        do r1 <- c1 sz
-           r2 <- c2 sz -- overlay is the default monoid
-           return (r1 <> r2)
-
-instance Monoid a => Monoid (Tile a) where
-  mempty = Tile (0,0) (return mempty)
-  (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ sz ->
-      do r1 <- c1 sz
-         r2 <- c2 sz -- overlay is the default monoid
-         return (r1 `mappend` r2)
 
 -----------------------------------------------------------------------------
 
