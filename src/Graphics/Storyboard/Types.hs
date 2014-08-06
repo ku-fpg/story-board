@@ -1,6 +1,9 @@
 {-# LANGUAGE KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
-module Graphics.Storyboard.Types where
+module Graphics.Storyboard.Types
+  ( module Graphics.Storyboard.Types
+  , module Graphics.Storyboard.Types.Basic
+  ) where
 
 import qualified Data.Text as Text
 import Data.Text(Text)
@@ -15,10 +18,7 @@ import Control.Lens (makeLenses)
 
 import GHC.Exts (IsString(fromString))
 
------------------------------------------------------------------------------
-
-type Size  f = (f,f)
-type Coord f = (f,f)
+import Graphics.Storyboard.Types.Basic
 
 -----------------------------------------------------------------------------
 
