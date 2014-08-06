@@ -126,9 +126,14 @@ storyContext :: (Environment -> Environment) -> Story a -> Story a
 storyContext f (Story g) = (Story $ \ cxt sz -> g (f cxt) sz)
 
 
-instance Context (Story a) where
+instance Align (Story a) where
   align :: Alignment -> Story a -> Story a
   align = storyContext . align
+
+
+instance Markup (Story a) where
+--  align :: Alignment -> Story a -> Story a
+--  align = storyContext . align
   color = storyContext . color
   size  = storyContext . size
 

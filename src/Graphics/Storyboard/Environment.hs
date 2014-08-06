@@ -31,6 +31,7 @@ defaultContext = Environment "sans-serif" 32 (2.6 * 3.2) "black" left 0 1 0 0 0 
 spaceWidthX :: (Float -> Float) -> Environment -> Environment
 spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
 
+{-
 class Context a where
   align :: Alignment -> a -> a    -- might be seperate, because of prose
 --  font_ :: Text      -> a -> a
@@ -47,3 +48,10 @@ instance Context Environment where
   raisebox o m = m { baseOffset = baseOffset m + o }
   size  i m = m { fontSize = i, spaceWidth = fromIntegral i * 0.28 }
   context f m = f m
+-}
+
+instance Markup Environment where 
+
+instance Align Environment where
+  align :: Alignment -> Environment -> Environment
+  align j m = m { baseAlign = j }

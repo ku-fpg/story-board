@@ -5,6 +5,8 @@
  -}
 module Graphics.Storyboard.Literals where
 
+import Data.Text(Text)
+
 -----------------------------------------------------------------------------
 
 -- Short cut literal/DSL-keyword classes
@@ -18,6 +20,19 @@ class TB a where
 
 class Center a where
   center :: a
+
+class Markup a where
+  i     ::         a -> a
+  b     ::         a -> a
+  font  :: Text -> a -> a
+  size  :: Int  -> a -> a
+  big   ::         a -> a
+  small ::         a -> a
+  color :: Text -> a -> a
+  plain ::         a -> a
+
+class Align a where
+  align :: Alignment -> a -> a
 
 -----------------------------------------------------------------------------
 

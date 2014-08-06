@@ -4,7 +4,8 @@ module Graphics.Storyboard.Markup where
 import qualified Data.Text as Text
 import Data.Text(Text)
 import Data.Semigroup
-import Graphics.Blank
+import qualified Graphics.Blank as Blank
+import Graphics.Blank(Canvas,fillStyle,fillText,saveRestore,measureText,TextMetrics(..))
 import Data.List as List
 import Control.Applicative
 
@@ -38,7 +39,7 @@ p (Prose xs) = Story $ \ cxt (w,h) -> do
               w <- wordWidth cxt (Word emph txt)
               let off = if Super `elem` emph then (-5) else 0
               return $ Right $ tile (w,fromIntegral $ fontSize cxt + 5) $ const $ do
-                font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
+                Blank.font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
                 fillStyle (baseColor cxt)
                 fillText (txt,0,fromIntegral $ fontSize cxt + off)    -- time will tell for this offset
             Left n -> return $ Left $ n * spaceWidth cxt
@@ -158,6 +159,6 @@ splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
 -- the same answer for *every* call.
 wordWidth :: Environment -> Word -> Prelude Float
 wordWidth cxt (Word emph txt) = Prelude $ saveRestore $ do
-    font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
+    Blank.font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
     TextMetrics w <- measureText txt
     return w

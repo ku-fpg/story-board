@@ -41,14 +41,6 @@ mapProse f (Prose ps) = Prose $ map g ps where
   g (Right (Word es txt)) = Right (Word (f es) txt)
   g other = other
 
-i :: Prose -> Prose
-i = mapProse (Italics :)
-
-b :: Prose -> Prose
-b = mapProse (Bold :)
-
-plain :: Prose -> Prose
-plain = mapProse (const [])
 
 super :: Prose -> Prose
 super (Prose ps) = Prose $ map f ps
@@ -69,6 +61,17 @@ br = sizedSpace (1/0)  -- a bit of a hack
 
 (</>) :: Prose -> Prose -> Prose
 p1 </> p2 = p1 <> br <> p2
+
+instance Markup Prose where
+  i :: Prose -> Prose
+  i = mapProse (Italics :)
+
+  b :: Prose -> Prose
+  b = mapProse (Bold :)
+
+  plain :: Prose -> Prose
+  plain = mapProse (const [])
+
 
 ------------------------------------------------------------------------
 
