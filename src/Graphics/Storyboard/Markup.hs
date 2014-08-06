@@ -82,7 +82,8 @@ p (Prose xs) = Story $ \ cxt (w,h) -> do
 
     liftIO $ print (w,[ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ])
 
-    let splits = splitLines w [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
+    let splits = splitLines (w - (leftMargin cxt + rightMargin cxt))
+                            [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
 
 
     liftIO $ print $ splits
@@ -93,22 +94,24 @@ p (Prose xs) = Story $ \ cxt (w,h) -> do
     let
         write :: Bool -> [([Tile ()],Float)] -> Mosaic ()
         write lastLine xs = anchor top $ pack $ mconcat $
-              [ anchor left gap | True <- [just `elem` [ JustCenter, JustRight]]] ++
+              [ anchor left gap | True <- [just `elem` [ center, right]]] ++
+              [ anchor left (tile (leftMargin cxt,0) $ const $ pure ())] ++
               [ mconcat [ anchor left $ tile | tile <- tiles ] <>
                 (if sp == 0
                  then pure ()
-                 else if just == Justified
+                 else if just == justified
                       then anchor left gap
                       else anchor left $ tile (sp,0) $ const $ return ()
                 )
               | (tiles,sp) <- init xs ++ [(fst (last xs),0)]
               ] ++
+              [ anchor left (tile (rightMargin cxt,0) $ const $ pure ())] ++
               [ anchor left gap | True <- [just `elem` [ left, center]]]
            where just = if lastLine && baseAlign cxt == justified
                         then left
                         else baseAlign cxt
 
-        loop []     [] = hbrace w
+        loop []     [] = anchor top $ blank (w,afterParagraph cxt)
         loop (n:ns) xs =
             write (null ns) (take n xs) <>
             loop ns (drop n xs)

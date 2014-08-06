@@ -161,8 +161,11 @@ example3 = margin 20 $ do
   align justified $ do
     p $ "FXoats, etc. When there is a var-args JavaScript function, we use lists," <+>
       "as needed (it turns out that all var-args functions take a variable number" <+>
-      "of JavaScript numbers.)" <+>
-      "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
+      "of JavaScript numbers.)"
+
+
+  itemize $ do
+    p $ "FF unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
       "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
       "as needed (it turns out that all var-args functions take a variable number" <+>
       "of JavaScript numbers.)"

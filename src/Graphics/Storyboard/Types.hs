@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
+{-# LANGUAGE KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
 module Graphics.Storyboard.Types where
 
@@ -11,6 +11,7 @@ import Data.Semigroup
 import Data.Text(Text)
 import Graphics.Blank (Canvas)
 import Control.Monad.IO.Class
+import Control.Lens (makeLenses)
 
 import GHC.Exts (IsString(fromString))
 
@@ -192,11 +193,19 @@ data MarkupContext = MarkupContext
   ,  baseAlign   :: Alignment -- What alignment method are we using
   ,  baseOffset  :: Float     -- size of offset from baseline
   ,  globalDPR   :: Float     -- scaling of whole page; Device Pixel Ratio.
+--  ,  lineWidth   :: Float   -- default = 1
+  ,  _foo        :: Int
+  , leftMargin   :: Float     -- default 0
+  , rightMargin  :: Float     -- default 0
+  , tabSize      :: Float
+  , afterParagraph :: Float
   }
   deriving (Show)
 
+$(makeLenses ''MarkupContext)
+
 defaultContext :: MarkupContext
-defaultContext = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" left 0 1
+defaultContext = MarkupContext "sans-serif" 32 (2.6 * 3.2) "black" left 0 1 0 0 0 50 10
 
 spaceWidthX :: (Float -> Float) -> MarkupContext -> MarkupContext
 spaceWidthX f m = m { spaceWidth = f (spaceWidth m) }
@@ -277,6 +286,9 @@ getStory (Story f) = Story $ \ cxt -> do
 
 storyMosaic :: Mosaic () -> Story ()
 storyMosaic mosaic = Story $ \ cxt sz -> return ((),mosaic)
+
+itemize :: Story a -> Story a
+itemize = storyContext $ \ cxt -> cxt { leftMargin = leftMargin cxt + tabSize cxt }
 
 ------------------------------------------------------------------------
 -- The idea behind the prelude monad is that we can cache
