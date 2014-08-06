@@ -48,7 +48,7 @@ instance Context Environment where
 -}
 
 instance Markup Environment where
-
+  size n m = m { fontSize = n, spaceWidth = 0.26 * fromIntegral n }
 
 --class Align a where
 --  align :: Alignment -> a -> a

@@ -6,43 +6,27 @@ import Control.Monad.IO.Class
 import Graphics.Storyboard
 
 main :: IO ()
-main = storyBoard [example3]
+main = storyBoard [alignSlide]
 
-example3 :: Story ()
-example3 = margin 20 $ do
-  p $ "The Canvas monad forms a JavaScript/Canvas DSL, and we, where possible," <+>
-      "stick to the JavaScript idioms. So a method call with no arguments takes a" <+>
-      "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of"
+lorem :: Prose
+lorem =
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. In interdum," <+>
+      "nisl sit amet gravida placerat, felis odio rutrum justo, sed viverra" <+>
+      "lacus erat at orci. Mauris eu nibh vitae dolor venenatis aliquam vel" <+>
+      "ac metus. Praesent hendrerit enim purus, et blandit eros sagittis" <+>
+      "eu. Phasellus dolor est, tempor a fermentum in, fringilla id" <+>
+      "turpis. Fusce orci quam, pulvinar sed felis sed, euismod mollis" <+>
+      "metus. Aliquam aliquet massa quam, ac scelerisque augue malesuada" <+>
+      "ut. Suspendisse tincidunt nulla non molestie vestibulum."
 
-  (w,h) <-storyCavity
-  liftIO $ print (w,h)
+ligature :: Prose
+ligature = "file"
 
--- imageTile :: FilePath -> Story (Tile ())
+alignSlide :: Story ()
+alignSlide = margin 20 $ size 20 $ do
 
-  align justified $ do
-    p $ "FXoats, etc. When there is a var-args JavaScript function, we use lists," <+>
-      "as needed (it turns out that all var-args functions take a variable number" <+>
-      "of JavaScript numbers.)"
+  p $ lorem
 
-
-  itemize $ do
-    p $ "FF unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
-      "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
-      "as needed (it turns out that all var-args functions take a variable number" <+>
-      "of JavaScript numbers.)"
-
-  hr
-
-  img <- imageTile "jhwk_LF_200px.gif"
-
-  draw (anchor left img)
-  draw (anchor left (blank (20,0)))
-
-  align justified $ do
-    p $ " Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
-        "as needed (it turns out that all var-args functions take a variable number" <+>
-        "of JavaScript numbers.)" <+>
-        "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
-        "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
-        "as needed (it turns out that all var-args functions take a variable number" <+>
-        "of JavaScript numbers.)"
+  align right     $ p $ lorem
+  align center    $ p $ lorem
+  align justified $ p $ lorem

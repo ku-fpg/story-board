@@ -13,6 +13,7 @@ module Graphics.Storyboard
   , itemize
   , margin
   , hr
+  , Prose
     -- * Useful literals
   , module Graphics.Storyboard.Literals
   )
