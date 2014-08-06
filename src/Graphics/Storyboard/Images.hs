@@ -16,7 +16,7 @@ import Data.Text(Text)
 -- Load an image; do not place it anywhere yet.
 
 imageTile :: FilePath -> Slide (Tile ())
-imageTile filePath = Slide $ \ cxt sz -> fmap (\ a -> (a,pure ())) $ Prelude $ do
+imageTile filePath = slide $ \ cxt sz -> fmap (\ a -> (a,pure ())) $ Prelude $ do
     url <- liftIO $ readDataURL (mimeTypes filePath) filePath
     img <- newImage url
     return $ tile (width img, height img)

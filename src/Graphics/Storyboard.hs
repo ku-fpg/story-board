@@ -4,13 +4,13 @@ module Graphics.Storyboard
   , p
   , (<+>)
   , align
-  , storyCavity
+  , cavity
   , imageTile
   , draw
   , anchor
   , blank
   , storyBoard
-  , itemize
+  , indent
   , margin
   , hr
   , Prose
@@ -44,11 +44,11 @@ import Graphics.Storyboard.Environment
 import Graphics.Storyboard.Mosaic
 
 -----------------------------------------------------------------------------
-
+{-
 example1 :: Float -> Text -> Tile ()
-example1 size col = id
+example1 sz col = id
     $ border 10 "black"
-    $ tile (size,size) $ \ sz@(w,h) -> do
+    $ tile (sz,sz) $ \ sz@(w,h) -> do
 
         -- background
         beginPath()
@@ -70,7 +70,7 @@ example1 size col = id
           arc(size/2, size/2, (size / 2.5), 0, pi*2, False)
           closePath()
           fill()
-
+-}
 
 
 -- blank margin around a story.
@@ -85,7 +85,7 @@ margin m inside = do
 -- horizontal rule
 hr :: Slide ()
 hr = do
-  (_,w) <- storyCavity
+  (_,w) <- cavity
   draw $ anchor top $ tile (w,2) $ \ (w',h') -> do
               beginPath()
               moveTo(0,1)
@@ -101,14 +101,14 @@ vspace h = do
 titlePage :: Slide ()
 titlePage = margin 20 $ align center $ do
 --  align center $ p $ "EECS 776"
-  size 72 $ p $ "Functional Programming" </> "and Domain Specific Languages"
+  fontSize 72 $ p $ "Functional Programming" </> "and Domain Specific Languages"
   vspace 100
-  size 28 $ p $ "Andy Gill"
-  size 20 $ p $ "University of Kansas"
+  fontSize 28 $ p $ "Andy Gill"
+  fontSize 20 $ p $ "University of Kansas"
   vspace 100
-  size 18 $ p $ "August 26" <> super "th" <+> "2013"  -- fix super
+  fontSize 18 $ p $ "August 26" <> super "th" <+> "2013"  -- fix super
   vspace 100
-  size 18 $ p $ "Copyright" <> "\xa9" <+> "2014 Andrew Gill"
+  fontSize 18 $ p $ "Copyright" <> "\xa9" <+> "2014 Andrew Gill"
 
 
 {-
@@ -124,7 +124,7 @@ overlay (Slide storyA) (Slide storyB) = Slide $ \ cxt sz -> do
 
 slide_background :: Slide ()
 slide_background = margin 10 $ do
-  (w,h) <-storyCavity
+  (w,h) <-cavity
   draw (vbrace h <> hbrace w)
   img <- imageTile "jhwk_LF_200px.gif"
 
@@ -151,7 +151,7 @@ example3 = margin 20 $ do
       "stick to the JavaScript idioms. So a method call with no arguments takes a" <+>
       "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of"
 
-  (w,h) <-storyCavity
+  (w,h) <-cavity
   liftIO $ print (w,h)
 
 -- imageTile :: FilePath -> Slide (Tile ())
@@ -162,7 +162,7 @@ example3 = margin 20 $ do
       "of JavaScript numbers.)"
 
 
-  itemize $ do
+  indent $ do
     p $ "FF unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
       "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
       "as needed (it turns out that all var-args functions take a variable number" <+>
@@ -196,7 +196,7 @@ txt =
 
 blankCanvasStoryBoard :: [Slide ()] -> DeviceContext -> IO ()
 blankCanvasStoryBoard slide = \ context -> send context $ do
-    let cxt = defaultContext { baseFont = "Gill Sans" }
+    let cxt = defaultEnvironment
     (a,mosaic) <- runPrelude $ runSlide (head slide) cxt (width context,height context)
     let Tile (w,h) m = fillTile mosaic
     saveRestore $ do

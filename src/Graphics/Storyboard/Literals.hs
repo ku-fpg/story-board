@@ -22,14 +22,14 @@ class Center a where
   center :: a
 
 class Markup a where
-  i     ::         a -> a
-  b     ::         a -> a
-  font  :: Text -> a -> a
-  size  :: Int  -> a -> a
-  big   ::         a -> a
-  small ::         a -> a
-  color :: Text -> a -> a
-  plain ::         a -> a
+  i         ::         a -> a
+  b         ::         a -> a
+  font      :: Text -> a -> a
+  fontSize  :: Int  -> a -> a
+  big       ::         a -> a
+  small     ::         a -> a
+  color     :: Text -> a -> a
+  plain     ::         a -> a
 
 -----------------------------------------------------------------------------
 

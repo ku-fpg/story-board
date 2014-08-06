@@ -1,6 +1,14 @@
 {-# LANGUAGE KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
-module Graphics.Storyboard.Slide where
+module Graphics.Storyboard.Slide
+  ( Slide
+  , slide
+  , Prelude(..)  -- for now
+  , draw
+  , place
+  , cavity
+  , runSlide
+  ) where
 
 import qualified Data.Text as Text
 import Data.Text(Text)
@@ -34,6 +42,9 @@ import Graphics.Storyboard.Tile
 
 newtype Slide a = Slide { runSlide :: Environment -> Size Float -> Prelude (a,Mosaic ()) }
 
+slide :: (Environment -> Size Float -> Prelude (a,Mosaic ())) -> Slide a
+slide = Slide
+
 instance Functor Slide where
  fmap f m = pure f <*> m
 
@@ -62,8 +73,8 @@ instance MonadIO Slide where
       return (a, pure ())
 
 
-storyCavity :: Slide (Size Float)
-storyCavity = Slide $ \ _ sz -> return (sz,pure ())
+cavity :: Slide (Size Float)
+cavity = Slide $ \ _ sz -> return (sz,pure ())
 
 storyContext :: (Environment -> Environment) -> Slide a -> Slide a
 storyContext f (Slide g) = (Slide $ \ cxt sz -> g (f cxt) sz)
@@ -75,8 +86,9 @@ instance Layout (Slide a) where
 instance Markup (Slide a) where
 --  align :: Alignment -> Slide a -> Slide a
 --  align = storyContext . align
-  color = storyContext . color
-  size  = storyContext . size
+  font     = scoped . font
+  color    = storyContext . color
+  fontSize = storyContext . fontSize
 
 --size :: Float -> Slide a -> Slide a
 --size s = storyContext (\ m -> m { baseAlign = j })
@@ -102,7 +114,7 @@ draw (tile `on` left)
 draw :: Mosaic () -> Slide ()
 draw mosaic = Slide $ \ cxt sz -> return ((),mosaic)
 
--- | you 'place' a 'Tile' onto the 'Story', on a specific side of your slide.
+-- | you 'place' a 'Tile' onto the 'Slide', on a specific side of your slide.
 place :: Side -> Tile () -> Slide ()
 place s = draw . anchor s
 

@@ -22,16 +22,8 @@ import Control.Monad.IO.Class
 
 ------------------------------------------------------------------------
 
-
-
---super :: Prose -> Prose
---super =
-
-
-------------------------------------------------------------------------
-
 p :: Prose -> Slide ()
-p (Prose xs) = Slide $ \ cxt (w,h) -> do
+p (Prose xs) = slide $ \ cxt (w,h) -> do
 
     -- get all the tiles and spaces
     proseTiles <- sequence
@@ -39,11 +31,11 @@ p (Prose xs) = Slide $ \ cxt (w,h) -> do
             Right (Word emph txt) -> do
               w <- wordWidth cxt (Word emph txt)
               let off = if Super `elem` emph then (-5) else 0
-              return $ Right $ tile (w,fromIntegral $ fontSize cxt + 5) $ const $ do
-                Blank.font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
-                fillStyle (baseColor cxt)
-                fillText (txt,0,fromIntegral $ fontSize cxt + off)    -- time will tell for this offset
-            Left n -> return $ Left $ n * spaceWidth cxt
+              return $ Right $ tile (w,fromIntegral $ theFontSize cxt + 5) $ const $ do
+                Blank.font $ emphasisFont (theFontSize cxt) (theFont cxt) emph
+                fillStyle (theColor cxt)
+                fillText (txt,0,fromIntegral $ theFontSize cxt + off)    -- time will tell for this offset
+            Left n -> return $ Left $ n * theSpaceWidth cxt
         | x <- xs
         ]
 
@@ -75,7 +67,7 @@ p (Prose xs) = Slide $ \ cxt (w,h) -> do
 
     liftIO $ print (w,[ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ])
 
-    let splits = splitLines (w - (leftMargin cxt + rightMargin cxt))
+    let splits = splitLines (w - (theLeftMargin cxt + theRightMargin cxt))
                             [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
 
 
@@ -88,7 +80,7 @@ p (Prose xs) = Slide $ \ cxt (w,h) -> do
         write :: Bool -> [([Tile ()],Float)] -> Mosaic ()
         write lastLine xs = anchor top $ pack $ mconcat $
               [ gap left | True <- [just `elem` [ center, right]]] ++
-              [ anchor left (tile (leftMargin cxt,0) $ const $ pure ())] ++
+              [ anchor left (tile (theLeftMargin cxt,0) $ const $ pure ())] ++
               [ mconcat [ anchor left $ tile | tile <- tiles ] <>
                 (if sp == 0
                  then pure ()
@@ -98,13 +90,13 @@ p (Prose xs) = Slide $ \ cxt (w,h) -> do
                 )
               | (tiles,sp) <- init xs ++ [(fst (last xs),0)]
               ] ++
-              [ anchor left (tile (rightMargin cxt,0) $ const $ pure ())] ++
+              [ anchor left (tile (theRightMargin cxt,0) $ const $ pure ())] ++
               [ gap left | True <- [just `elem` [ left, center]]]
-           where just = if lastLine && baseAlign cxt == justified
+           where just = if lastLine && theAlignment cxt == justified
                         then left
-                        else baseAlign cxt
+                        else theAlignment cxt
 
-        loop []     [] = anchor top $ blank (w,afterParagraph cxt)
+        loop []     [] = anchor top $ blank (w,theParSkip cxt)
         loop (n:ns) xs =
             write (null ns) (take n xs) <>
             loop ns (drop n xs)
@@ -160,6 +152,6 @@ splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
 -- the same answer for *every* call.
 wordWidth :: Environment -> Word -> Prelude Float
 wordWidth cxt (Word emph txt) = Prelude $ saveRestore $ do
-    Blank.font $ emphasisFont (fontSize cxt) (baseFont cxt) emph
+    Blank.font $ emphasisFont (theFontSize cxt) (theFont cxt) emph
     TextMetrics w <- measureText txt
     return w

@@ -23,7 +23,7 @@ ligature :: Prose
 ligature = "file"
 
 alignSlide :: Slide ()
-alignSlide = margin 20 $ size 20 $ do
+alignSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
   p $ lorem
 
