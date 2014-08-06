@@ -52,33 +52,6 @@ example1 size col = id
           fill()
 
 
-example2 :: Mosaic ()
-example2 =
-  anchor top gap *>
-{-
-  (anchor top $
-   layoutLine (500,50)
-              "10px sans-serif"
-              3
-              left
-              [(Word [] "Hello",23),(Word [] "World",26)])
-                                                *>
-  (anchor top $ example1 100 "red")    *>
--}
-{-
-  (anchor top $ column [ example1 (i ^ 2 * 10) "red" | i <- [0..7]]) *>
-  (anchor top $ example1 100 "green")  *>
-  (left $ example1 100 "pink")    *> left gap *>
-  (left$ example1 100 "blue")  *>
-  (anchor top $ example1 200 "orange")  *>
-  (left $ example1 100 "pink")    *>
-  (left$ example1 100 "blue")  *> left gap *>
-  (left $ example1 100 "pink")    *>
--}
-  (anchor left$ example1 100 "blue")  *>
-  (anchor right$ example1 100 "#123456")  *>
-  pure ()
-
 
 -- blank margin around a story.
 margin :: Float -> Story a -> Story a
@@ -135,7 +108,7 @@ slide_background = margin 10 $ do
   storyMosaic (vbrace h <> hbrace w)
   img <- imageTile "jhwk_LF_200px.gif"
 
-  storyMosaic (anchor left gap <> anchor bottom img)
+  storyMosaic (gap left <> anchor bottom img)
 
 colorTile :: Text -> Size Float -> Tile ()
 colorTile col sz@(w',h') = tile sz $ \ (w,h) -> do

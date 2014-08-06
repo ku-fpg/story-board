@@ -86,21 +86,8 @@ cavityRange (Mosaic sps _) (h,w) = ( foldl f (h,0) $ map fst sps
 
 -----------------------------------------------------------------------------
 
-class Filling f where
-    anchor :: Side -> f a -> Mosaic a
-{-
-left   :: Filling f => f a -> Mosaic a
-left   = anchor L
-right  :: Filling f => f a -> Mosaic a
-right  = anchor R
-top    :: Filling f => f a -> Mosaic a
-top    = anchor T
-bottom :: Filling f => f a -> Mosaic a
-bottom = anchor B
--}
-
-instance Filling Tile where
-  anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
+anchor :: Side -> Tile a -> Mosaic a
+anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
      \ cavity -> do
           a <- saveRestore $ do
               translate $ newOffset side (w,h) cavity
@@ -117,34 +104,9 @@ instance Filling Tile where
               k (w,h)
 
 
-
-instance Filling Gap where
-  anchor side Gap = Mosaic [fillSpacing side] $
+gap :: Side -> Mosaic ()
+gap side = Mosaic [fillSpacing side] $
     \ cavity -> return ((),newSpacingCavity side cavity)
-
-
---  anchor T Gap = hfill
-
-{-
-instance Filling Parcel where
-  left (Parcel n) = Mosaic [] $ \ (Cavity (cx,cy) (cw,ch) (sw,sh)) ->
-    return ((),Cavity (cx,cy + sh) (cw,ch - sh) (sw,sh))
-
-data Parcel :: * -> * where
-  Parcel :: Float -> Parcel ()
--}
-{-
-    Mosaic [(Alloc 0,Space')] return <>
--}
-
---instance Filling Mosaic where
---  left f = f <* right gap
-
-data Gap :: * -> * where
-  Gap :: Gap ()
-
-gap :: Gap ()
-gap = Gap
 
 
 -- brace that force the inside to be *at least* this size.
@@ -156,10 +118,10 @@ hbrace :: Float -> Mosaic ()
 hbrace w = anchor top (tile (w,0) $ const $ return ())
 
 column :: [Tile ()] -> Tile ()
-column = fillTile . mconcat . intersperse (anchor left gap) . map (anchor left)
+column = fillTile . mconcat . intersperse (gap left) . map (anchor left)
 
 row :: [Tile ()] -> Tile ()
-row = fillTile . mconcat . intersperse (anchor top gap) . map (anchor top)
+row = fillTile . mconcat . intersperse (gap top) . map (anchor top)
 
 -----------------------------------------------------------------------------
 
