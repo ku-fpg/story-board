@@ -1,5 +1,23 @@
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings, KindSignatures, GADTs, StandaloneDeriving, TypeFamilies, DataKinds #-}
-module Graphics.Storyboard where
+module Graphics.Storyboard
+  ( Story
+  , p
+  , (<+>)
+  , align
+  , storyCavity
+  , imageTile
+  , draw
+  , anchor
+  , blank
+  , storyBoard
+  , itemize
+  , margin
+  , hr
+    -- * Useful literals
+  , module Graphics.Storyboard.Literals
+  )
+
+where
 
 import Graphics.Blank hiding (eval)
 import Data.Semigroup
@@ -174,14 +192,18 @@ txt =
   "of JavaScript numbers.)"
 
 
-storyBoard :: Story () -> DeviceContext -> IO ()
-storyBoard story = \ context -> send context $ do
+blankCanvasStoryBoard :: [Story ()] -> DeviceContext -> IO ()
+blankCanvasStoryBoard story = \ context -> send context $ do
     let cxt = defaultContext { baseFont = "Gill Sans" }
-    (a,mosaic) <- runPrelude $ runStory story cxt (width context,height context)
+    (a,mosaic) <- runPrelude $ runStory (head story) cxt (width context,height context)
     let Tile (w,h) m = fillTile mosaic
     saveRestore $ do
       _ <- m (w,h)
       return ()
     return a
 
-main = blankCanvas 3000 { debug = False } $ storyBoard example3 -- slide_background -- titlePage
+storyBoard :: [Story ()] -> IO ()
+storyBoard = blankCanvas 3000 . blankCanvasStoryBoard
+
+main :: IO ()
+main = storyBoard [example3]
