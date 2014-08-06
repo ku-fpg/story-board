@@ -16,6 +16,9 @@ import Control.Lens (makeLenses)
 import GHC.Exts (IsString(fromString))
 
 import Graphics.Storyboard.Types.Basic
+import Graphics.Storyboard.Literals
+
+import Graphics.Blank
 
 -- | A Tile has a specific, fixed size.
 -- When rendered, it is given a specific size to operate inside of,
@@ -38,8 +41,33 @@ tile = Tile
 
 tileWidth :: Tile a -> Float
 tileWidth (Tile (w,_) _) = w
+
 tileHeight :: Tile a -> Float
 tileHeight (Tile (_,h) _) = h
+
+tileSize :: Tile a -> Size Float
+tileSize (Tile sz _) = sz
+
+blank :: Size Float -> Tile ()
+blank sz = tile sz $ const $ return ()
+
+-- nudge the tile into a specific corner of its enclosure
+nudge :: Horizontal -> Vertical -> Tile a -> Tile a
+nudge hor ver (Tile (w,h) f) = Tile (w,h) $ \ (w',h') ->
+    let w'' = case hor of
+                HL -> 0
+                HC -> (w' - w) / 2
+                HR -> w' - w
+        h'' = case ver of
+                VT -> 0
+                VC -> (h' - h) / 2
+                VB -> h' - h
+    in
+       saveRestore $ do
+         translate (w'',h'') -- nudge
+         f (w,h)             -- and pretend there is no extra space
+
+
 
 instance Semigroup a => Semigroup (Tile a) where
   (Tile (x1,y1) c1) <> (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ sz ->

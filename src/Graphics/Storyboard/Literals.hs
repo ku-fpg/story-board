@@ -1,3 +1,8 @@
+{- |
+
+    This module allows you to use general literals like 'left' and 'center',
+    and the overloading will resove to the appropreate type.
+ -}
 module Graphics.Storyboard.Literals where
 
 -----------------------------------------------------------------------------
