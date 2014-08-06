@@ -16,6 +16,7 @@ import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Prose
 import Graphics.Storyboard.Environment
+import Graphics.Storyboard.Mosaic
 
 import Control.Monad.IO.Class
 

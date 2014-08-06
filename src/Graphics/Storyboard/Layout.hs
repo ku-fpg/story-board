@@ -15,6 +15,7 @@ import Data.Maybe
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals
+import Graphics.Storyboard.Mosaic
 
 -----------------------------------------------------------------------------
 
