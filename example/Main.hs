@@ -22,7 +22,7 @@ lorem =
 ligature :: Prose
 ligature = "file"
 
-alignSlide :: Story ()
+alignSlide :: Slide ()
 alignSlide = margin 20 $ size 20 $ do
 
   p $ lorem

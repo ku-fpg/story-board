@@ -1,6 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings, KindSignatures, GADTs, StandaloneDeriving, TypeFamilies, DataKinds #-}
 module Graphics.Storyboard
-  ( Story
+  ( Slide
   , p
   , (<+>)
   , align
@@ -74,7 +74,7 @@ example1 size col = id
 
 
 -- blank margin around a story.
-margin :: Float -> Story a -> Story a
+margin :: Float -> Slide a -> Slide a
 margin m inside = do
   draw (blank (0,m) ?top)
   draw (anchor bottom (blank (0,m)))
@@ -83,7 +83,7 @@ margin m inside = do
   inside
 
 -- horizontal rule
-hr :: Story ()
+hr :: Slide ()
 hr = do
   (_,w) <- storyCavity
   draw $ anchor top $ tile (w,2) $ \ (w',h') -> do
@@ -94,11 +94,11 @@ hr = do
               strokeStyle "black"
               stroke()
 
-vspace :: Float -> Story ()
+vspace :: Float -> Slide ()
 vspace h = do
   draw $ anchor top $ blank (0,h)
 
-titlePage :: Story ()
+titlePage :: Slide ()
 titlePage = margin 20 $ align center $ do
 --  align center $ p $ "EECS 776"
   size 72 $ p $ "Functional Programming" </> "and Domain Specific Languages"
@@ -112,17 +112,17 @@ titlePage = margin 20 $ align center $ do
 
 
 {-
-background :: Story a -> Story a
-background (Story bg) = do
+background :: Slide a -> Slide a
+background (Slide bg) = do
 
-overlay :: Monoid a => Story a -> Story a -> Story a
-overlay (Story storyA) (Story storyB) = Story $ \ cxt sz -> do
+overlay :: Monoid a => Slide a -> Slide a -> Slide a
+overlay (Slide storyA) (Slide storyB) = Slide $ \ cxt sz -> do
     (a,mA) <- storyA cxt sz
     (b,mB) <- storyB cxt sz
     return (a <> b,
 -}
 
-slide_background :: Story ()
+slide_background :: Slide ()
 slide_background = margin 10 $ do
   (w,h) <-storyCavity
   draw (vbrace h <> hbrace w)
@@ -145,7 +145,7 @@ colorTile col sz@(w',h') = tile sz $ \ (w,h) -> do
     stroke()
 
 
-example3 :: Story ()
+example3 :: Slide ()
 example3 = margin 20 $ do
   p $ "The Canvas monad forms a JavaScript/Canvas DSL, and we, where possible," <+>
       "stick to the JavaScript idioms. So a method call with no arguments takes a" <+>
@@ -154,7 +154,7 @@ example3 = margin 20 $ do
   (w,h) <-storyCavity
   liftIO $ print (w,h)
 
--- imageTile :: FilePath -> Story (Tile ())
+-- imageTile :: FilePath -> Slide (Tile ())
 
   align justified $ do
     p $ "FXoats, etc. When there is a var-args JavaScript function, we use lists," <+>
@@ -194,17 +194,17 @@ txt =
   "of JavaScript numbers.)"
 
 
-blankCanvasStoryBoard :: [Story ()] -> DeviceContext -> IO ()
-blankCanvasStoryBoard story = \ context -> send context $ do
+blankCanvasStoryBoard :: [Slide ()] -> DeviceContext -> IO ()
+blankCanvasStoryBoard slide = \ context -> send context $ do
     let cxt = defaultContext { baseFont = "Gill Sans" }
-    (a,mosaic) <- runPrelude $ runStory (head story) cxt (width context,height context)
+    (a,mosaic) <- runPrelude $ runSlide (head slide) cxt (width context,height context)
     let Tile (w,h) m = fillTile mosaic
     saveRestore $ do
       _ <- m (w,h)
       return ()
     return a
 
-storyBoard :: [Story ()] -> IO ()
+storyBoard :: [Slide ()] -> IO ()
 storyBoard = blankCanvas 3000 . blankCanvasStoryBoard
 
 main :: IO ()

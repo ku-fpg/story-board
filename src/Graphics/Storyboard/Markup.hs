@@ -30,8 +30,8 @@ import Control.Monad.IO.Class
 
 ------------------------------------------------------------------------
 
-p :: Prose -> Story ()
-p (Prose xs) = Story $ \ cxt (w,h) -> do
+p :: Prose -> Slide ()
+p (Prose xs) = Slide $ \ cxt (w,h) -> do
 
     -- get all the tiles and spaces
     proseTiles <- sequence
