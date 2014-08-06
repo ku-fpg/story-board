@@ -3,7 +3,7 @@ module Graphics.Storyboard.Bling where
 import Data.Text(Text)
 
 import Graphics.Blank
-import Graphics.Storyboard.Types
+import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Tile
 
 

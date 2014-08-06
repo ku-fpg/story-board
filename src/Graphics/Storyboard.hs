@@ -31,10 +31,11 @@ import Data.List
 import Data.Maybe
 import Control.Monad.IO.Class
 
-import Graphics.Storyboard.Types
+import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Markup
+import Graphics.Storyboard.Types
 import Graphics.Storyboard.Images
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals

@@ -12,7 +12,7 @@ import Data.String
 import Data.List
 import Data.Maybe
 
-import Graphics.Storyboard.Types
+import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Mosaic

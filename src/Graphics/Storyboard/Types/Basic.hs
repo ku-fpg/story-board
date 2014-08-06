@@ -1,4 +1,4 @@
-module Graphics.Storyboard.Types.Basic where
+module Graphics.Storyboard.Types where
 
 type Size  f = (f,f)
 type Coord f = (f,f)

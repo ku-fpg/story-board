@@ -9,7 +9,7 @@ import Graphics.Blank(Canvas,fillStyle,fillText,saveRestore,measureText,TextMetr
 import Data.List as List
 import Control.Applicative
 
-import Graphics.Storyboard.Types
+import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Tile
