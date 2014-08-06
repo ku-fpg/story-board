@@ -56,17 +56,17 @@ example1 size col = id
 -- blank margin around a story.
 margin :: Float -> Story a -> Story a
 margin m inside = do
-  storyMosaic (anchor top    (blank (0,m)))
-  storyMosaic (anchor bottom (blank (0,m)))
-  storyMosaic (anchor left   (blank (m,0)))
-  storyMosaic (anchor right  (blank (m,0)))
+  draw (blank (0,m) ?top)
+  draw (anchor bottom (blank (0,m)))
+  draw (anchor left   (blank (m,0)))
+  draw (anchor right  (blank (m,0)))
   inside
 
 -- horizontal rule
 hr :: Story ()
 hr = do
   (_,w) <- storyCavity
-  storyMosaic $ anchor top $ tile (w,2) $ \ (w',h') -> do
+  draw $ anchor top $ tile (w,2) $ \ (w',h') -> do
               beginPath()
               moveTo(0,1)
               lineTo(w',0)
@@ -76,7 +76,7 @@ hr = do
 
 vspace :: Float -> Story ()
 vspace h = do
-  storyMosaic $ anchor top $ blank (0,h)
+  draw $ anchor top $ blank (0,h)
 
 titlePage :: Story ()
 titlePage = margin 20 $ align center $ do
@@ -105,10 +105,10 @@ overlay (Story storyA) (Story storyB) = Story $ \ cxt sz -> do
 slide_background :: Story ()
 slide_background = margin 10 $ do
   (w,h) <-storyCavity
-  storyMosaic (vbrace h <> hbrace w)
+  draw (vbrace h <> hbrace w)
   img <- imageTile "jhwk_LF_200px.gif"
 
-  storyMosaic (gap left <> anchor bottom img)
+  draw (gap left <> anchor bottom img)
 
 colorTile :: Text -> Size Float -> Tile ()
 colorTile col sz@(w',h') = tile sz $ \ (w,h) -> do
@@ -152,8 +152,8 @@ example3 = margin 20 $ do
 
   img <- imageTile "jhwk_LF_200px.gif"
 
-  storyMosaic (anchor left img)
-  storyMosaic (anchor left (blank (20,0)))
+  draw (anchor left img)
+  draw (anchor left (blank (20,0)))
 
   align justified $ do
     p $ " Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
@@ -174,9 +174,8 @@ txt =
   "of JavaScript numbers.)"
 
 
-storyBoard :: Story a -> Canvas a
-storyBoard story = do
-    context <- myCanvasContext
+storyBoard :: Story () -> DeviceContext -> IO ()
+storyBoard story = \ context -> send context $ do
     let cxt = defaultContext { baseFont = "Gill Sans" }
     (a,mosaic) <- runPrelude $ runStory story cxt (width context,height context)
     let Tile (w,h) m = fillTile mosaic
@@ -185,6 +184,4 @@ storyBoard story = do
       return ()
     return a
 
-main = blankCanvas 3000 { debug = False } $ \ context -> do
-      send context $ do
-        storyBoard example3 -- slide_background -- titlePage
+main = blankCanvas 3000 { debug = False } $ storyBoard example3 -- slide_background -- titlePage

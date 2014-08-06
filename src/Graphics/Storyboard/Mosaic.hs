@@ -3,6 +3,7 @@
 module Graphics.Storyboard.Mosaic
   ( Mosaic
   , cavityMaxSize
+  , (?)
   , anchor
   , pack
   , gap
@@ -85,6 +86,13 @@ cavityRange (Mosaic sps _) (h,w) = ( foldl f (h,0) $ map fst sps
 
 
 -----------------------------------------------------------------------------
+
+class Frame f where
+  anchor_ :: Side -> Tile a -> f a  -- will not work, a is in second stage
+  gap_ :: Side -> f ()
+
+(?) ::Tile a -> Side -> Mosaic a
+(?) = flip anchor
 
 anchor :: Side -> Tile a -> Mosaic a
 anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $

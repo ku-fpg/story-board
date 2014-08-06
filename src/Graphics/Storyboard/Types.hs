@@ -22,6 +22,7 @@ import Graphics.Storyboard.Types.Basic
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Environment
 import Graphics.Storyboard.Mosaic
+import Graphics.Storyboard.Tile
 
 -----------------------------------------------------------------------------
 
@@ -90,9 +91,23 @@ getStory (Story f) = Story $ \ cxt -> do
     ((),Mosaic) <- f cxt
     return (Mosaic, pure ())
 -}
+{-
+anchor tile left
+anchor tile left
 
-storyMosaic :: Mosaic () -> Story ()
-storyMosaic mosaic = Story $ \ cxt sz -> return ((),mosaic)
+(tile `on` left)
+
+draw (tile `on` left)
+-}
+
+--  draw (tile ?left)
+
+draw :: Mosaic () -> Story ()
+draw mosaic = Story $ \ cxt sz -> return ((),mosaic)
+
+-- | you 'place' a 'Tile' onto the 'Story', on a specific side of your slide.
+place :: Side -> Tile () -> Story ()
+place s = draw . anchor s
 
 ------------------------------------------------------------------------
 -- The idea behind the prelude monad is that we can cache
