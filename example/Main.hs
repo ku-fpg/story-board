@@ -40,7 +40,7 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
   img <- imageTile "jhwk_LF_200px.gif"
 
-  draw (border 3 "orange" (pack ((img ? left) <> (img ? left) <> gap left <> (img ? right))) ? top)
+  draw (border 3 "orange" (pack (img ?left <> gap left <> img ?left <> gap left <> img ? right)) ? top)
 
 {-
   indent $ do
