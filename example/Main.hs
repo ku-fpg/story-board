@@ -21,8 +21,9 @@ lorem =
       "metus. Aliquam aliquet massa quam, ac scelerisque augue malesuada" <+>
       "ut. Suspendisse tincidunt nulla non molestie vestibulum."
 
-ligature :: Prose
-ligature = "file"
+ligatures :: Prose
+ligatures = "ff fi fl ffi ffl"
+file (\xfb00) (\xfb01) (\xfb03)"
 
 alignSlide :: Slide ()
 alignSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
@@ -41,6 +42,9 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   img <- imageTile "jhwk_LF_200px.gif"
 
   draw (border 3 "orange" (pack (img ?left <> gap left <> img ?left <> gap left <> img ? right)) ? top)
+
+  fontSize 72 $ p $ ligatures
+
 
 {-
   indent $ do

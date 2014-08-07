@@ -21,6 +21,7 @@ data Environment = Environment
   , theRightMargin  :: Float     -- ^ right margin, 0
   , theTabSize      :: Float     -- ^ indent size, 50
   , theParSkip      :: Float     -- ^ Space before each paragraph, 10
+  , theLigatures    :: [(Text,Text)]
   }
   deriving Show
 
@@ -38,6 +39,7 @@ defaultEnvironment = Environment
   , theRightMargin      = 0
   , theTabSize          = 50
   , theParSkip          = 10
+  , theLigatures        = [] -- [("ff","\xfb00"),("fi","\xfb01")]
   }
 
 

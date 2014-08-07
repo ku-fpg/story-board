@@ -49,12 +49,13 @@ p (Prose xs) = slide $ \ cxt (w,h) -> do
     proseTiles <- sequence
         [ case x of
             Right (Word emph txt) -> do
-              w <- wordWidth cxt (Word emph txt)
+              let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures cxt)
+              w <- wordWidth cxt (Word emph txt')
               let off = if Super `elem` emph then (-5) else 0
               return $ Right $ tile (w,fromIntegral $ theFontSize cxt + 5) $ const $ do
                 Blank.font $ emphasisFont (theFontSize cxt) (theFont cxt) emph
                 fillStyle (theColor cxt)
-                fillText (txt,0,fromIntegral $ theFontSize cxt + off)    -- time will tell for this offset
+                fillText (txt',0,fromIntegral $ theFontSize cxt + off)    -- time will tell for this offset
             Left n -> return $ Left $ n * theSpaceWidth cxt
         | x <- xs
         ]
