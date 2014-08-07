@@ -21,35 +21,47 @@ import Graphics.Storyboard.Literals
 
 ------------------------------------------------------------------------
 
-newtype Prose = Prose [Either Float Word]
-  deriving Show
+data Prose
+      = ProseItem  Text   -- can include fixed space, but will not usually.
+      | ProseSpace Float  -- normalize to 1 for regular space
+      | ProseScope (TheProseStyle -> TheProseStyle) Prose
+      | ProseConcat [Prose]
 
 instance IsString Prose where
-  fromString txt = Prose $ List.intersperse (Left 1)
-      [ Right $ Word [] $ Text.pack $ wd -- default is *no* annotations
+  fromString txt = ProseConcat $ List.intersperse (ProseSpace 1)
+      [ ProseItem $ Text.pack $ wd -- default is *no* annotations
       | wd <- words txt
       ]
 
+instance Show Prose where
+   show (ProseItem txt) = show txt
+   show (ProseSpace n) = show n
+   show (ProseScope _ p) = "{" ++ show p ++ "}"
+   show (ProseConcat ps) = unwords $ map show ps
+
 instance Semigroup Prose where
-  (Prose xs) <> (Prose ys) = Prose (xs++ys)
+  xs <> ys = ProseConcat [xs,ys]
 
 instance Monoid Prose where
-  mempty = Prose []
-  mappend (Prose xs) (Prose ys) = Prose (xs++ys)
+  mempty = ProseConcat []
+  mappend xs ys = ProseConcat [xs,ys]
+  mconcat = ProseConcat
 
+{-
 mapProse :: ([Emphasis] -> [Emphasis]) -> Prose -> Prose
 mapProse f (Prose ps) = Prose $ map g ps where
   g (Right (Word es txt)) = Right (Word (f es) txt)
   g other = other
+-}
 
-
+{-
 super :: Prose -> Prose
 super (Prose ps) = Prose $ map f ps
   where f (Left n) = Left (n / 0.7)
         f (Right (Word es txt)) = Right (Word (Super:es) txt)
-
+-}
 sizedSpace :: Float -> Prose
-sizedSpace n = Prose [Left n]
+sizedSpace n = ProseSpace n
 
 space :: Prose
 space = sizedSpace 1
@@ -106,6 +118,7 @@ data TheProseStyle = TheProseStyle
   , theSpaceWidth     :: Float      -- ^ size of space, 0.28 * 32
   , isItalic          :: Bool
   , isBold            :: Bool
+  , subSuper          :: Int        -- 0 == regular, 1 == super, 2 == super.super, -1 = sub
   , theColor          :: Text       -- ^ current color, black
   , theLigatures      :: [(Text,Text)]
   } deriving Show
@@ -116,10 +129,13 @@ defaultProseStyle = TheProseStyle
   , theSpaceWidth      = onePointSpaceWidth * 32
   , isItalic           = False
   , isBold             = False
+  , subSuper           = 0
   , theColor           = "black"
   , theLigatures       = []
   }
 
+
+x = 11
 
 onePointSpaceWidth :: Float
 onePointSpaceWidth = 0.26
@@ -129,6 +145,9 @@ class ProseStyle a where
 
 instance ProseStyle TheProseStyle where
   proseStyle   f s = f s
+
+instance ProseStyle Prose where
+  proseStyle   _ s = s -- for now
 
 i           :: ProseStyle a =>          a -> a
 i             = proseStyle $ \ s -> s { isItalic = True }
@@ -162,3 +181,6 @@ ligature  f t = proseStyle $ \ s -> s { theLigatures = (f,t) : theLigatures s }
 
 noLigatures :: ProseStyle a =>          a -> a
 noLigatures   = proseStyle $ \ s -> s { theLigatures = [] }
+
+super       :: ProseStyle a =>          a -> a
+super         = proseStyle $ \ s -> s { subSuper = subSuper s + 1 }

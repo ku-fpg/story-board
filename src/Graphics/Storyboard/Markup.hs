@@ -26,14 +26,15 @@ import Control.Monad.IO.Class
 -- | build a tile around a word, but do not place it.
 
 word :: Text -> Slide (Tile ())
-word txt = slide $ \ cxt (w,h) -> do
+word txt = slide $ \ cxt (w,h) -> undefined
+{-
     let ps_cxt = theProseStyle cxt
     w <- wordWidth cxt (Word [] txt)
     return ( tile (w,fromIntegral $ theFontSize ps_cxt + 5) $ const $ do
         Blank.font $ emphasisFont (theFontSize ps_cxt) (theFont ps_cxt) []
         fillStyle (theColor ps_cxt)
         fillText (txt,0,fromIntegral $ theFontSize ps_cxt), pure ())
-
+-}
 ------------------------------------------------------------------------
 
 item :: Text -> Prose -> Slide ()
@@ -44,11 +45,31 @@ item txt prose = do
   p prose
 
 p :: Prose -> Slide ()
-p (Prose xs) = slide $ \ cxt (w,h) -> do
+p ps = slide $ \ cxt (w,h) -> do
     let ps_cxt = theProseStyle cxt
 
+{-
+= ProseItem  Text   -- can include fixed space, but will not usually.
+| ProseSpace Float  -- normalize to 1 for regular space
+| ProseScope (TheProseStyle -> TheProseStyle) Prose
+| ProseConcat [Prose]
+-}
 
-    -- get all the tiles and spaces
+    let readProse :: TheProseStyle -> Prose -> Prelude [Either Float (Tile ())]
+        readProse st (ProseItem txt) = do
+            let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures ps_cxt)
+            w <- wordWidth st txt'
+            let off = 0 -- if Super `elem` emph then (-5) else 0
+            return $ (:[]) $ Right $ tile (w,fromIntegral $ theFontSize ps_cxt + 5) $ const $ do
+              Blank.font $ fontName st
+              fillStyle (theColor st)
+              fillText (txt',0,fromIntegral $ theFontSize ps_cxt + off)    -- time will tell for this offset
+        readProse st (ProseSpace n) = return [ Left $ n * theSpaceWidth st ]
+        readProse st (ProseScope f ps) = readProse (f st) ps
+        readProse st (ProseConcat pss) = fmap concat $
+            sequence [ readProse st ps | ps <- pss ]
+
+{-}    -- get all the tiles and spaces
     proseTiles <- sequence
         [ case x of
             Right (Word emph txt) -> do
@@ -62,7 +83,9 @@ p (Prose xs) = slide $ \ cxt (w,h) -> do
             Left n -> return $ Left $ n * theSpaceWidth ps_cxt
         | x <- xs
         ]
+-}
 
+    proseTiles <- readProse ps_cxt ps
 {-
     liftIO $ sequence_
             [ case v of
@@ -129,27 +152,6 @@ p (Prose xs) = slide $ \ cxt (w,h) -> do
 
 ------------------------------------------------------------------------
 
-{- Notes about spaces
-   (from http://www.microsoft.com/typography/developers/fdsspec/spaces.aspx)
-
-Advance width rule :
-  The space's advance width is set by visually selecting a value that is
-  appropriate for the current font. The general guidelines for the advance
-  widths are:
-    * The minimum value should be no less than 1/5 the em, which is equivalent
-      to the value of a thin space in traditional typesetting.
-    * For an average width font a good value is ~1/4 the em.
- -}
-
--- figure out the font for this word
-emphasisFont :: Int -> Text -> [Emphasis] -> Text
-emphasisFont fontSize baseFont emph = Text.intercalate " " $
-    [ t | e <- emph, Just t <- [f e] ] ++ [Text.pack $ show fontSize, baseFont]
-  where
-    f :: Emphasis -> Maybe Text
-    f Italics   = return "italics"
-    f Bold      = return "bold"
-    f _         = fail "no match"
 
 
 -- Given the (min) width of a space, the width of the line,
@@ -174,9 +176,25 @@ splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
 
 -- This function should be memoize; it will return
 -- the same answer for *every* call.
-wordWidth :: Environment -> Word -> Prelude Float
-wordWidth cxt (Word emph txt) = Prelude $ saveRestore $ do
-    let ps_cxt = theProseStyle cxt
-    Blank.font $ emphasisFont (theFontSize ps_cxt) (theFont ps_cxt) emph
+wordWidth :: TheProseStyle -> Text -> Prelude Float
+wordWidth cxt txt = Prelude $ saveRestore $ do
+    Blank.font $ fontName cxt
     TextMetrics w <- measureText txt
     return w
+
+{- Notes about spaces
+   (from http://www.microsoft.com/typography/developers/fdsspec/spaces.aspx)
+
+Advance width rule :
+  The space's advance width is set by visually selecting a value that is
+  appropriate for the current font. The general guidelines for the advance
+  widths are:
+    * The minimum value should be no less than 1/5 the em, which is equivalent
+      to the value of a thin space in traditional typesetting.
+    * For an average width font a good value is ~1/4 the em.
+ -}
+
+-- figure out the font for this word
+fontName :: TheProseStyle -> Text
+fontName cxt = Text.intercalate " " $
+    [Text.pack $ show (theFontSize cxt), theFont cxt]
