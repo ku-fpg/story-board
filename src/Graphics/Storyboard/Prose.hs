@@ -16,6 +16,8 @@ import GHC.Exts (IsString(fromString))
 
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
+--import Graphics.Storyboard.TextStyle
+
 
 ------------------------------------------------------------------------
 
@@ -61,16 +63,6 @@ br = sizedSpace (1/0)  -- a bit of a hack
 (</>) :: Prose -> Prose -> Prose
 p1 </> p2 = p1 <> br <> p2
 
-instance Markup Prose where
-  i :: Prose -> Prose
-  i = mapProse (Italics :)
-
-  b :: Prose -> Prose
-  b = mapProse (Bold :)
-
-  plain :: Prose -> Prose
-  plain = mapProse (const [])
-
 
 ------------------------------------------------------------------------
 
@@ -106,3 +98,67 @@ instance Show Word where
    show (Word emph txt) = show emph ++ show (Text.unpack txt)
 
 ------------------------------------------------------------------------
+
+
+data TheProseStyle = TheProseStyle
+  { theFont           :: Text       -- ^ which font, "sans-serif"
+  , theFontSize       :: Int        -- ^ how big, 32
+  , theSpaceWidth     :: Float      -- ^ size of space, 0.28 * 32
+  , isItalic          :: Bool
+  , isBold            :: Bool
+  , theColor          :: Text       -- ^ current color, black
+  , theLigatures      :: [(Text,Text)]
+  } deriving Show
+
+defaultProseStyle = TheProseStyle
+  { theFont            = "sans-serif"
+  , theFontSize        = 32
+  , theSpaceWidth      = onePointSpaceWidth * 32
+  , isItalic           = False
+  , isBold             = False
+  , theColor           = "black"
+  , theLigatures       = []
+  }
+
+
+onePointSpaceWidth :: Float
+onePointSpaceWidth = 0.26
+
+class ProseStyle a where
+  proseStyle   :: (TheProseStyle -> TheProseStyle) -> a -> a
+
+instance ProseStyle TheProseStyle where
+  proseStyle   f s = f s
+
+i           :: ProseStyle a =>          a -> a
+i             = proseStyle $ \ s -> s { isItalic = True }
+
+b             = proseStyle $ \ s -> s { isBold = True }
+b           :: ProseStyle a =>          a -> a
+
+font        :: ProseStyle a => Text ->  a -> a
+font        f = proseStyle $ \ s -> s { theFont = f }
+
+fontSize    :: ProseStyle a => Int  ->  a -> a
+fontSize    n = proseStyle $ \ s -> s { theFontSize = n, theSpaceWidth = onePointSpaceWidth * fromIntegral n }
+
+big         :: ProseStyle a =>          a -> a
+big           = proseStyle $ \ s -> s { theFontSize = ceiling $ fromIntegral (theFontSize s) * 1.2 }
+
+small       :: ProseStyle a =>          a -> a
+small         = proseStyle $ \ s -> s { theFontSize = floor   $ fromIntegral (theFontSize s) / 1.2 }
+
+color       :: ProseStyle a => Text ->  a -> a
+color       c = proseStyle $ \ s -> s { theColor = c }
+
+plain       :: ProseStyle a =>          a -> a
+plain         = proseStyle $ \ s -> s { isItalic = False, isBold = False }
+
+wordSpacing :: ProseStyle a => Float -> a -> a
+wordSpacing w = proseStyle $ \ s -> s { theSpaceWidth = w }
+
+ligature    :: ProseStyle a => Text -> Text -> a -> a
+ligature  f t = proseStyle $ \ s -> s { theLigatures = (f,t) : theLigatures s }
+
+noLigatures :: ProseStyle a =>          a -> a
+noLigatures   = proseStyle $ \ s -> s { theLigatures = [] }

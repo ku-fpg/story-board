@@ -22,8 +22,7 @@ lorem =
       "ut. Suspendisse tincidunt nulla non molestie vestibulum."
 
 ligatures :: Prose
-ligatures = "ff fi fl ffi ffl"
-file (\xfb00) (\xfb01) (\xfb03)"
+ligatures = "ff fi fl ffi ffl file (\xfb00) (\xfb01) (\xfb03)"
 
 alignSlide :: Slide ()
 alignSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do

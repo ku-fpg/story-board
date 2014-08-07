@@ -16,6 +16,7 @@ module Graphics.Storyboard
   , Prose
     -- * Useful literals
   , module Graphics.Storyboard.Literals
+  , font, fontSize
   , word
   , (?)
   , border
@@ -29,7 +30,7 @@ module Graphics.Storyboard
 
 where
 
-import Graphics.Blank hiding (eval)
+import Graphics.Blank hiding (eval,font)
 import Data.Semigroup
 import Control.Applicative
 import Control.Monad

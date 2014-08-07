@@ -28,6 +28,7 @@ import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Environment
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Prose
 
 -----------------------------------------------------------------------------
 
@@ -86,13 +87,19 @@ environment = Slide $ \ env _ -> return (env,pure ())
 instance Layout (Slide a) where
   scoped = storyContext
 
+instance ProseStyle (Slide a) where
+  proseStyle = storyContext . proseStyle
 
+
+
+{-
 instance Markup (Slide a) where
 --  align :: Alignment -> Slide a -> Slide a
 --  align = storyContext . align
   font     = scoped . font
   color    = storyContext . color
   fontSize = storyContext . fontSize
+-}
 
 --size :: Float -> Slide a -> Slide a
 --size s = storyContext (\ m -> m { baseAlign = j })

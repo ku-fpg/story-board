@@ -27,11 +27,12 @@ import Control.Monad.IO.Class
 
 word :: Text -> Slide (Tile ())
 word txt = slide $ \ cxt (w,h) -> do
+    let ps_cxt = theProseStyle cxt
     w <- wordWidth cxt (Word [] txt)
-    return ( tile (w,fromIntegral $ theFontSize cxt + 5) $ const $ do
-        Blank.font $ emphasisFont (theFontSize cxt) (theFont cxt) []
-        fillStyle (theColor cxt)
-        fillText (txt,0,fromIntegral $ theFontSize cxt), pure ())
+    return ( tile (w,fromIntegral $ theFontSize ps_cxt + 5) $ const $ do
+        Blank.font $ emphasisFont (theFontSize ps_cxt) (theFont ps_cxt) []
+        fillStyle (theColor ps_cxt)
+        fillText (txt,0,fromIntegral $ theFontSize ps_cxt), pure ())
 
 ------------------------------------------------------------------------
 
@@ -44,19 +45,21 @@ item txt prose = do
 
 p :: Prose -> Slide ()
 p (Prose xs) = slide $ \ cxt (w,h) -> do
+    let ps_cxt = theProseStyle cxt
+
 
     -- get all the tiles and spaces
     proseTiles <- sequence
         [ case x of
             Right (Word emph txt) -> do
-              let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures cxt)
+              let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures ps_cxt)
               w <- wordWidth cxt (Word emph txt')
               let off = if Super `elem` emph then (-5) else 0
-              return $ Right $ tile (w,fromIntegral $ theFontSize cxt + 5) $ const $ do
-                Blank.font $ emphasisFont (theFontSize cxt) (theFont cxt) emph
-                fillStyle (theColor cxt)
-                fillText (txt',0,fromIntegral $ theFontSize cxt + off)    -- time will tell for this offset
-            Left n -> return $ Left $ n * theSpaceWidth cxt
+              return $ Right $ tile (w,fromIntegral $ theFontSize ps_cxt + 5) $ const $ do
+                Blank.font $ emphasisFont (theFontSize ps_cxt) (theFont ps_cxt) emph
+                fillStyle (theColor ps_cxt)
+                fillText (txt',0,fromIntegral $ theFontSize ps_cxt + off)    -- time will tell for this offset
+            Left n -> return $ Left $ n * theSpaceWidth ps_cxt
         | x <- xs
         ]
 
@@ -173,6 +176,7 @@ splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
 -- the same answer for *every* call.
 wordWidth :: Environment -> Word -> Prelude Float
 wordWidth cxt (Word emph txt) = Prelude $ saveRestore $ do
-    Blank.font $ emphasisFont (theFontSize cxt) (theFont cxt) emph
+    let ps_cxt = theProseStyle cxt
+    Blank.font $ emphasisFont (theFontSize ps_cxt) (theFont ps_cxt) emph
     TextMetrics w <- measureText txt
     return w
