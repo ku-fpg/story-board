@@ -7,6 +7,7 @@ module Graphics.Storyboard.Slide
   , draw
   , place
   , cavity
+  , environment
   , runSlide
   ) where
 
@@ -78,6 +79,10 @@ cavity = Slide $ \ _ sz -> return (sz,pure ())
 storyContext :: (Environment -> Environment) -> Slide a -> Slide a
 storyContext f (Slide g) = (Slide $ \ cxt sz -> g (f cxt) sz)
 
+environment :: Slide Environment
+environment = Slide $ \ env _ -> return (env,pure ())
+
+
 instance Layout (Slide a) where
   scoped = storyContext
 
@@ -109,6 +114,8 @@ draw (tile `on` left)
 -}
 
 --  draw (tile ?left)
+
+
 
 draw :: Mosaic () -> Slide ()
 draw mosaic = Slide $ \ cxt sz -> return ((),mosaic)

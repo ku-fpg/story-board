@@ -17,10 +17,30 @@ import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Prose
 import Graphics.Storyboard.Environment
 import Graphics.Storyboard.Mosaic
+import Graphics.Storyboard.Bling
 
 import Control.Monad.IO.Class
 
 ------------------------------------------------------------------------
+
+-- | build a tile around a word, but do not place it.
+
+word :: Text -> Slide (Tile ())
+word txt = slide $ \ cxt (w,h) -> do
+    w <- wordWidth cxt (Word [] txt)
+    return ( tile (w,fromIntegral $ theFontSize cxt + 5) $ const $ do
+        Blank.font $ emphasisFont (theFontSize cxt) (theFont cxt) []
+        fillStyle (theColor cxt)
+        fillText (txt,0,fromIntegral $ theFontSize cxt), pure ())
+
+------------------------------------------------------------------------
+
+item :: Text -> Prose -> Slide ()
+item txt prose = do
+  cxt <- environment
+  t <- word txt
+  draw (pack ((blank (theLeftMargin cxt,0) ? left) <> (point top right t ? left)) ? top)
+  p prose
 
 p :: Prose -> Slide ()
 p (Prose xs) = slide $ \ cxt (w,h) -> do

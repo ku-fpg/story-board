@@ -90,6 +90,7 @@ class Frame f where
   anchor_ :: Side -> Tile a -> f a  -- will not work, a is in second stage
   gap_ :: Side -> f ()
 
+infix 3 ?
 (?) ::Tile a -> Side -> Mosaic a
 (?) = flip anchor
 

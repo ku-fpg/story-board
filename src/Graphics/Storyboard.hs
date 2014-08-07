@@ -16,6 +16,15 @@ module Graphics.Storyboard
   , Prose
     -- * Useful literals
   , module Graphics.Storyboard.Literals
+  , word
+  , (?)
+  , border
+  , point
+  , colorTile
+  , gap
+  , pack
+  , environment
+  , item
   )
 
 where
@@ -110,6 +119,8 @@ titlePage = margin 20 $ align center $ do
   vspace 100
   fontSize 18 $ p $ "Copyright" <> "\xa9" <+> "2014 Andrew Gill"
 
+--bullet :: Slide ()
+--bullet = "*"
 
 {-
 background :: Slide a -> Slide a
@@ -129,20 +140,6 @@ slide_background = margin 10 $ do
   img <- imageTile "jhwk_LF_200px.gif"
 
   draw (gap left <> anchor bottom img)
-
-colorTile :: Text -> Size Float -> Tile ()
-colorTile col sz@(w',h') = tile sz $ \ (w,h) -> do
-    globalAlpha 0.2;
-    beginPath()
-    rect(0, 0, w, h);
-    fillStyle col;
-    fill();
-    beginPath()
-    rect(0, 0, w', h');
-    lineWidth 1;
-    strokeStyle "black";
-
-    stroke()
 
 
 example3 :: Slide ()
@@ -205,7 +202,7 @@ blankCanvasStoryBoard slide = \ context -> send context $ do
     return a
 
 storyBoard :: [Slide ()] -> IO ()
-storyBoard = blankCanvas 3000 . blankCanvasStoryBoard
+storyBoard = blankCanvas 3000 { middleware = [] } . blankCanvasStoryBoard
 
 main :: IO ()
 main = storyBoard [example3]

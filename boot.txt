@@ -1,0 +1,2 @@
+:l example/Main.hs
+main

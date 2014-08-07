@@ -50,9 +50,39 @@ tileSize (Tile sz _) = sz
 blank :: Size Float -> Tile ()
 blank sz = tile sz $ const $ return ()
 
+colorTile :: Text -> Size Float -> Tile ()
+colorTile col (w',h') = tile (w',h') $ \ (w,h) -> do
+    globalAlpha 0.2
+    beginPath()
+    rect(0, 0, w, h)
+    fillStyle col
+    fill();
+    globalAlpha 0.5
+    beginPath()
+    rect(0, 0, w, h);
+    lineWidth 1;
+    strokeStyle "black";
+    stroke()
+    globalAlpha 1.0
+
+-- compress a tile into a point.
+point :: Vertical -> Horizontal -> Tile a -> Tile a
+point ver hor (Tile (w,h) f) = Tile (0,0) $ \ _ -> do
+  let w' = case hor of
+            HL -> 0
+            HC -> -w / 2
+            HR -> -w
+      h' = case ver of
+            VT -> 0
+            VC -> -h / 2
+            VB -> -h
+  saveRestore $ do
+    translate (w',h')
+    f (w,h)
+
 -- nudge the tile into a specific corner of its enclosure
-nudge :: Horizontal -> Vertical -> Tile a -> Tile a
-nudge hor ver (Tile (w,h) f) = Tile (w,h) $ \ (w',h') ->
+nudge :: Vertical -> Horizontal -> Tile a -> Tile a
+nudge ver hor (Tile (w,h) f) = Tile (w,h) $ \ (w',h') ->
     let w'' = case hor of
                 HL -> 0
                 HC -> (w' - w) / 2
