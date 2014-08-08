@@ -23,6 +23,27 @@ import Control.Monad.IO.Class
 
 ------------------------------------------------------------------------
 
+renderText :: TheProseStyle -> Text -> Prelude (Tile ())
+renderText st txt = do
+    let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures st)
+    w <- wordWidth st txt'
+    let off = 0 -- if Super `elem` emph then (-5) else 0
+    return $ tile (w,fromIntegral $ theFontSize st + 5) $ const $ do
+      Blank.font $ fontName st
+      fillStyle (theColor st)
+      fillText (txt',0,fromIntegral $ theFontSize st + off)    -- time will tell for this offset
+
+renderProse :: TheProseStyle -> Prose -> Prelude [Either Float (Tile ())]
+renderProse st (ProseItem txt) = do
+    t <- renderText st txt
+    return [Right t]
+renderProse st (ProseSpace n) = return [ Left $ n * theSpaceWidth st ]
+renderProse st (ProseScope f ps) = renderProse (f st) ps
+renderProse st (ProseConcat pss) = fmap concat $
+    sequence [ renderProse st ps | ps <- pss ]
+
+------------------------------------------------------------------------
+
 -- | build a tile around a word, but do not place it.
 
 word :: Text -> Slide (Tile ())
@@ -48,44 +69,8 @@ p :: Prose -> Slide ()
 p ps = slide $ \ cxt (w,h) -> do
     let ps_cxt = theProseStyle cxt
 
-{-
-= ProseItem  Text   -- can include fixed space, but will not usually.
-| ProseSpace Float  -- normalize to 1 for regular space
-| ProseScope (TheProseStyle -> TheProseStyle) Prose
-| ProseConcat [Prose]
--}
 
-    let readProse :: TheProseStyle -> Prose -> Prelude [Either Float (Tile ())]
-        readProse st (ProseItem txt) = do
-            let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures ps_cxt)
-            w <- wordWidth st txt'
-            let off = 0 -- if Super `elem` emph then (-5) else 0
-            return $ (:[]) $ Right $ tile (w,fromIntegral $ theFontSize ps_cxt + 5) $ const $ do
-              Blank.font $ fontName st
-              fillStyle (theColor st)
-              fillText (txt',0,fromIntegral $ theFontSize ps_cxt + off)    -- time will tell for this offset
-        readProse st (ProseSpace n) = return [ Left $ n * theSpaceWidth st ]
-        readProse st (ProseScope f ps) = readProse (f st) ps
-        readProse st (ProseConcat pss) = fmap concat $
-            sequence [ readProse st ps | ps <- pss ]
-
-{-}    -- get all the tiles and spaces
-    proseTiles <- sequence
-        [ case x of
-            Right (Word emph txt) -> do
-              let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures ps_cxt)
-              w <- wordWidth cxt (Word emph txt')
-              let off = if Super `elem` emph then (-5) else 0
-              return $ Right $ tile (w,fromIntegral $ theFontSize ps_cxt + 5) $ const $ do
-                Blank.font $ emphasisFont (theFontSize ps_cxt) (theFont ps_cxt) emph
-                fillStyle (theColor ps_cxt)
-                fillText (txt',0,fromIntegral $ theFontSize ps_cxt + off)    -- time will tell for this offset
-            Left n -> return $ Left $ n * theSpaceWidth ps_cxt
-        | x <- xs
-        ]
--}
-
-    proseTiles <- readProse ps_cxt ps
+    proseTiles <- renderProse ps_cxt ps
 {-
     liftIO $ sequence_
             [ case v of
