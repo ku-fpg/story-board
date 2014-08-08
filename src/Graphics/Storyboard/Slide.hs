@@ -87,10 +87,12 @@ drawMosaic moz st = st
   , theInternalSize = cavityMaxSize moz (theInternalSize st)
   }
 
-blankMosaic :: TheSlideState -> TheSlideState
-blankMosaic st = st
-  { theMosaic = pure ()
-  }
+replaceMosaic :: Mosaic () -> TheSlideState -> TheSlideState
+replaceMosaic moz st = st
+    { theMosaic = moz
+    , theInternalSize = cavityMaxSize moz (theInternalSize st)
+    }
+
 
 -----------------------------------------------------------------------------
 -- | The Slide Monad is intentually transparent. It is just a convenence.
@@ -154,13 +156,14 @@ draw moz = Slide $ \ cxt st -> return ((),drawMosaic moz st)
 place :: Side -> Tile () -> Slide ()
 place s = draw . anchor s
 
-
 pause :: Slide ()
 pause = Slide $ \ cxt st -> do
   let Tile (w,h) m = fillTile (theMosaic st)
-  Prelude.liftCanvas $ saveRestore $ do
-      _ <- m (w,h)
-      return ()
-  Prelude.liftCanvas $ sync
-  Prelude.pause
-  return ((),blankMosaic st)
+  ((),cavity) <- Prelude.liftCanvas $ saveRestore $ do
+      m (w,h)
+
+  Prelude.pause -- 
+
+  let currBorder = blankMosaic (fullSize cxt) cavity
+
+  return ((),replaceMosaic currBorder st)

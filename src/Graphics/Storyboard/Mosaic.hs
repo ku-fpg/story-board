@@ -10,6 +10,7 @@ module Graphics.Storyboard.Mosaic
   , vbrace
   , hbrace
   , fillTile
+  , blankMosaic
   ) where
 
 import qualified Data.Text as Text
@@ -83,6 +84,17 @@ cavityRange (Mosaic sps _) (h,w) = ( foldl f (h,0) $ map fst sps
           f (x,x') (Space')    = (x,0) -- assumes you want the max cavity??
 
 
+-- Make a simple blank frame from a mosaic
+
+-----------------------------------------------------------------------------
+
+blankMosaic :: Size Float -> Cavity Float -> Mosaic ()
+blankMosaic sz cavity =
+    anchor top (colorTile "yellow" (0,cx)) <>
+    anchor left (colorTile "orange" (cy,0))
+  where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
+
+
 -----------------------------------------------------------------------------
 
 class Frame f where
@@ -125,10 +137,10 @@ hbrace :: Float -> Mosaic ()
 hbrace w = anchor top (tile (w,0) $ const $ return ())
 
 column :: [Tile ()] -> Tile ()
-column = fillTile . mconcat . intersperse (gap left) . map (anchor left)
+column = pack . mconcat . intersperse (gap left) . map (anchor left)
 
 row :: [Tile ()] -> Tile ()
-row = fillTile . mconcat . intersperse (gap top) . map (anchor top)
+row = pack . mconcat . intersperse (gap top) . map (anchor top)
 
 -----------------------------------------------------------------------------
 
@@ -176,9 +188,10 @@ newSpacingCavity side cavity = newCavity side (sw,sh) cavity
 
 -----------------------------------------------------------------------------
 
-pack = fillTile
+pack :: Mosaic a -> Tile a
+pack = fmap fst . fillTile
 
-fillTile :: Mosaic a -> Tile a
+fillTile :: Mosaic a -> Tile (a,Cavity Float)
 fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (w',h') -> do
       let sw = if cw + w' < w || w_sps == 0 then 0 else (cw + w' - w) / w_sps
       let sh = if ch + h' < h || h_sps == 0 then 0 else (ch + h' - h) / h_sps
@@ -189,7 +202,7 @@ fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (w',h') -> do
             <> show' (w_sps,h_sps)
             <> show' (cw,ch)
             <> show' (sw,sh)
-      fst <$> k (Cavity (0,0) (w',h') (sw,sh))
+      k (Cavity (0,0) (w',h') (sw,sh))
   where
     show' :: Show a => a -> Text
     show' = Text.pack . show
