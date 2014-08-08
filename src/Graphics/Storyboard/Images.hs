@@ -5,6 +5,8 @@ import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Prelude
+
 import Control.Monad.IO.Class
 
 import Graphics.Blank

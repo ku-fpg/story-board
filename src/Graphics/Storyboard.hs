@@ -24,8 +24,8 @@ module Graphics.Storyboard
   , colorTile
   , gap
   , pack
-  , environment
-  , item
+--  , environment
+--  , item
   )
 
 where
@@ -50,6 +50,7 @@ import Graphics.Storyboard.Images
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Prose
+import Graphics.Storyboard.Prelude
 import Graphics.Storyboard.Environment
 import Graphics.Storyboard.Mosaic
 
@@ -194,7 +195,7 @@ txt =
 
 blankCanvasStoryBoard :: [Slide ()] -> DeviceContext -> IO ()
 blankCanvasStoryBoard slide = \ context -> send context $ do
-    let cxt = defaultEnvironment
+    let cxt = defaultSlideStyle
     (a,mosaic) <- runPrelude $ runSlide (head slide) cxt (width context,height context)
     let Tile (w,h) m = fillTile mosaic
     saveRestore $ do

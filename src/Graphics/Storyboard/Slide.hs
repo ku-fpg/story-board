@@ -1,6 +1,7 @@
 {-# LANGUAGE KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
-module Graphics.Storyboard.Slide
+module Graphics.Storyboard.Slide where
+{-
   ( Slide
   , slide
   , Prelude(..)  -- for now
@@ -10,7 +11,7 @@ module Graphics.Storyboard.Slide
   , environment
   , runSlide
   ) where
-
+-}
 import qualified Data.Text as Text
 import Data.Text(Text)
 import Data.List as List
@@ -33,19 +34,40 @@ import Graphics.Storyboard.Prelude
 
 
 -----------------------------------------------------------------------------
+data TheSlideStyle = TheSlideStyle
+  { theParagraphStyle   :: TheParagraphStyle
+  , fullSize            :: Size Float
+  , theSlideNumber      :: Int
+  , theLastSlide        :: Int
+  }
+  deriving Show
 
+defaultSlideStyle :: TheSlideStyle
+defaultSlideStyle = TheSlideStyle
+  { theParagraphStyle = defaultParagraphStyle
+  , fullSize          = (1024,786)
+  , theSlideNumber    = 0
+  , theLastSlide      = 0
+  }
+
+class ParagraphStyle a => SlideStyle a where
+  slideStyle :: (TheSlideStyle -> TheSlideStyle) -> a -> a
+
+instance SlideStyle TheSlideStyle where
+  slideStyle f s = f s
+
+instance ParagraphStyle TheSlideStyle where
+  paragraphStyle f s = s { theParagraphStyle = f (theParagraphStyle s) }
+
+instance ProseStyle TheSlideStyle where
+  proseStyle = paragraphStyle . proseStyle
 
 -----------------------------------------------------------------------------
-
-
-
-------------------------------------------------------------------------
-
 -- | The Slide Monad is intentually transparent. It is just a convenence.
 
-newtype Slide a = Slide { runSlide :: Environment -> Size Float -> Prelude (a,Mosaic ()) }
+newtype Slide a = Slide { runSlide :: TheSlideStyle -> Size Float -> Prelude (a,Mosaic ()) }
 
-slide :: (Environment -> Size Float -> Prelude (a,Mosaic ())) -> Slide a
+slide :: (TheSlideStyle -> Size Float -> Prelude (a,Mosaic ())) -> Slide a
 slide = Slide
 
 instance Functor Slide where
@@ -69,61 +91,36 @@ instance Monoid a => Monoid (Slide a) where
   mempty = pure $ mempty
   mappend = liftM2 mappend
 
-
 instance MonadIO Slide where
     liftIO io = Slide $ \ cxt st -> do
       a <- liftIO io
       return (a, pure ())
 
-
 cavity :: Slide (Size Float)
 cavity = Slide $ \ _ sz -> return (sz,pure ())
 
-storyContext :: (Environment -> Environment) -> Slide a -> Slide a
-storyContext f (Slide g) = (Slide $ \ cxt sz -> g (f cxt) sz)
+askSlideStyle :: Slide TheSlideStyle
+askSlideStyle = Slide $ \ env _ -> return (env,pure ())
 
-environment :: Slide Environment
-environment = Slide $ \ env _ -> return (env,pure ())
+{-
+instance SlideStyle TheSlideStyle where
+  slideStyle f s = f s
 
+instance ParagraphStyle TheSlideStyle where
+  paragraphStyle f s = s { theParagraphStyle = f (theParagraphStyle s) }
 
-instance Layout (Slide a) where
-  scoped = storyContext
+instance ProseStyle TheSlideStyle where
+  proseStyle = paragraphStyle . proseStyle
+-}
+
+instance SlideStyle (Slide a) where
+  slideStyle f (Slide g) = Slide $ \ cxt sz -> g (f cxt) sz
+
+instance ParagraphStyle (Slide a) where
+  paragraphStyle = slideStyle . paragraphStyle
 
 instance ProseStyle (Slide a) where
-  proseStyle = storyContext . proseStyle
-
-
-
-{-
-instance Markup (Slide a) where
---  align :: Alignment -> Slide a -> Slide a
---  align = storyContext . align
-  font     = scoped . font
-  color    = storyContext . color
-  fontSize = storyContext . fontSize
--}
-
---size :: Float -> Slide a -> Slide a
---size s = storyContext (\ m -> m { baseAlign = j })
-
-{-
--- Pull out the inner Mosaic.
-getSlide :: Slide () -> Slide (Mosaic ())
-getSlide (Slide f) = Slide $ \ cxt -> do
-    ((),Mosaic) <- f cxt
-    return (Mosaic, pure ())
--}
-{-
-anchor tile left
-anchor tile left
-
-(tile `on` left)
-
-draw (tile `on` left)
--}
-
---  draw (tile ?left)
-
+  proseStyle = slideStyle . proseStyle
 
 
 draw :: Mosaic () -> Slide ()
@@ -132,17 +129,3 @@ draw mosaic = Slide $ \ cxt sz -> return ((),mosaic)
 -- | you 'place' a 'Tile' onto the 'Slide', on a specific side of your slide.
 place :: Side -> Tile () -> Slide ()
 place s = draw . anchor s
-
-------------------------------------------------------------------------
--- The idea behind the prelude monad is that we can cache
--- answers asked at Prelude time (always about size)
--- by running in simulation mode.
-
---newtype Prelude a = Prelude { runPrelude :: Canvas a }
---  deriving (Functor, Applicative, Monad, MonadIO)
-
--- wordWidth :: MarkupContext -> Word -> Prelude Float
--- imageTile :: FilePath -> Prelude (Tile ())
---
-
-------------------------------------------------------------------------
