@@ -29,6 +29,8 @@ import Graphics.Storyboard.Environment
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Prose
+import Graphics.Storyboard.Prelude
+
 
 -----------------------------------------------------------------------------
 
@@ -136,8 +138,8 @@ place s = draw . anchor s
 -- answers asked at Prelude time (always about size)
 -- by running in simulation mode.
 
-newtype Prelude a = Prelude { runPrelude :: Canvas a }
-  deriving (Functor, Applicative, Monad, MonadIO)
+--newtype Prelude a = Prelude { runPrelude :: Canvas a }
+--  deriving (Functor, Applicative, Monad, MonadIO)
 
 -- wordWidth :: MarkupContext -> Word -> Prelude Float
 -- imageTile :: FilePath -> Prelude (Tile ())

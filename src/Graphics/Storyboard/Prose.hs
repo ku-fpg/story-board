@@ -9,7 +9,8 @@ import Control.Applicative
 import Control.Monad (liftM2)
 import Data.Semigroup
 import Data.Text(Text)
-import Graphics.Blank (Canvas)
+import Graphics.Blank (Canvas, TextMetrics, measureText)
+import qualified Graphics.Blank as Blank
 import Control.Monad.IO.Class
 
 import GHC.Exts (IsString(fromString))
@@ -29,7 +30,7 @@ data Prose
 
 instance IsString Prose where
   fromString txt = ProseConcat $ List.intersperse (ProseSpace 1)
-      [ ProseItem $ Text.pack $ wd -- default is *no* annotations
+      [ ProseItem $ Text.pack $ wd
       | wd <- words txt
       ]
 
@@ -88,9 +89,6 @@ defaultProseStyle = TheProseStyle
   , theLigatures       = []
   }
 
-
-x = 11
-
 onePointSpaceWidth :: Float
 onePointSpaceWidth = 0.26
 
@@ -138,3 +136,12 @@ noLigatures   = proseStyle $ \ s -> s { theLigatures = [] }
 
 super       :: ProseStyle a =>          a -> a
 super         = proseStyle $ \ s -> s { subSuper = subSuper s + 1 }
+
+------------------------------------------------------------------------
+
+-- figure out the full font from the style
+fontName :: TheProseStyle -> Text
+fontName cxt = Text.intercalate " " $
+    [ "italics" | isItalic cxt ] ++
+    [ "bold"    | isBold cxt ] ++
+    [Text.pack $ show (theFontSize cxt), theFont cxt]

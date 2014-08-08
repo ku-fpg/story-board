@@ -18,6 +18,7 @@ import Graphics.Storyboard.Prose
 import Graphics.Storyboard.Environment
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Bling
+import Graphics.Storyboard.Prelude
 
 import Control.Monad.IO.Class
 
@@ -158,28 +159,3 @@ splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
     n = splitLine lineWidth xs `max` 1 -- hfill warning here
 
 ------------------------------------------------------------------------
-
--- This function should be memoize; it will return
--- the same answer for *every* call.
-wordWidth :: TheProseStyle -> Text -> Prelude Float
-wordWidth cxt txt = Prelude $ saveRestore $ do
-    Blank.font $ fontName cxt
-    TextMetrics w <- measureText txt
-    return w
-
-{- Notes about spaces
-   (from http://www.microsoft.com/typography/developers/fdsspec/spaces.aspx)
-
-Advance width rule :
-  The space's advance width is set by visually selecting a value that is
-  appropriate for the current font. The general guidelines for the advance
-  widths are:
-    * The minimum value should be no less than 1/5 the em, which is equivalent
-      to the value of a thin space in traditional typesetting.
-    * For an average width font a good value is ~1/4 the em.
- -}
-
--- figure out the font for this word
-fontName :: TheProseStyle -> Text
-fontName cxt = Text.intercalate " " $
-    [Text.pack $ show (theFontSize cxt), theFont cxt]
