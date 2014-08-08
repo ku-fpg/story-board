@@ -30,6 +30,10 @@ data Tile a = Tile (Size Float) (Size Float -> Canvas a)
 instance Show (Tile a) where
   show (Tile sz _) = show sz
 
+
+instance Functor Tile where
+  fmap f (Tile sz g) = Tile sz (fmap f . g)
+
 -- | tile requests a specific (minimum) size, and provides
 -- a paint routine that takes the *actual* size.
 -- The paint routine can assume the canvas starts at (0,0),
