@@ -24,24 +24,6 @@ import Control.Monad.IO.Class
 
 ------------------------------------------------------------------------
 
-renderText :: TheProseStyle -> Text -> Prelude (Tile ())
-renderText st txt = do
-    let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures st)
-    w <- wordWidth (fontName st) txt'
-    let off = 0 -- if Super `elem` emph then (-5) else 0
-    return $ tile (w,fromIntegral $ theFontSize st + 5) $ const $ do
-      Blank.font $ fontName st
-      fillStyle (theColor st)
-      fillText (txt',0,fromIntegral $ theFontSize st + off)    -- time will tell for this offset
-
-renderProse :: TheProseStyle -> Prose -> Prelude [Either Float (Tile ())]
-renderProse st (ProseItem txt) = do
-    t <- renderText st txt
-    return [Right t]
-renderProse st (ProseSpace n) = return [ Left $ n * theSpaceWidth st ]
-renderProse st (ProseScope f ps) = renderProse (f st) ps
-renderProse st (ProseConcat pss) = fmap concat $
-    sequence [ renderProse st ps | ps <- pss ]
 
 ------------------------------------------------------------------------
 
@@ -71,7 +53,7 @@ p ps = slide $ \ cxt (w,h) -> do
     let ps_cxt = theProseStyle cxt
 
 
-    proseTiles <- renderProse ps_cxt ps
+    proseTiles <- renderProse' ps_cxt ps
 {-
     liftIO $ sequence_
             [ case v of
@@ -135,27 +117,5 @@ p ps = slide $ \ cxt (w,h) -> do
             loop ns (drop n xs)
 
     return $ ((),loop splits glyphs2)
-
-------------------------------------------------------------------------
-
-
-
--- Given the (min) width of a space, the width of the line,
--- and a list of word widths, how many words can we accept.
-splitLine :: Float -> [(Float,Float)] -> Int
-splitLine lineWidth widths = length $ takeWhile (<= lineWidth) szs
-  where
-    szs = [ sz + sp + rest
-          | (sz,sp,rest) <-
-                zip3 (map fst widths)
-                     (0 : map snd widths)
-                     (0 : szs)
-          ]
-
-splitLines :: Float -> [(Float,Float)] -> [Int]
-splitLines lineWidth [] = []
-splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
-  where
-    n = splitLine lineWidth xs `max` 1 -- hfill warning here
 
 ------------------------------------------------------------------------

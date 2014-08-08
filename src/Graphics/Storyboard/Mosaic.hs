@@ -26,7 +26,6 @@ import GHC.Exts (IsString(fromString))
 
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
-import Graphics.Storyboard.Environment
 import Graphics.Storyboard.Tile
 
 data Cavity f = Cavity

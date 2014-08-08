@@ -14,7 +14,7 @@ data Environment = Environment
   , theAlignment       :: Alignment -- ^ What alignment method are we using, left
 --  ,  theBaselineOffset  :: Float     -- ^ size of offset from baseline, 0
 --  ,  theDevicePixelRatio :: Float     -- scaling of whole page; Device Pixel Ratio.
-  ,  theLineWidth   :: Float     -- ^ line width, 1
+  , theLineWidth   :: Float     -- ^ line width, 1
   , theLeftMargin   :: Float     -- ^ left margin, 0
   , theRightMargin  :: Float     -- ^ right margin, 0
   , theTabSize      :: Float     -- ^ indent size, 50

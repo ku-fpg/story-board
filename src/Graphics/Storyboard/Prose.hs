@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables, KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
 module Graphics.Storyboard.Prose where
 
@@ -9,14 +9,18 @@ import Control.Applicative
 import Control.Monad (liftM2)
 import Data.Semigroup
 import Data.Text(Text)
-import Graphics.Blank (Canvas, TextMetrics, measureText)
-import qualified Graphics.Blank as Blank
+import Graphics.Blank as Blank
 import Control.Monad.IO.Class
 
 import GHC.Exts (IsString(fromString))
 
+import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
+import Graphics.Storyboard.Mosaic
+import Graphics.Storyboard.Prelude
+
+
 --import Graphics.Storyboard.TextStyle
 
 
@@ -145,3 +149,107 @@ fontName cxt = Text.intercalate " " $
     [ "italics" | isItalic cxt ] ++
     [ "bold"    | isBold cxt ] ++
     [Text.pack $ show (theFontSize cxt), theFont cxt]
+
+renderText :: TheProseStyle -> Text -> Prelude (Tile ())
+renderText st txt = do
+    let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures st)
+    w <- wordWidth (fontName st) txt'
+    let off = 0 -- if Super `elem` emph then (-5) else 0
+    return $ tile (w,fromIntegral $ theFontSize st + 5) $ const $ do
+      Blank.font $ fontName st
+      fillStyle (theColor st)
+      fillText (txt',0,fromIntegral $ theFontSize st + off)    -- time will tell for this offset
+
+-- This feels like it should be in a higher module
+renderProse :: Alignment -> Float -> TheProseStyle -> Prose -> Prelude [Tile ()]
+renderProse alignment w ps_cxt ps = do
+
+    proseTiles <- renderProse' ps_cxt ps
+    {-
+    liftIO $ sequence_
+            [ case v of
+                Left n -> print ("SP",n)
+                Right t -> print ("T",tileWidth t)
+            | v <- proseTiles
+            ]
+    -}
+    let
+        findT (Left n:xs) ts = findS xs (ts,n)
+        findT (Right t:xs) ts = findT xs (ts++[t])
+        findT [] ts = [(ts,0)]
+
+        findS (Left n:xs) (ts,w) = findS xs (ts,w + n)
+        findS (Right t:xs) (ts,w) = (ts,w) : findT xs [t]
+        findS [] (ts,w) = [(ts,w)]
+
+
+    let glyphs2 :: [([Tile ()],Float)] = findT proseTiles []
+
+    liftIO $ putStrLn "----------------"
+    liftIO $ sequence_
+        [ print (map tileWidth ts,w)
+        | (ts,w) <- glyphs2
+        ]
+
+    liftIO $ print (w,[ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ])
+
+    let splits = splitLines w [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
+
+
+    liftIO $ print $ splits
+
+    -- now finally laydown the tiles
+
+    let
+        write :: Bool -> [([Tile ()],Float)] -> Tile ()
+        write lastLine xs = pack $ mconcat $
+              [ gap left | True <- [just `elem` [ center, right]]] ++
+              [ mconcat [ anchor left $ tile | tile <- tiles ] <>
+                (if sp == 0
+                 then pure ()
+                 else if just == justified
+                      then gap left
+                      else anchor left $ tile (sp,0) $ const $ return ()
+                )
+              | (tiles,sp) <- init xs ++ [(fst (last xs),0)]
+              ] ++
+              [ gap left | True <- [just `elem` [ left, center]]]
+           where just = if lastLine && alignment == justified
+                        then left
+                        else alignment
+
+        loop []     [] = []
+        loop (n:ns) xs = write (null ns) (take n xs)
+                       : loop ns (drop n xs)
+
+    return $ loop splits glyphs2
+
+-- Given the (min) width of a space, the width of the line,
+-- and a list of word widths, how many words can we accept.
+splitLine :: Float -> [(Float,Float)] -> Int
+splitLine lineWidth widths = length $ takeWhile (<= lineWidth) szs
+  where
+    szs = [ sz + sp + rest
+          | (sz,sp,rest) <-
+                zip3 (map fst widths)
+                     (0 : map snd widths)
+                     (0 : szs)
+          ]
+
+splitLines :: Float -> [(Float,Float)] -> [Int]
+splitLines lineWidth [] = []
+splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
+  where
+    n = splitLine lineWidth xs `max` 1 -- hfill warning here
+
+-- internal only?
+renderProse' :: TheProseStyle -> Prose -> Prelude [Either Float (Tile ())]
+renderProse' st (ProseItem txt) = do
+    t <- renderText st txt
+    return [Right t]
+renderProse' st (ProseSpace n) = return [ Left $ n * theSpaceWidth st ]
+renderProse' st (ProseScope f ps) = renderProse' (f st) ps
+renderProse' st (ProseConcat pss) = fmap concat $
+    sequence [ renderProse' st ps | ps <- pss ]
+
+------------------------------------------------------------------------

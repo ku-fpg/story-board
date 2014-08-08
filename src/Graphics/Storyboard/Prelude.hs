@@ -6,7 +6,6 @@ import Control.Monad.IO.Class
 import Data.Text(Text)
 import Graphics.Blank as Blank
 
-
 -- The idea behind the prelude monad is that we can cache
 -- answers asked at Prelude time (always about size)
 -- by running in a simulation mode.
