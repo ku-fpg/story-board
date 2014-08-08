@@ -10,6 +10,8 @@ import Control.Applicative
 import Control.Monad.IO.Class
 import Data.Text(Text)
 import Graphics.Blank as Blank
+import Control.Applicative
+import Control.Monad
 
 import Graphics.Storyboard.Tile
 import Data.List
@@ -21,8 +23,27 @@ import Data.Text(Text)
 
 -- TODO: perhaps call this Staging?
 
-newtype Prelude a = Prelude { runPrelude :: Canvas a }
-  deriving (Functor, Applicative, Monad, MonadIO)
+data Prelude :: * -> * where
+  Prelude :: Canvas a -> Prelude a
+
+runPrelude :: Prelude a -> Canvas a
+runPrelude (Prelude m) = m
+
+instance Functor Prelude where
+ fmap f m = pure f <*> m
+
+instance Applicative Prelude where
+  pure = return
+  f <*> a = liftM2 ($) f a
+
+instance Monad Prelude where
+  return = Prelude . return
+  Prelude f >>= k = Prelude $ do
+    a <- f
+    runPrelude (k a)
+
+instance MonadIO Prelude where
+    liftIO = Prelude . liftIO
 
 -- This function should be memoize; it will return
 -- the same answer for *every* call.
