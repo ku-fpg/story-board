@@ -19,7 +19,7 @@ import Control.Applicative
 import Control.Monad (liftM2)
 import Data.Semigroup
 import Data.Text(Text)
-import Graphics.Blank (Canvas)
+import Graphics.Blank (Canvas,saveRestore,sync)
 import Control.Monad.IO.Class
 
 import GHC.Exts (IsString(fromString))
@@ -30,7 +30,7 @@ import Graphics.Storyboard.Paragraph
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Prose
-import Graphics.Storyboard.Prelude
+import Graphics.Storyboard.Prelude as Prelude
 
 
 -----------------------------------------------------------------------------
@@ -64,6 +64,8 @@ instance ParagraphStyle TheSlideStyle where
 instance ProseStyle TheSlideStyle where
   proseStyle = paragraphStyle . proseStyle
 
+
+
 -----------------------------------------------------------------------------
 
 data TheSlideState = TheSlideState
@@ -80,10 +82,15 @@ defaultSlideState env = TheSlideState
   }
 
 drawMosaic :: Mosaic () -> TheSlideState -> TheSlideState
-drawMosaic moz st = st { theMosaic = theMosaic st <> moz
-                       , theInternalSize = cavityMaxSize moz (theInternalSize st)
-                       }
+drawMosaic moz st = st
+  { theMosaic = theMosaic st <> moz
+  , theInternalSize = cavityMaxSize moz (theInternalSize st)
+  }
 
+blankMosaic :: TheSlideState -> TheSlideState
+blankMosaic st = st
+  { theMosaic = pure ()
+  }
 
 -----------------------------------------------------------------------------
 -- | The Slide Monad is intentually transparent. It is just a convenence.
@@ -146,3 +153,14 @@ draw moz = Slide $ \ cxt st -> return ((),drawMosaic moz st)
 -- | you 'place' a 'Tile' onto the 'Slide', on a specific side of your slide.
 place :: Side -> Tile () -> Slide ()
 place s = draw . anchor s
+
+
+pause :: Slide ()
+pause = Slide $ \ cxt st -> do
+  let Tile (w,h) m = fillTile (theMosaic st)
+  Prelude.liftCanvas $ saveRestore $ do
+      _ <- m (w,h)
+      return ()
+  Prelude.liftCanvas $ sync
+  Prelude.pause
+  return ((),blankMosaic st)

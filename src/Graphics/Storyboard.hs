@@ -150,16 +150,15 @@ example3 = margin 20 $ do
       "stick to the JavaScript idioms. So a method call with no arguments takes a" <+>
       "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of"
 
-  (w,h) <-getCavitySize
-  liftIO $ print (w,h)
 
--- imageTile :: FilePath -> Slide (Tile ())
+  pause
 
   align justified $ do
     p $ "FXoats, etc. When there is a var-args JavaScript function, we use lists," <+>
       "as needed (it turns out that all var-args functions take a variable number" <+>
       "of JavaScript numbers.)"
 
+  pause
 
   indent $ do
     p $ "FF unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of" <+>
@@ -167,12 +166,17 @@ example3 = margin 20 $ do
       "as needed (it turns out that all var-args functions take a variable number" <+>
       "of JavaScript numbers.)"
 
+
   hr
+
+  pause
 
   img <- imageTile "jhwk_LF_200px.gif"
 
   draw (anchor left img)
   draw (anchor left (blank (20,0)))
+
+  pause
 
   align justified $ do
     p $ " Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
@@ -182,6 +186,7 @@ example3 = margin 20 $ do
         "Floats, etc. When there is a var-args JavaScript function, we use lists," <+>
         "as needed (it turns out that all var-args functions take a variable number" <+>
         "of JavaScript numbers.)"
+
 
 txt :: Prose
 txt =
