@@ -27,7 +27,7 @@ import Control.Monad.IO.Class
 renderText :: TheProseStyle -> Text -> Prelude (Tile ())
 renderText st txt = do
     let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures st)
-    w <- wordWidth st txt'
+    w <- wordWidth (fontName st) txt'
     let off = 0 -- if Super `elem` emph then (-5) else 0
     return $ tile (w,fromIntegral $ theFontSize st + 5) $ const $ do
       Blank.font $ fontName st

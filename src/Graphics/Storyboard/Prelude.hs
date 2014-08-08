@@ -6,8 +6,6 @@ import Control.Monad.IO.Class
 import Data.Text(Text)
 import Graphics.Blank as Blank
 
-import Graphics.Storyboard.Prose
-
 
 -- The idea behind the prelude monad is that we can cache
 -- answers asked at Prelude time (always about size)
@@ -18,8 +16,8 @@ newtype Prelude a = Prelude { runPrelude :: Canvas a }
 
 -- This function should be memoize; it will return
 -- the same answer for *every* call.
-wordWidth :: TheProseStyle -> Text -> Prelude Float
-wordWidth cxt txt = Prelude $ saveRestore $ do
-    Blank.font $ fontName cxt
+wordWidth :: Text -> Text -> Prelude Float
+wordWidth font_name txt = Prelude $ saveRestore $ do
+    Blank.font $ font_name
     TextMetrics w <- measureText txt
     return w
