@@ -4,7 +4,7 @@ module Graphics.Storyboard
   , p
   , (<+>)
   , align
-  , cavity
+  , getCavitySize
   , imageTile
   , draw
   , anchor
@@ -50,7 +50,7 @@ import Graphics.Storyboard.Images
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Prose
-import Graphics.Storyboard.Prelude
+import qualified Graphics.Storyboard.Prelude as Prelude
 import Graphics.Storyboard.Paragraph
 import Graphics.Storyboard.Mosaic
 
@@ -96,7 +96,7 @@ margin m inside = do
 -- horizontal rule
 hr :: Slide ()
 hr = do
-  (_,w) <- cavity
+  (_,w) <- getCavitySize
   draw $ anchor top $ tile (w,2) $ \ (w',h') -> do
               beginPath()
               moveTo(0,1)
@@ -137,7 +137,7 @@ overlay (Slide storyA) (Slide storyB) = Slide $ \ cxt sz -> do
 
 slide_background :: Slide ()
 slide_background = margin 10 $ do
-  (w,h) <-cavity
+  (w,h) <-getCavitySize
   draw (vbrace h <> hbrace w)
   img <- imageTile "jhwk_LF_200px.gif"
 
@@ -150,7 +150,7 @@ example3 = margin 20 $ do
       "stick to the JavaScript idioms. So a method call with no arguments takes a" <+>
       "unit, a method call that takes 3 JavaScript numbers will take a 3-tuple of"
 
-  (w,h) <-cavity
+  (w,h) <-getCavitySize
   liftIO $ print (w,h)
 
 -- imageTile :: FilePath -> Slide (Tile ())
@@ -197,7 +197,7 @@ blankCanvasStoryBoard :: [Slide ()] -> DeviceContext -> IO ()
 blankCanvasStoryBoard slide = \ context -> send context $ do
     let cxt = defaultSlideStyle (width context,height context)
     let st0 = defaultSlideState cxt
-    (_,st1) <- runPrelude $ runSlide (head slide) cxt st0
+    (_,st1) <- Prelude.runPrelude $ runSlide (head slide) cxt st0
     let Tile (w,h) m = fillTile (theMosaic st1)
     saveRestore $ do
       _ <- m (w,h)

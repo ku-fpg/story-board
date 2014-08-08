@@ -54,12 +54,10 @@ indent = id
 
 p :: Prose -> Slide ()
 p ps = do
-    (w,h) <- cavity
+    (w,h)       <- getCavitySize
     slide_style <- askSlideStyle
     let par_style = theParagraphStyle slide_style
-
     t <- slidePrelude $ renderParagraph par_style w ps
-
     place top t
 
 ------------------------------------------------------------------------
