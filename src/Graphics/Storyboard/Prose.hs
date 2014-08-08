@@ -47,19 +47,6 @@ instance Monoid Prose where
   mappend xs ys = ProseConcat [xs,ys]
   mconcat = ProseConcat
 
-{-
-mapProse :: ([Emphasis] -> [Emphasis]) -> Prose -> Prose
-mapProse f (Prose ps) = Prose $ map g ps where
-  g (Right (Word es txt)) = Right (Word (f es) txt)
-  g other = other
--}
-
-{-
-super :: Prose -> Prose
-super (Prose ps) = Prose $ map f ps
-  where f (Left n) = Left (n / 0.7)
-        f (Right (Word es txt)) = Right (Word (Super:es) txt)
--}
 sizedSpace :: Float -> Prose
 sizedSpace n = ProseSpace n
 
@@ -75,39 +62,6 @@ br = sizedSpace (1/0)  -- a bit of a hack
 (</>) :: Prose -> Prose -> Prose
 p1 </> p2 = p1 <> br <> p2
 
-
-------------------------------------------------------------------------
-
--- [font style] [font weight] [font size] [font face]
--- style = normal | italic | oblique | inherit
--- weight = normal | bold | bolder | lighter | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | inherit | auto
--- size = 24px (must be an int)
--- face =  serif, sans-serif, cursive, fantasy, and monospace.
-
-data Emphasis
-  = Italics
-  | Bold
-  | Color Text       -- not supported yet
-  | Font Int Text    -- not supported yet
-  | Sub
-  | Super
-    deriving (Eq,Ord)
-
-instance Show Emphasis where
-  show (Italics)     = "i"
-  show (Bold)        = "b"
-  show (Color col)   = ":" ++ show col
-  show (Font sz txt) = show sz ++ "-" ++ show txt
-  show (Sub)         = "_"
-  show (Super)       = "^"
-
-------------------------------------------------------------------------
-
-data Word = Word [Emphasis] Text
-
-instance Show Word where
-   show (Word [] txt)   = show $ Text.unpack txt
-   show (Word emph txt) = show emph ++ show (Text.unpack txt)
 
 ------------------------------------------------------------------------
 
