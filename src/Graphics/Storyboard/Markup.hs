@@ -53,11 +53,13 @@ item txt prose = do
 indent = id
 
 p :: Prose -> Slide ()
-p ps = slide $ \ slide_style (w,h) -> do
+p ps = do
+    (w,h) <- cavity
+    slide_style <- askSlideStyle
     let par_style = theParagraphStyle slide_style
 
-    t <- renderParagraph par_style w ps
+    t <- slidePrelude $ renderParagraph par_style w ps
 
-    return ((),anchor top t)
+    place top t
 
 ------------------------------------------------------------------------

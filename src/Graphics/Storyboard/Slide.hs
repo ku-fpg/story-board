@@ -36,6 +36,7 @@ import Graphics.Storyboard.Prelude
 -----------------------------------------------------------------------------
 data TheSlideStyle = TheSlideStyle
   { theParagraphStyle   :: TheParagraphStyle
+  , tabStop             :: Float
   , fullSize            :: Size Float
   , theSlideNumber      :: Int
   , theLastSlide        :: Int
@@ -45,6 +46,7 @@ data TheSlideStyle = TheSlideStyle
 defaultSlideStyle :: TheSlideStyle
 defaultSlideStyle = TheSlideStyle
   { theParagraphStyle = defaultParagraphStyle
+  , tabStop           = 50
   , fullSize          = (1024,786)
   , theSlideNumber    = 0
   , theLastSlide      = 0
@@ -96,11 +98,18 @@ instance MonadIO Slide where
       a <- liftIO io
       return (a, pure ())
 
+-- ==> askCavityStyle
 cavity :: Slide (Size Float)
 cavity = Slide $ \ _ sz -> return (sz,pure ())
 
 askSlideStyle :: Slide TheSlideStyle
 askSlideStyle = Slide $ \ env _ -> return (env,pure ())
+
+
+slidePrelude :: Prelude a -> Slide a
+slidePrelude m = Slide $ \ cxt st -> do
+      a <- m
+      return (a,pure ())
 
 {-
 instance SlideStyle TheSlideStyle where
