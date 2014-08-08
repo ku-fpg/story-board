@@ -1,6 +1,6 @@
 {-# LANGUAGE KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
-module Graphics.Storyboard.Environment where
+module Graphics.Storyboard.Paragraph where
 
 import Data.Monoid
 import Data.Text(Text)

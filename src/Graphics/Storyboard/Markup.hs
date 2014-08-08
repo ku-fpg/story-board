@@ -15,7 +15,7 @@ import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Prose
-import Graphics.Storyboard.Environment
+import Graphics.Storyboard.Paragraph
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Prelude

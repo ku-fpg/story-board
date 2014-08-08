@@ -26,7 +26,7 @@ import GHC.Exts (IsString(fromString))
 
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
-import Graphics.Storyboard.Environment
+import Graphics.Storyboard.Paragraph
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Prose

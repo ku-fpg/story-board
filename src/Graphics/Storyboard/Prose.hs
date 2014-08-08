@@ -141,6 +141,10 @@ noLigatures   = proseStyle $ \ s -> s { theLigatures = [] }
 super       :: ProseStyle a =>          a -> a
 super         = proseStyle $ \ s -> s { subSuper = subSuper s + 1 }
 
+sub         :: ProseStyle a =>          a -> a
+sub           = proseStyle $ \ s -> s { subSuper = subSuper s - 1 }
+
+
 ------------------------------------------------------------------------
 
 -- figure out the full font from the style
