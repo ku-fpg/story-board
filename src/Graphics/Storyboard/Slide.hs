@@ -65,6 +65,20 @@ instance ProseStyle TheSlideStyle where
   proseStyle = paragraphStyle . proseStyle
 
 -----------------------------------------------------------------------------
+
+data TheSlideState = TheSlideState
+  { theMosaic        :: Mosaic ()
+  , theInternalSize  :: Size Float
+  , theSectionCount  :: [Int]
+  }
+
+drawMosaic :: Mosaic () -> TheSlideState -> TheSlideState
+drawMosaic moz st = st { theMosaic = theMosaic st <> moz
+                       , theInternalSize = cavityMaxSize moz (theInternalSize st)
+                       }
+
+
+-----------------------------------------------------------------------------
 -- | The Slide Monad is intentually transparent. It is just a convenence.
 
 newtype Slide a = Slide { runSlide :: TheSlideStyle -> Size Float -> Prelude (a,Mosaic ()) }
