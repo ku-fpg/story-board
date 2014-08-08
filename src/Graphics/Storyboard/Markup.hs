@@ -29,8 +29,8 @@ import Control.Monad.IO.Class
 
 -- | build a tile around a word, but do not place it.
 
-word :: Text -> Slide (Tile ())
-word txt = slide $ \ cxt (w,h) -> undefined
+--word :: Text -> Slide (Tile ())
+--word txt = slide $ \ cxt (w,h) -> undefined
 {-
     let ps_cxt = theProseStyle cxt
     w <- wordWidth cxt (Word [] txt)

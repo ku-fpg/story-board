@@ -43,11 +43,11 @@ data TheSlideStyle = TheSlideStyle
   }
   deriving Show
 
-defaultSlideStyle :: TheSlideStyle
-defaultSlideStyle = TheSlideStyle
+defaultSlideStyle :: Size Float -> TheSlideStyle
+defaultSlideStyle sz = TheSlideStyle
   { theParagraphStyle = defaultParagraphStyle
   , tabStop           = 50
-  , fullSize          = (1024,786)
+  , fullSize          = sz
   , theSlideNumber    = 0
   , theLastSlide      = 0
   }
@@ -72,6 +72,13 @@ data TheSlideState = TheSlideState
   , theSectionCount  :: [Int]
   }
 
+defaultSlideState :: TheSlideStyle -> TheSlideState
+defaultSlideState env = TheSlideState
+  { theMosaic        = pure ()
+  , theInternalSize  = fullSize env
+  , theSectionCount  = []
+  }
+
 drawMosaic :: Mosaic () -> TheSlideState -> TheSlideState
 drawMosaic moz st = st { theMosaic = theMosaic st <> moz
                        , theInternalSize = cavityMaxSize moz (theInternalSize st)
@@ -81,9 +88,9 @@ drawMosaic moz st = st { theMosaic = theMosaic st <> moz
 -----------------------------------------------------------------------------
 -- | The Slide Monad is intentually transparent. It is just a convenence.
 
-newtype Slide a = Slide { runSlide :: TheSlideStyle -> Size Float -> Prelude (a,Mosaic ()) }
+newtype Slide a = Slide { runSlide :: TheSlideStyle -> TheSlideState -> Prelude (a,TheSlideState) }
 
-slide :: (TheSlideStyle -> Size Float -> Prelude (a,Mosaic ())) -> Slide a
+slide :: (TheSlideStyle -> TheSlideState -> Prelude (a,TheSlideState)) -> Slide a
 slide = Slide
 
 instance Functor Slide where
@@ -94,11 +101,11 @@ instance Applicative Slide where
   f <*> a = liftM2 ($) f a
 
 instance Monad Slide where
-  return a = Slide $ \ _ _ -> return (a,pure ())
-  Slide f >>= k = Slide $ \ st sz -> do
-    (a,f1) <- f st sz
-    (r,f2) <- runSlide (k a) st (cavityMaxSize f1 sz)
-    return (r,f1 <> f2)
+  return a = Slide $ \ _ st -> return (a,st)
+  Slide f >>= k = Slide $ \ env st0 -> do
+    (a,st1) <- f env st0
+    (r,st2) <- runSlide (k a) env st1
+    return (r,st2)
 
 instance Semigroup a => Semigroup (Slide a) where
   (<>) = liftM2 (<>)
@@ -108,33 +115,22 @@ instance Monoid a => Monoid (Slide a) where
   mappend = liftM2 mappend
 
 instance MonadIO Slide where
-    liftIO io = Slide $ \ cxt st -> do
-      a <- liftIO io
-      return (a, pure ())
+    liftIO = slidePrelude . liftIO
 
--- ==> askCavityStyle
-cavity :: Slide (Size Float)
-cavity = Slide $ \ _ sz -> return (sz,pure ())
+
+cavity = getCavitySize
+
+getCavitySize :: Slide (Size Float)
+getCavitySize = Slide $ \ _ st -> return (theInternalSize st,st)
 
 askSlideStyle :: Slide TheSlideStyle
-askSlideStyle = Slide $ \ env _ -> return (env,pure ())
-
+askSlideStyle = Slide $ \ env st -> return (env,st)
 
 slidePrelude :: Prelude a -> Slide a
 slidePrelude m = Slide $ \ cxt st -> do
       a <- m
-      return (a,pure ())
+      return (a,st)
 
-{-
-instance SlideStyle TheSlideStyle where
-  slideStyle f s = f s
-
-instance ParagraphStyle TheSlideStyle where
-  paragraphStyle f s = s { theParagraphStyle = f (theParagraphStyle s) }
-
-instance ProseStyle TheSlideStyle where
-  proseStyle = paragraphStyle . proseStyle
--}
 
 instance SlideStyle (Slide a) where
   slideStyle f (Slide g) = Slide $ \ cxt sz -> g (f cxt) sz
@@ -146,8 +142,9 @@ instance ProseStyle (Slide a) where
   proseStyle = slideStyle . proseStyle
 
 
+-- Draw a mosaic onto a slide
 draw :: Mosaic () -> Slide ()
-draw mosaic = Slide $ \ cxt sz -> return ((),mosaic)
+draw moz = Slide $ \ cxt st -> return ((),drawMosaic moz st)
 
 -- | you 'place' a 'Tile' onto the 'Slide', on a specific side of your slide.
 place :: Side -> Tile () -> Slide ()

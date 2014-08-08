@@ -17,7 +17,7 @@ module Graphics.Storyboard
     -- * Useful literals
   , module Graphics.Storyboard.Literals
   , font, fontSize
-  , word
+--  , word
   , (?)
   , border
   , point
@@ -195,13 +195,14 @@ txt =
 
 blankCanvasStoryBoard :: [Slide ()] -> DeviceContext -> IO ()
 blankCanvasStoryBoard slide = \ context -> send context $ do
-    let cxt = defaultSlideStyle
-    (a,mosaic) <- runPrelude $ runSlide (head slide) cxt (width context,height context)
-    let Tile (w,h) m = fillTile mosaic
+    let cxt = defaultSlideStyle (width context,height context)
+    let st0 = defaultSlideState cxt
+    (_,st1) <- runPrelude $ runSlide (head slide) cxt st0
+    let Tile (w,h) m = fillTile (theMosaic st1)
     saveRestore $ do
       _ <- m (w,h)
       return ()
-    return a
+    return ()
 
 storyBoard :: [Slide ()] -> IO ()
 storyBoard = blankCanvas 3000 { middleware = [] } . blankCanvasStoryBoard
