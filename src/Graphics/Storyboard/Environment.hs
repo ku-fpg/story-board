@@ -2,10 +2,14 @@
 
 module Graphics.Storyboard.Environment where
 
+import Data.Monoid
 import Data.Text(Text)
 
 import Graphics.Storyboard.Literals
+import Graphics.Storyboard.Mosaic
+import Graphics.Storyboard.Prelude
 import Graphics.Storyboard.Prose
+import Graphics.Storyboard.Tile
 
 -- | The Environment is a grab-bag of (scoped) constants.
 
@@ -43,3 +47,16 @@ instance ParagraphStyle TheParagraphStyle where
 
 align :: ParagraphStyle a => Alignment -> a -> a
 align j = paragraphStyle $ \ m -> m { theAlignment = j }
+
+renderParagraph :: TheParagraphStyle -> Float -> Prose -> Prelude (Tile ())
+renderParagraph par_style w ps = do
+  let prose_style = theProseStyle par_style
+
+  tiles <- renderProse (theAlignment par_style)
+                       w
+                       prose_style
+                       ps
+
+  -- Todo. Add decorations
+
+  return $ pack $ mconcat $ map (anchor top) $ tiles

@@ -55,14 +55,9 @@ indent = id
 p :: Prose -> Slide ()
 p ps = slide $ \ slide_style (w,h) -> do
     let par_style = theParagraphStyle slide_style
-        prose_style = theProseStyle par_style
 
-    tiles <- renderProse (theAlignment par_style)
-                         w
-                         prose_style
-                         ps
+    t <- renderParagraph par_style w ps
 
-
-    return ((),mconcat $ map (anchor top) tiles)
+    return ((),anchor top t)
 
 ------------------------------------------------------------------------
