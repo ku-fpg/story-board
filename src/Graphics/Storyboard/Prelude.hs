@@ -1,5 +1,10 @@
 {-# LANGUAGE KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
-module Graphics.Storyboard.Prelude where
+module Graphics.Storyboard.Prelude
+  ( Prelude
+  , runPrelude
+  , wordWidth
+  , imageTile
+  ) where
 
 import Control.Applicative
 import Control.Monad.IO.Class
@@ -13,6 +18,8 @@ import Data.Text(Text)
 -- The idea behind the Prelude monad is that we can cache
 -- answers asked at Prelude time (always about size)
 -- by running in a simulation mode.
+
+-- TODO: perhaps call this Staging?
 
 newtype Prelude a = Prelude { runPrelude :: Canvas a }
   deriving (Functor, Applicative, Monad, MonadIO)
