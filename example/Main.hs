@@ -1,13 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Control.Monad.IO.Class
+--import Control.Monad.IO.Class
 import Data.Monoid
 
 import Graphics.Storyboard
 
 main :: IO ()
-main = storyBoard $ drop 1 [alignSlide, example1]
+main = storyBoard $ take 1 $ drop 0
+  [ alignSlide
+--  , example1
+  ]
 
 
 lorem :: Prose
@@ -21,18 +24,14 @@ lorem =
       "metus. Aliquam aliquet massa quam, ac scelerisque augue malesuada" <+>
       "ut. Suspendisse tincidunt nulla non molestie vestibulum."
 
-ligatures :: Prose
-ligatures = "ff fi fl ffi ffl file (\xfb00) (\xfb01) (\xfb03)"
-
 alignSlide :: Slide ()
 alignSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
   p $ lorem
-
   align right     $ p $ lorem
   align center    $ p $ lorem
   align justified $ p $ lorem
-
+{-
 example1 :: Slide ()
 example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
@@ -44,7 +43,7 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
   fontSize 72 $ p $ ligatures
 
-
+-}
 {-
   indent $ do
     item "\x2022 " $ lorem
