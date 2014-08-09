@@ -74,9 +74,10 @@ ul = indent
 
 li :: Prose -> Slide ()
 li ps = do
-
   modSlideState incItemCount
-  p ps
+  par_st <- theProseStyle <$> theParagraphStyle <$> askSlideStyle
+  t <- slidePrelude $ renderText par_st "\x2022 "
+  bullet t $ p ps
 
 p :: Prose -> Slide ()
 p ps = do

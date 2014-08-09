@@ -144,7 +144,6 @@ super         = proseStyle $ \ s -> s { subSuper = subSuper s + 1 }
 sub         :: ProseStyle a =>          a -> a
 sub           = proseStyle $ \ s -> s { subSuper = subSuper s - 1 }
 
-
 ------------------------------------------------------------------------
 
 -- figure out the full font from the style
@@ -164,9 +163,9 @@ renderText st txt = do
       fillStyle (theColor st)
       fillText (txt',0,fromIntegral $ theFontSize st + off)    -- time will tell for this offset
 
--- This feels like it should be in a higher module
 renderProse :: Alignment -> Float -> TheProseStyle -> Prose -> Prelude [Tile ()]
 renderProse alignment w ps_cxt ps = do
+    -- This function feels like it should be in a higher module
 
     proseTiles <- renderProse' ps_cxt ps
     {-

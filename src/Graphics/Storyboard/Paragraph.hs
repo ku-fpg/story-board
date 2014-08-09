@@ -21,8 +21,16 @@ data TheParagraphStyle = TheParagraphStyle
   , theRightMargin  :: Float     -- ^ right margin, 0
   , theTopMargin    :: Float     -- ^ top margin, 0
   , theBottomMargin :: Float     -- ^ bottom margin, 0
+  , theBullet       :: Maybe Bullet
   }
   deriving Show
+
+-- For the Bullet, make make the top *right* corner the hotspot,
+-- and connect it with the top *left* of the paragraph.
+newtype Bullet = Bullet { runBullet :: Tile () }
+
+instance Show Bullet where
+  show _ = "Bullet{}"
 
 defaultParagraphStyle :: TheParagraphStyle
 defaultParagraphStyle = TheParagraphStyle
@@ -33,8 +41,8 @@ defaultParagraphStyle = TheParagraphStyle
   , theRightMargin    = 0
   , theTopMargin      = 0
   , theBottomMargin   = 0
+  , theBullet         = Nothing
   }
-
 
 instance ProseStyle TheParagraphStyle where
   proseStyle f e = e { theProseStyle = f (theProseStyle e) }
@@ -61,7 +69,17 @@ renderParagraph par_style w ps = do
 
   return $ pack $ mconcat $
               [ anchor left $ blank (theLeftMargin par_style,0)
-              ] ++ map (anchor top) tiles
+              ] ++
+              [ anchor left $ point top right $ bull
+              | Just (Bullet bull) <- [theBullet par_style]
+              ] ++
+              map (anchor top) tiles
 
 leftMargin :: ParagraphStyle a => Float -> a -> a
 leftMargin n = paragraphStyle $ \ m -> m { theLeftMargin = n }
+
+bullet :: ParagraphStyle a => Tile () -> a -> a
+bullet b = paragraphStyle $ \ m -> m { theBullet = Just (Bullet b) }
+
+noBullet :: ParagraphStyle a => a -> a
+noBullet = paragraphStyle $ \ m -> m { theBullet = Nothing }
