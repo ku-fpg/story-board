@@ -53,13 +53,15 @@ renderParagraph par_style w ps = do
   let prose_style = theProseStyle par_style
 
   tiles <- renderProse (theAlignment par_style)
-                       w
+                       (w - (theLeftMargin par_style + theRightMargin par_style))
                        prose_style
                        ps
 
   -- Todo. Add decorations
 
-  return $ pack $ mconcat $ map (anchor top) $ tiles
+  return $ pack $ mconcat $
+              [ anchor left $ blank (theLeftMargin par_style,0)
+              ] ++ map (anchor top) tiles
 
 leftMargin :: ParagraphStyle a => Float -> a -> a
 leftMargin n = paragraphStyle $ \ m -> m { theLeftMargin = n }

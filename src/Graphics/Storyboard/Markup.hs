@@ -55,7 +55,11 @@ indent :: Slide a -> Slide a
 indent m = do
   i <- theItemCounter <$> getSlideState
   modSlideState (setItemCount 0)
-  r <- consItemCounters i m
+  r <- consItemCounters i $ do
+      indLevel <- length <$> theItemCounters <$> askSlideStyle
+      tabStop <- theTabStop <$> askSlideStyle
+      leftMargin (fromIntegral indLevel * tabStop) $ do
+          m
   modSlideState (setItemCount i)
   return r
 
@@ -70,11 +74,8 @@ ul = indent
 
 li :: Prose -> Slide ()
 li ps = do
+
   modSlideState incItemCount
-  st <- getSlideState
-  liftIO $ print st
-  st <- askSlideStyle
-  liftIO $ print st
   p ps
 
 p :: Prose -> Slide ()
