@@ -21,6 +21,7 @@ import Data.Semigroup
 import Data.Text(Text)
 import Graphics.Blank (Canvas,saveRestore,sync)
 import Control.Monad.IO.Class
+import Control.Concurrent as Concurrent
 
 import GHC.Exts (IsString(fromString))
 
@@ -162,7 +163,9 @@ pause = Slide $ \ cxt st -> do
   ((),cavity) <- Prelude.liftCanvas $ saveRestore $ do
       m (w,h)
 
-  Prelude.pause -- 
+  liftIO $ putStrLn "pausing"
+  liftIO $ Concurrent.threadDelay (1 * 1000 * 1000)
+  liftIO $ putStrLn "paused"
 
   let currBorder = blankMosaic (fullSize cxt) cavity
 
