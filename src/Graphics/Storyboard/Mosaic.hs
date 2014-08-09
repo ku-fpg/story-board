@@ -88,12 +88,16 @@ cavityRange (Mosaic sps _) (h,w) = ( foldl f (h,0) $ map fst sps
 
 -----------------------------------------------------------------------------
 
+-- Take an outside size, and an boundary cavity,
+-- and build a mosaic that have the size and shape
+-- of the gap between the outside size, and inner cavity.
+
 blankMosaic :: Size Float -> Cavity Float -> Mosaic ()
 blankMosaic (w,h) cavity =
-    anchor top    (colorTile "yellow" (0,cy)) <>
-    anchor bottom (colorTile "green" (0,cy')) <>
-    anchor left   (colorTile "orange" (cx,0)) <>
-    anchor right  (colorTile "green" (cy',0)) <>
+    anchor top    (blank (0,cy)) <>
+    anchor bottom (blank (0,cy')) <>
+    anchor left   (blank (cx,0)) <>
+    anchor right  (blank (cy',0)) <>
     hbrace cw <>
     vbrace ch
   where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
