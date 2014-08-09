@@ -161,6 +161,7 @@ renderText st txt = do
     return $ tile (w,fromIntegral $ theFontSize st + 5) $ const $ do
       Blank.font $ fontName st
       fillStyle (theColor st)
+--      lineWidth 0.5
       fillText (txt',0,fromIntegral $ theFontSize st + off)    -- time will tell for this offset
 
 renderProse :: Alignment -> Float -> TheProseStyle -> Prose -> Prelude [Tile ()]

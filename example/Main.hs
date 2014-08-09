@@ -10,6 +10,7 @@ main :: IO ()
 main = storyBoard $ take 1 $ drop 1
   [ alignSlide
   , bulletSlide
+  , orderedListSlide
   ]
 
 
@@ -41,6 +42,13 @@ bulletSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
     li $ lorem
     li $ lorem
 
+orderedListSlide :: Slide ()
+orderedListSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
+
+  ol $ do
+    li $ lorem
+    li $ lorem
+    li $ lorem
 
 {-
 example1 :: Slide ()

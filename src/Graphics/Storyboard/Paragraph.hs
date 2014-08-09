@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables, KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
 module Graphics.Storyboard.Paragraph where
 
@@ -27,10 +27,10 @@ data TheParagraphStyle = TheParagraphStyle
 
 -- For the Bullet, make make the top *right* corner the hotspot,
 -- and connect it with the top *left* of the paragraph.
-newtype Bullet = Bullet { runBullet :: Tile () }
+newtype Bullet = Bullet { runBullet :: TheProseStyle -> Prelude (Tile ()) }
 
 instance Show Bullet where
-  show _ = "Bullet{}"
+  show (Bullet t) = "Bullet{}"
 
 defaultParagraphStyle :: TheParagraphStyle
 defaultParagraphStyle = TheParagraphStyle
@@ -67,19 +67,34 @@ renderParagraph par_style w ps = do
 
   -- Todo. Add decorations
 
+  bullet_mosiac :: Mosaic () <- case theBullet par_style of
+            Nothing -> return mempty
+            Just (Bullet f)-> do
+                r <- f prose_style
+                return (anchor left $ point top right $ r)
+
+
   return $ pack $ mconcat $
               [ anchor left $ blank (theLeftMargin par_style,0)
               ] ++
-              [ anchor left $ point top right $ bull
+              [ bullet_mosiac ] ++
+{-
+              [ anchor left $ point top right $ bull prose_style
               | Just (Bullet bull) <- [theBullet par_style]
               ] ++
+-}
               map (anchor top) tiles
 
 leftMargin :: ParagraphStyle a => Float -> a -> a
 leftMargin n = paragraphStyle $ \ m -> m { theLeftMargin = n }
 
-bullet :: ParagraphStyle a => Tile () -> a -> a
-bullet b = paragraphStyle $ \ m -> m { theBullet = Just (Bullet b) }
+bullet :: ParagraphStyle a => Bullet -> a -> a
+bullet b = paragraphStyle $ \ m -> m { theBullet = Just b }
 
 noBullet :: ParagraphStyle a => a -> a
 noBullet = paragraphStyle $ \ m -> m { theBullet = Nothing }
+
+-------------------------------------------------------------------------------
+
+bulletText :: Text -> Bullet
+bulletText txt = Bullet $ \ prose_st -> renderText prose_st txt

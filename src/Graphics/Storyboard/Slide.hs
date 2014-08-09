@@ -38,6 +38,7 @@ import Graphics.Storyboard.Prelude as Prelude
 data TheSlideStyle = TheSlideStyle
   { theParagraphStyle   :: TheParagraphStyle
   , theItemCounters     :: [Int]
+  , theBulletFactory    :: BulletFactory
   , theTabStop          :: Float
   , fullSize            :: Size Float
   , theSlideNumber      :: Int
@@ -45,16 +46,27 @@ data TheSlideStyle = TheSlideStyle
   }
   deriving Show
 
+newtype BulletFactory = BulletFactory
+  { runBulletFactory :: Int -> [Int] -> Bullet
+  }
+
+instance Show BulletFactory where
+  show _ = "BulletFactory{}"
+
+
 defaultSlideStyle :: Size Float -> TheSlideStyle
 defaultSlideStyle sz = TheSlideStyle
   { theParagraphStyle = defaultParagraphStyle
   , theItemCounters   = []
+  , theBulletFactory  = defaultBulletFactory
   , theTabStop        = 50
   , fullSize          = sz
   , theSlideNumber    = 0
   , theLastSlide      = 0
   }
 
+defaultBulletFactory :: BulletFactory
+defaultBulletFactory = BulletFactory $ \ _ _ -> bulletText "\x2022 "
 
 class ParagraphStyle a => SlideStyle a where
   slideStyle :: (TheSlideStyle -> TheSlideStyle) -> a -> a
@@ -70,6 +82,12 @@ instance ProseStyle TheSlideStyle where
 
 consItemCounters :: SlideStyle a => Int -> a -> a
 consItemCounters n = slideStyle $ \ m -> m { theItemCounters = n : theItemCounters m }
+
+bulletFactory :: SlideStyle a => BulletFactory -> a -> a
+bulletFactory fac = slideStyle $ \ m -> m { theBulletFactory = fac }
+
+--localItemCount :: SlideState a => a ->
+--localItemCount
 
 -----------------------------------------------------------------------------
 
@@ -106,9 +124,6 @@ incItemCount m = m { theItemCounter = 1 + theItemCounter m }
 setItemCount :: Int -> TheSlideState -> TheSlideState
 setItemCount n m = m { theItemCounter = n }
 
-
---localItemCount :: SlideState a => a ->
---localItemCount
 
 -----------------------------------------------------------------------------
 -- | The Slide Monad is intentually transparent. It is just a convenence.

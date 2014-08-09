@@ -4,8 +4,9 @@ module Graphics.Storyboard
     -- * Markup
   , p
   , ul
+  , ol
   , li
-    -- 
+    --
   , (<+>)
   , align
   , getCavitySize

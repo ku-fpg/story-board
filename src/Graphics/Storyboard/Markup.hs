@@ -58,8 +58,7 @@ indent m = do
   r <- consItemCounters i $ do
       indLevel <- length <$> theItemCounters <$> askSlideStyle
       tabStop <- theTabStop <$> askSlideStyle
-      leftMargin (fromIntegral indLevel * tabStop) $ do
-          m
+      leftMargin (fromIntegral indLevel * tabStop) $ m
   modSlideState (setItemCount i)
   return r
 
@@ -71,13 +70,22 @@ indent m = do
 
 ul :: Slide a -> Slide a
 ul = indent
+   . bulletFactory defaultBulletFactory
+
+ol :: Slide a -> Slide a
+ol = indent
+   . bulletFactory (BulletFactory $ \ i _ -> bulletText (Text.pack (show i) <> ". "))
+
+-- t <- slidePrelude $ renderText par_st "\x2022 "
 
 li :: Prose -> Slide ()
 li ps = do
   modSlideState incItemCount
-  par_st <- theProseStyle <$> theParagraphStyle <$> askSlideStyle
-  t <- slidePrelude $ renderText par_st "\x2022 "
-  bullet t $ p ps
+  i <- theItemCounter <$> getSlideState
+  is <- theItemCounters <$> askSlideStyle
+  par_st  <- theProseStyle <$> theParagraphStyle <$> askSlideStyle
+  BulletFactory fac <- theBulletFactory <$> askSlideStyle
+  bullet (fac i is) $ p ps
 
 p :: Prose -> Slide ()
 p ps = do
