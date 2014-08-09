@@ -50,7 +50,32 @@ item txt prose = do
   p prose
 -}
 
-indent = id
+
+indent :: Slide a -> Slide a
+indent m = do
+  i <- theItemCounter <$> getSlideState
+  modSlideState (setItemCount 0)
+  r <- consItemCounters i m
+  modSlideState (setItemCount i)
+  return r
+
+--  incIndentLevel $
+--  incLevel <- length <$> theSectionCount <$> getSlideState
+--  tabStop <- theTabStop <$> askSlideStyle
+--  leftMargin (fromIntegral indLevel * tabStop) m
+--s  m
+
+ul :: Slide a -> Slide a
+ul = indent
+
+li :: Prose -> Slide ()
+li ps = do
+  modSlideState incItemCount
+  st <- getSlideState
+  liftIO $ print st
+  st <- askSlideStyle
+  liftIO $ print st
+  p ps
 
 p :: Prose -> Slide ()
 p ps = do

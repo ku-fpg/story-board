@@ -7,9 +7,9 @@ import Data.Monoid
 import Graphics.Storyboard
 
 main :: IO ()
-main = storyBoard $ take 1 $ drop 0
+main = storyBoard $ take 1 $ drop 1
   [ alignSlide
---  , example1
+  , bulletSlide
   ]
 
 
@@ -31,6 +31,17 @@ alignSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   align right     $ p $ lorem
   align center    $ p $ lorem
   align justified $ p $ lorem
+
+
+bulletSlide :: Slide ()
+bulletSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
+
+  ul $ do
+    li $ lorem
+    li $ lorem
+    li $ lorem
+
+
 {-
 example1 :: Slide ()
 example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do

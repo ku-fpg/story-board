@@ -60,3 +60,6 @@ renderParagraph par_style w ps = do
   -- Todo. Add decorations
 
   return $ pack $ mconcat $ map (anchor top) $ tiles
+
+leftMargin :: ParagraphStyle a => Float -> a -> a
+leftMargin n = paragraphStyle $ \ m -> m { theLeftMargin = n }

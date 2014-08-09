@@ -188,7 +188,7 @@ renderProse alignment w ps_cxt ps = do
 
 
     let glyphs2 :: [([Tile ()],Float)] = findT proseTiles []
-
+{-
     liftIO $ putStrLn "----------------"
     liftIO $ sequence_
         [ print (map tileWidth ts,w)
@@ -196,11 +196,11 @@ renderProse alignment w ps_cxt ps = do
         ]
 
     liftIO $ print (w,[ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ])
-
+-}
     let splits = splitLines w [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
 
 
-    liftIO $ print $ splits
+--    liftIO $ print $ splits
 
     -- now finally laydown the tiles
 

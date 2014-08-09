@@ -53,6 +53,9 @@ data Mosaic a = Mosaic
   , runMosaic   :: Cavity Float -> Canvas (a,Cavity Float)
   }
 
+instance Show (Mosaic a) where
+  show _ = "Mosaic"
+
 instance Functor Mosaic where
  fmap f m = pure f <*> m
 

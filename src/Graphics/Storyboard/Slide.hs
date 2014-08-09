@@ -37,7 +37,8 @@ import Graphics.Storyboard.Prelude as Prelude
 -----------------------------------------------------------------------------
 data TheSlideStyle = TheSlideStyle
   { theParagraphStyle   :: TheParagraphStyle
-  , tabStop             :: Float
+  , theItemCounters     :: [Int]
+  , theTabStop          :: Float
   , fullSize            :: Size Float
   , theSlideNumber      :: Int
   , theLastSlide        :: Int
@@ -47,11 +48,13 @@ data TheSlideStyle = TheSlideStyle
 defaultSlideStyle :: Size Float -> TheSlideStyle
 defaultSlideStyle sz = TheSlideStyle
   { theParagraphStyle = defaultParagraphStyle
-  , tabStop           = 50
+  , theItemCounters   = []
+  , theTabStop        = 50
   , fullSize          = sz
   , theSlideNumber    = 0
   , theLastSlide      = 0
   }
+
 
 class ParagraphStyle a => SlideStyle a where
   slideStyle :: (TheSlideStyle -> TheSlideStyle) -> a -> a
@@ -65,22 +68,24 @@ instance ParagraphStyle TheSlideStyle where
 instance ProseStyle TheSlideStyle where
   proseStyle = paragraphStyle . proseStyle
 
-
+consItemCounters :: SlideStyle a => Int -> a -> a
+consItemCounters n = slideStyle $ \ m -> m { theItemCounters = n : theItemCounters m }
 
 -----------------------------------------------------------------------------
 
 data TheSlideState = TheSlideState
   { theMosaic        :: Mosaic ()
   , theInternalSize  :: Size Float
-  , theSectionCount  :: [Int]
+  , theItemCounter   :: Int
   }
+  deriving Show
 
 defaultSlideState :: TheSlideStyle -> TheSlideState
 defaultSlideState env = TheSlideState
   { theMosaic        = (hbrace $ fst $ fullSize env)
                     <> (vbrace $ snd $ fullSize env)
   , theInternalSize  = fullSize env
-  , theSectionCount  = []
+  , theItemCounter   = 0
   }
 
 drawMosaic :: Mosaic () -> TheSlideState -> TheSlideState
@@ -95,6 +100,15 @@ replaceMosaic moz st = st
     , theInternalSize = cavityMaxSize moz (theInternalSize st)
     }
 
+incItemCount :: TheSlideState -> TheSlideState
+incItemCount m = m { theItemCounter = 1 + theItemCounter m }
+
+setItemCount :: Int -> TheSlideState -> TheSlideState
+setItemCount n m = m { theItemCounter = n }
+
+
+--localItemCount :: SlideState a => a ->
+--localItemCount
 
 -----------------------------------------------------------------------------
 -- | The Slide Monad is intentually transparent. It is just a convenence.
@@ -134,11 +148,19 @@ getCavitySize = Slide $ \ _ st -> return (theInternalSize st,st)
 askSlideStyle :: Slide TheSlideStyle
 askSlideStyle = Slide $ \ env st -> return (env,st)
 
+getSlideState :: Slide TheSlideState
+getSlideState = Slide $ \ _ st -> return (st,st)
+
+setSlideState :: TheSlideState -> Slide ()
+setSlideState st = Slide $ \ _ _ -> return ((),st)
+
+modSlideState :: (TheSlideState -> TheSlideState) -> Slide ()
+modSlideState f = Slide $ \ _ st -> return ((),f st)
+
 slidePrelude :: Prelude a -> Slide a
 slidePrelude m = Slide $ \ cxt st -> do
       a <- m
       return (a,st)
-
 
 instance SlideStyle (Slide a) where
   slideStyle f (Slide g) = Slide $ \ cxt sz -> g (f cxt) sz

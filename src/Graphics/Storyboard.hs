@@ -1,7 +1,11 @@
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings, KindSignatures, GADTs, StandaloneDeriving, TypeFamilies, DataKinds #-}
 module Graphics.Storyboard
   ( Slide
+    -- * Markup
   , p
+  , ul
+  , li
+    -- 
   , (<+>)
   , align
   , getCavitySize
