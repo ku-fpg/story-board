@@ -77,7 +77,8 @@ data TheSlideState = TheSlideState
 
 defaultSlideState :: TheSlideStyle -> TheSlideState
 defaultSlideState env = TheSlideState
-  { theMosaic        = pure ()
+  { theMosaic        = (hbrace $ fst $ fullSize env)
+                    <> (vbrace $ snd $ fullSize env)
   , theInternalSize  = fullSize env
   , theSectionCount  = []
   }
@@ -163,8 +164,11 @@ pause = Slide $ \ cxt st -> do
   ((),cavity) <- Prelude.liftCanvas $ saveRestore $ do
       m (w,h)
 
+  () <- liftCanvas sync
+
   liftIO $ putStrLn "pausing"
-  liftIO $ Concurrent.threadDelay (1 * 1000 * 1000)
+  Prelude.keyPress
+--  liftIO $ Concurrent.threadDelay (1 * 1000 * 1000)
   liftIO $ putStrLn "paused"
 
   let currBorder = blankMosaic (fullSize cxt) cavity

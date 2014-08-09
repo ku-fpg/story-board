@@ -89,10 +89,15 @@ cavityRange (Mosaic sps _) (h,w) = ( foldl f (h,0) $ map fst sps
 -----------------------------------------------------------------------------
 
 blankMosaic :: Size Float -> Cavity Float -> Mosaic ()
-blankMosaic sz cavity =
-    anchor top (colorTile "yellow" (0,cx)) <>
-    anchor left (colorTile "orange" (cy,0))
+blankMosaic (w,h) cavity =
+    anchor top    (colorTile "yellow" (0,cy)) <>
+    anchor bottom (colorTile "green" (0,cy')) <>
+    anchor left   (colorTile "orange" (cx,0)) <>
+    anchor right  (colorTile "green" (cy',0)) <>
+    hbrace cw <>
+    vbrace ch
   where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
+        (cx',cy') = (w - (cx + cw), h - (cy + ch))
 
 
 -----------------------------------------------------------------------------
