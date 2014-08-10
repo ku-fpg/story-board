@@ -9,12 +9,11 @@ import qualified Graphics.Blank.Style as Style
 import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Tile
 
-
 border :: Float -> Text -> Tile a -> Tile a
 border wd col (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ (w',h') -> do
 
   saveRestore $ do
-    grd <- createLinearGradient(0, 0, 0, h)
+    grd <- createLinearGradient(0, 0, 0, h')
     -- light blue
     grd # addColorStop(0, "#8EA154")
     -- dark blue
@@ -40,12 +39,6 @@ border wd col (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ (w',h') -> do
   -- then print a border
   saveRestore $ do
     beginPath()
-{-
-    shadowColor "pink"
-    shadowOffsetX 5
-    shadowOffsetY 5
-    shadowBlur 0
--}
     rect(0,0,w',h')
     closePath()
     lineWidth wd
