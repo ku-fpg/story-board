@@ -7,11 +7,25 @@ import Data.Monoid
 import Graphics.Storyboard
 
 main :: IO ()
-main = storyBoard $ take 1 $ drop 1
-  [ alignSlide
+main = storyBoard $ take 1 $ drop 0
+  [ titleSlide
+  , alignSlide
   , bulletSlide
   , orderedListSlide
   ]
+
+
+titleSlide :: Slide ()
+titleSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ align center $ do
+  fontSize 72 $ p $ "The Storyboard DSL"
+  vspace 28
+  fontSize 48 $ p $ "(a.k.a. beamer in Haskell)"
+  vspace 100
+  fontSize 28 $ p $ "Andy Gill"
+  vspace 28
+  fontSize 24 $ p $ "The University of Kansas"
+  vspace 100
+  fontSize 18 $ p $ "Copyright\xa9" <+> "2014 Andrew Gill"
 
 
 lorem :: Prose
