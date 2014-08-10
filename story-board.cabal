@@ -16,7 +16,8 @@ extra-source-files:  README.md, README.md~
 cabal-version:       >=1.10
 
 library
-  exposed-modules:     Graphics.Storyboard
+  exposed-modules:
+          Graphics.Storyboard
   other-modules:
           Graphics.Storyboard.Bling,
           Graphics.Storyboard.Images,

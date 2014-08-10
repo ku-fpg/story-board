@@ -3,11 +3,11 @@
 module Graphics.Storyboard.Prose
   ( -- * Prose is story-board's version of Text
     Prose
-  , prose
     -- * Prose Style Environment
   , TheProseStyle
   , defaultProseStyle
     -- * Prose Builders
+  , prose
   , sizedSpace
   , br
   , space

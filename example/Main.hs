@@ -25,7 +25,7 @@ titleSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ align center $ do
   vspace 28
   fontSize 24 $ p $ "The University of Kansas"
   vspace 100
-  fontSize 18 $ p $ "Copyright\xa9" <+> "2014 Andrew Gill"
+  fontSize 18 $ p $ "\xa9" <+> "2014 Andrew Gill"
 
 
 lorem :: Prose
