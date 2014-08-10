@@ -1,6 +1,39 @@
 {-# LANGUAGE ScopedTypeVariables, KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
-module Graphics.Storyboard.Prose where
+module Graphics.Storyboard.Prose
+  ( -- * Prose is story-board's version of Text
+    Prose
+  , prose
+    -- * Prose Style Environment
+  , TheProseStyle
+  , defaultProseStyle
+    -- * Prose Builders
+  , sizedSpace
+  , br
+  , space
+    -- * Prose Combinators
+  , (<+>)
+  , (</>)
+    --- * Rendering
+  , renderText
+  , renderProse
+  , fontName
+    -- * Markup Style Combinators
+  , ProseStyle(..)
+  , i
+  , b
+  , font
+  , fontSize
+  , big
+  , small
+  , color
+  , plain
+  , wordSpacing
+  , ligature
+  , noLigatures
+  , super
+  , sub
+  ) where
 
 import qualified Data.Text as Text
 import Data.Text(Text)
@@ -9,7 +42,8 @@ import Control.Applicative
 import Control.Monad (liftM2)
 import Data.Semigroup
 import Data.Text(Text)
-import Graphics.Blank as Blank
+import Graphics.Blank hiding (font)
+import qualified Graphics.Blank as Blank
 import Control.Monad.IO.Class
 
 import GHC.Exts (IsString(fromString))
@@ -37,6 +71,9 @@ instance IsString Prose where
       [ ProseItem $ Text.pack $ wd
       | wd <- words txt
       ]
+
+prose :: String -> Prose
+prose = fromString
 
 instance Show Prose where
    show (ProseItem txt) = show txt
