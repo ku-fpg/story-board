@@ -9,14 +9,12 @@ import Graphics.Blank as Blank
 import qualified Graphics.Blank.Style as Style
 
 import Graphics.Storyboard.Literals
-import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Tile
-
 
 data TheBoxStyle = TheBoxStyle
   { theBorderWidth   :: Float
   , theBorderColor   :: Text
-  , theBackground    :: Background
+  , theBackground    :: TheBackgroundStyle
   , theShadowStyle   :: Maybe TheShadowStyle
   , theSharedBorders :: Set Side            -- ^ a shared border is straight, and perhaps offset
   }
@@ -46,9 +44,27 @@ defaultShadowStyle  = TheShadowStyle
   }
 
 -- Later support LinearGradients
-data Background
+data TheBackgroundStyle
   = Background Text
   | LinearGradient Text Text
+
+class BoxStyle a where
+  boxStyle :: (TheBoxStyle -> TheBoxStyle) -> a -> a
+
+instance BoxStyle TheBoxStyle where
+  boxStyle f a = f a
+
+class ShadowStyle a where
+  shadowStyle :: (TheShadowStyle -> TheShadowStyle) -> a -> a
+
+instance ShadowStyle TheShadowStyle where
+  shadowStyle f a = f a
+
+class BackgroundStyle a where
+  backgroundStyle :: (TheBackgroundStyle -> TheBackgroundStyle) -> a -> a
+
+instance BackgroundStyle TheBackgroundStyle where
+  backgroundStyle f a = f a
 
 box :: TheBoxStyle -> Tile a -> Tile a
 box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ sz' -> do
@@ -62,7 +78,6 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ sz' -> do
     Background bg = theBackground st
 
     before (w',h') = saveRestore $ do
-
         case theBackground st of
           Background bg -> Blank.fillStyle bg
           LinearGradient c0 c1 -> do
@@ -71,7 +86,6 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ sz' -> do
             -- dark blue
             grd # addColorStop(1, c1)
             Style.fillStyle grd
-
         beginPath()
         rect(0,0,w',h')
         closePath()
