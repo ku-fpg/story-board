@@ -3,8 +3,12 @@
 module Graphics.Storyboard.Box where
 
 import Data.Text (Text)
-import Graphics.Blank
+import Data.Set (Set)
+import qualified Data.Set as Set
+import Graphics.Blank as Blank
+import qualified Graphics.Blank.Style as Style
 
+import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Tile
 
@@ -14,6 +18,7 @@ data TheBoxStyle = TheBoxStyle
   , theBorderColor   :: Text
   , theBackground    :: Background
   , theShadowStyle   :: Maybe TheShadowStyle
+  , theSharedBorders :: Set Side            -- ^ a shared border is straight, and perhaps offset
   }
 
 defaultBoxStyle :: TheBoxStyle
@@ -22,6 +27,7 @@ defaultBoxStyle = TheBoxStyle
   , theBorderColor   = "black"
   , theBackground    = Background "white"
   , theShadowStyle   = Just defaultShadowStyle
+  , theSharedBorders = Set.empty
   }
 
 data TheShadowStyle = TheShadowStyle
@@ -33,14 +39,16 @@ data TheShadowStyle = TheShadowStyle
 
 defaultShadowStyle :: TheShadowStyle
 defaultShadowStyle  = TheShadowStyle
-  { theShadowColor   = "black"
+  { theShadowColor   = "#cccccc"
   , theShadowOffsetX = 5
   , theShadowOffsetY = 5
   , theShadowBlur    = 5
   }
 
 -- Later support LinearGradients
-newtype Background = Background Text
+data Background
+  = Background Text
+  | LinearGradient Text Text
 
 box :: TheBoxStyle -> Tile a -> Tile a
 box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ sz' -> do
@@ -54,15 +62,16 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ sz' -> do
     Background bg = theBackground st
 
     before (w',h') = saveRestore $ do
-{-
-        grd <- createLinearGradient(0, 0, 0, h')
-        -- light blue
-        grd # addColorStop(0, "#8EA154")
-        -- dark blue
-        grd # addColorStop(1, "#7D8E4B")
-        Style.fillStyle grd;
--}
-        fillStyle bg
+
+        case theBackground st of
+          Background bg -> Blank.fillStyle bg
+          LinearGradient c0 c1 -> do
+            grd <- createLinearGradient(0, 0, 0, h')
+            grd # addColorStop(0, c0)
+            -- dark blue
+            grd # addColorStop(1, c1)
+            Style.fillStyle grd
+
         beginPath()
         rect(0,0,w',h')
         closePath()

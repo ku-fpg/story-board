@@ -87,9 +87,11 @@ slide_background = margin 10 $ fontSize 16 $ do
 -}
 
   let border = box defaultBoxStyle
+  let border2 = box defaultBoxStyle { theBackground = LinearGradient "blue" "red" }
+
 
   t1 <- tileOfSlide (202,0) $ do
-        font "monospace" $ align center $ p $ "Object.prototype"
+        font "sans-serif" $ align center $ p $ "Object.prototype"
   t2 <- tileOfSlide (202,30) $ do
         font "monospace" $ align center $ p $ "<builtins>"
   t3 <- tileOfSlide (100,30) $ do
@@ -104,13 +106,20 @@ slide_background = margin 10 $ fontSize 16 $ do
   place left $ border t1
 
   place top $ pack $
-    border t1 ? left
+    border2 t1 ? left
   place top $ pack $
     border t2 ? left
   place top $ pack $
     border t5 ? left <>
     border t4 ? left
 
+
+{-
+grd # addColorStop(0, "#8EA154")
+-- dark blue
+grd # addColorStop(1, "#7D8E4B")
+
+-}
 --  draw (gap bottom)
 
 ---  draw (gap left <> anchor bottom img)
