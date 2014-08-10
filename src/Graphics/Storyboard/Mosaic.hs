@@ -3,6 +3,7 @@
 module Graphics.Storyboard.Mosaic
   ( Mosaic
   , cavityMaxSize
+  , cavityRange
   , (?)
   , anchor
   , pack
