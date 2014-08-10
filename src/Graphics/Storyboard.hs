@@ -42,7 +42,10 @@ module Graphics.Storyboard
 --  , item
   , tileOfSlide
   , place
+  , module Graphics.Storyboard.Box
+
   )
+
 
 where
 
@@ -69,6 +72,7 @@ import Graphics.Storyboard.Prose
 import qualified Graphics.Storyboard.Prelude as Prelude
 import Graphics.Storyboard.Paragraph
 import Graphics.Storyboard.Mosaic
+import Graphics.Storyboard.Box
 
 -----------------------------------------------------------------------------
 {-

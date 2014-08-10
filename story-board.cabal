@@ -20,6 +20,7 @@ library
           Graphics.Storyboard
   other-modules:
           Graphics.Storyboard.Bling,
+          Graphics.Storyboard.Box,
           Graphics.Storyboard.Images,
           Graphics.Storyboard.Layout,
           Graphics.Storyboard.Literals,

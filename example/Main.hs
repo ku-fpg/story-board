@@ -72,16 +72,22 @@ slide_background = margin 10 $ fontSize 16 $ do
   draw (vbrace h <> hbrace w)
 --  img <- imageTile "jhwk_LF_200px.gif"
 
+{-
+--  let ft = "monospace"
+  let ft = "sans-serif"
+--  let ft = "serif"
 
-  sequence [ do t1 <- tileOfSlide (202,0) $ do
-                  fontSize n $ font "monospace" $ align center $ p $ "Object.prototype"
+  sequence [ do t1 <- tileOfSlide (1000,0) $ do
+                  fontSize n $ font ft $ align center $ p $ "Object.prototype WA"
                 place top $ (border 1 "black" t1)
            | n <- reverse $ take 12 $ map ceiling $ iterate (* 1.2) (10 :: Float)
            ]
 
   return ()
+-}
 
-{-
+  let border = box defaultBoxStyle
+
   t1 <- tileOfSlide (202,0) $ do
         font "monospace" $ align center $ p $ "Object.prototype"
   t2 <- tileOfSlide (202,30) $ do
@@ -95,16 +101,15 @@ slide_background = margin 10 $ fontSize 16 $ do
 
   liftIO $ print $ map tileSize [t1,t2,t3,t4,t5]
 
-  place left $ border 1 "black" t1
+  place left $ border t1
 
   place top $ pack $
-    border 1 "black" t1 ? left
+    border t1 ? left
   place top $ pack $
-    border 1 "black" t2 ? left
+    border t2 ? left
   place top $ pack $
-    border 1 "black" t5 ? left <>
-    border 1 "black" t4 ? left
--}
+    border t5 ? left <>
+    border t4 ? left
 
 --  draw (gap bottom)
 
