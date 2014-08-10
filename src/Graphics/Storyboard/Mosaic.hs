@@ -55,7 +55,7 @@ data Mosaic a = Mosaic
   }
 
 instance Show (Mosaic a) where
-  show _ = "Mosaic"
+  show m = "Mosaic" ++ show (mosaicSpace m)
 
 instance Functor Mosaic where
  fmap f m = pure f <*> m
