@@ -6,7 +6,8 @@ module Graphics.Storyboard
   , ul
   , ol
   , li
-    --
+    -- * Spacing
+  , vspace
   , (<+>)
   , align
   , getCavitySize
