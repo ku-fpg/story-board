@@ -20,6 +20,9 @@ module Graphics.Storyboard
   , margin
   , hr
   , Prose
+    -- * Mosaic
+  , hbrace
+  , vbrace
     -- * Useful literals
   , module Graphics.Storyboard.Literals
   , font, fontSize
@@ -32,6 +35,8 @@ module Graphics.Storyboard
   , pack
 --  , environment
 --  , item
+  , tileOfSlide
+  , place
   )
 
 where
@@ -212,7 +217,7 @@ txt =
 blankCanvasStoryBoard :: [Slide ()] -> DeviceContext -> IO ()
 blankCanvasStoryBoard slide = \ context -> send context $ do
     let cxt = defaultSlideStyle (width context,height context)
-    let st0 = defaultSlideState cxt
+    let st0 = defaultSlideState (fullSize cxt)
     (_,st1) <- Prelude.runPrelude (runSlide (head slide) cxt st0) (eventQueue context)
     let Tile (w,h) m = fillTile (theMosaic st1)
     saveRestore $ do

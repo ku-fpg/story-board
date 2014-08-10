@@ -98,11 +98,11 @@ data TheSlideState = TheSlideState
   }
   deriving Show
 
-defaultSlideState :: TheSlideStyle -> TheSlideState
-defaultSlideState env = TheSlideState
-  { theMosaic        = (hbrace $ fst $ fullSize env)
-                    <> (vbrace $ snd $ fullSize env)
-  , theInternalSize  = fullSize env
+defaultSlideState :: Size Float -> TheSlideState
+defaultSlideState sz = TheSlideState
+  { theMosaic        = (hbrace $ fst $ sz)
+                    <> (vbrace $ snd $ sz)
+  , theInternalSize  = sz
   , theItemCounter   = 0
   }
 
@@ -211,3 +211,18 @@ pause = Slide $ \ cxt st -> do
   let currBorder = blankMosaic (fullSize cxt) cavity
 
   return ((),replaceMosaic currBorder st)
+
+-------------------------------------------------------------------------
+-- | 'tileOfSide' creates a tile of a sub-slide, of a specified size.
+
+tileOfSlide :: Size Float -> Slide () -> Slide (Tile ())
+tileOfSlide sz (Slide f) = Slide $ \ slide_style slide_state -> do
+    let slide_style0 = slide_style
+          { theItemCounters = []
+          , theBulletFactory = defaultBulletFactory
+          }
+    let slide_state0 = defaultSlideState sz
+
+    (a, slide_state1) <- f slide_style0 slide_state0
+
+    return (pack (theMosaic slide_state1),slide_state)

@@ -8,7 +8,8 @@ import Graphics.Storyboard
 
 main :: IO ()
 main = storyBoard $ take 1 $ drop 0
-  [ titleSlide
+  [ slide_background
+  , titleSlide
   , alignSlide
   , bulletSlide
   , orderedListSlide
@@ -63,6 +64,32 @@ orderedListSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
     li $ lorem
     li $ lorem
     li $ lorem
+
+
+slide_background :: Slide ()
+slide_background = margin 10 $ fontSize 16 $ do
+  (w,h) <- getCavitySize
+  draw (vbrace h <> hbrace w)
+  img <- imageTile "jhwk_LF_200px.gif"
+  t1 <- tileOfSlide (202,30) $ do
+        font "monospace" $ align center $ p $ "Object.prototype"
+  t2 <- tileOfSlide (202,30) $ do
+        font "monospace" $ align center $ p $ "<builtins>"
+  t3 <- tileOfSlide (100,30) $ do
+        font "monospace" $ align center $ p $ "__proto__"
+  t4 <- tileOfSlide (100,30) $ return ()
+
+  place top $ pack $
+    border 1 "black" t1 ? left
+  place top $ pack $
+    border 1 "black" t2 ? left
+  place top $ pack $
+    border 1 "black" t3 ? left <>
+    border 1 "black" t4 ? left
+
+  draw (gap bottom)
+
+---  draw (gap left <> anchor bottom img)
 
 {-
 example1 :: Slide ()
