@@ -117,6 +117,7 @@ data TheProseStyle = TheProseStyle
   , subSuper          :: Int        -- 0 == regular, 1 == super, 2 == super.super, -1 = sub
   , theColor          :: Text       -- ^ current color, black
   , theLigatures      :: [(Text,Text)]
+  , theDescenderHeight:: Float      -- Extra gap below baseline for descenders, ratio of font size, 0.35
   } deriving Show
 
 defaultProseStyle = TheProseStyle
@@ -128,6 +129,7 @@ defaultProseStyle = TheProseStyle
   , subSuper           = 0
   , theColor           = "black"
   , theLigatures       = []
+  , theDescenderHeight = 0.35
   }
 
 class ProseStyle a where
@@ -192,7 +194,10 @@ renderText st txt = do
     let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures st)
     w <- wordWidth (fontName st) txt'
     let off = 0 -- if Super `elem` emph then (-5) else 0
-    return $ tile (w,fromIntegral $ ceiling $ fromIntegral (theFontSize st) * 1.4) $ const $ do
+    return $ tile (w,fromIntegral
+                      $ ceiling
+                      $ fromIntegral (theFontSize st) * (1 + theDescenderHeight st))
+           $ const $ do
       Blank.font $ fontName st
       fillStyle (theColor st)
       fillText (txt',0,fromIntegral $ theFontSize st + off)    -- time will tell for this offset
