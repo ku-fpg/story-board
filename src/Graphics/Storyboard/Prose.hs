@@ -111,7 +111,7 @@ p1 </> p2 = p1 <> br <> p2
 data TheProseStyle = TheProseStyle
   { theFont           :: Text       -- ^ which font, "sans-serif"
   , theFontSize       :: Int        -- ^ how big, 32
-  , theSpaceWidth     :: Float      -- ^ size of space, 0.28 * 32
+  , theSpaceWidth     :: Float      -- ^ size of space, ratio of font size, 0.28 * 32
   , isItalic          :: Bool
   , isBold            :: Bool
   , subSuper          :: Int        -- 0 == regular, 1 == super, 2 == super.super, -1 = sub
@@ -122,16 +122,13 @@ data TheProseStyle = TheProseStyle
 defaultProseStyle = TheProseStyle
   { theFont            = "sans-serif"
   , theFontSize        = 32
-  , theSpaceWidth      = onePointSpaceWidth * 32
+  , theSpaceWidth      = 0.26
   , isItalic           = False
   , isBold             = False
   , subSuper           = 0
   , theColor           = "black"
   , theLigatures       = []
   }
-
-onePointSpaceWidth :: Float
-onePointSpaceWidth = 0.26
 
 class ProseStyle a where
   proseStyle   :: (TheProseStyle -> TheProseStyle) -> a -> a
@@ -152,7 +149,7 @@ font        :: ProseStyle a => Text ->  a -> a
 font        f = proseStyle $ \ s -> s { theFont = f }
 
 fontSize    :: ProseStyle a => Int  ->  a -> a
-fontSize    n = proseStyle $ \ s -> s { theFontSize = n, theSpaceWidth = onePointSpaceWidth * fromIntegral n }
+fontSize    n = proseStyle $ \ s -> s { theFontSize = n }
 
 big         :: ProseStyle a =>          a -> a
 big           = proseStyle $ \ s -> s { theFontSize = ceiling $ fromIntegral (theFontSize s) * 1.2 }
@@ -287,7 +284,7 @@ renderProse' :: TheProseStyle -> Prose -> Prelude [Either Float (Tile ())]
 renderProse' st (ProseItem txt) = do
     t <- renderText st txt
     return [Right t]
-renderProse' st (ProseSpace n) = return [ Left $ n * theSpaceWidth st ]
+renderProse' st (ProseSpace n) = return [ Left $ fromIntegral (theFontSize st) * n * theSpaceWidth st ]
 renderProse' st (ProseScope f ps) = renderProse' (f st) ps
 renderProse' st (ProseConcat pss) = fmap concat $
     sequence [ renderProse' st ps | ps <- pss ]
