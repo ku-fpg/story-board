@@ -1,8 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
---import Control.Monad.IO.Class
 import Data.Monoid
+import Control.Monad.IO.Class
 
 import Graphics.Storyboard
 
@@ -70,24 +70,43 @@ slide_background :: Slide ()
 slide_background = margin 10 $ fontSize 16 $ do
   (w,h) <- getCavitySize
   draw (vbrace h <> hbrace w)
-  img <- imageTile "jhwk_LF_200px.gif"
-  t1 <- tileOfSlide (202,30) $ do
+--  img <- imageTile "jhwk_LF_200px.gif"
+
+
+  sequence [ do t1 <- tileOfSlide (202,0) $ do
+                  fontSize n $ font "monospace" $ align center $ p $ "Object.prototype"
+                place top $ (border 1 "black" t1)
+           | n <- reverse $ take 12 $ map ceiling $ iterate (* 1.2) (10 :: Float)
+           ]
+
+  return ()
+
+{-
+  t1 <- tileOfSlide (202,0) $ do
         font "monospace" $ align center $ p $ "Object.prototype"
   t2 <- tileOfSlide (202,30) $ do
         font "monospace" $ align center $ p $ "<builtins>"
   t3 <- tileOfSlide (100,30) $ do
         font "monospace" $ align center $ p $ "__proto__"
-  t4 <- tileOfSlide (100,30) $ return ()
+  t4 <- tileOfSlide (100,0) $ return ()
+
+  t5 <- tileOfSlide (100,0) $ do
+      font "monospace" $ align center $ p $ "__proto__"
+
+  liftIO $ print $ map tileSize [t1,t2,t3,t4,t5]
+
+  place left $ border 1 "black" t1
 
   place top $ pack $
     border 1 "black" t1 ? left
   place top $ pack $
     border 1 "black" t2 ? left
   place top $ pack $
-    border 1 "black" t3 ? left <>
+    border 1 "black" t5 ? left <>
     border 1 "black" t4 ? left
+-}
 
-  draw (gap bottom)
+--  draw (gap bottom)
 
 ---  draw (gap left <> anchor bottom img)
 
