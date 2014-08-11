@@ -28,6 +28,7 @@ import GHC.Exts (IsString(fromString))
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Paragraph
+import Graphics.Storyboard.Prose
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Box
@@ -37,7 +38,8 @@ import Graphics.Storyboard.Prelude as Prelude
 
 -----------------------------------------------------------------------------
 data TheSlideStyle = TheSlideStyle
-  { theParagraphStyle   :: TheParagraphStyle
+  { theProseStyle       :: TheProseStyle
+  , theParagraphStyle   :: TheParagraphStyle
   , theBoxStyle         :: TheBoxStyle
   , theItemCounters     :: [Int]
   , theBulletFactory    :: BulletFactory
@@ -58,7 +60,8 @@ instance Show BulletFactory where
 
 defaultSlideStyle :: Size Float -> TheSlideStyle
 defaultSlideStyle sz = TheSlideStyle
-  { theParagraphStyle = defaultParagraphStyle
+  { theProseStyle     = defaultProseStyle
+  , theParagraphStyle = defaultParagraphStyle
   , theBoxStyle       = defaultBoxStyle
   , theItemCounters   = []
   , theBulletFactory  = defaultBulletFactory
@@ -71,8 +74,11 @@ defaultSlideStyle sz = TheSlideStyle
 defaultBulletFactory :: BulletFactory
 defaultBulletFactory = BulletFactory $ \ _ _ -> bulletText "\x2022 "
 
-class ParagraphStyle a => SlideStyle a where
+class (ProseStyle a, ParagraphStyle a, BoxStyle a) => SlideStyle a where
   slideStyle :: (TheSlideStyle -> TheSlideStyle) -> a -> a
+
+--instance ProseStyle TheParagraphStyle where
+--  proseStyle f e = e { theProseStyle = f (theProseStyle e) }
 
 instance SlideStyle TheSlideStyle where
   slideStyle f s = f s
@@ -81,7 +87,11 @@ instance ParagraphStyle TheSlideStyle where
   paragraphStyle f s = s { theParagraphStyle = f (theParagraphStyle s) }
 
 instance ProseStyle TheSlideStyle where
-  proseStyle = paragraphStyle . proseStyle
+  proseStyle f s = s { theProseStyle = f (theProseStyle s) }
+
+instance BoxStyle TheSlideStyle where
+  boxStyle f s = s { theBoxStyle = f (theBoxStyle s) }
+
 
 consItemCounters :: SlideStyle a => Int -> a -> a
 consItemCounters n = slideStyle $ \ m -> m { theItemCounters = n : theItemCounters m }
@@ -188,6 +198,9 @@ instance ParagraphStyle (Slide a) where
 
 instance ProseStyle (Slide a) where
   proseStyle = slideStyle . proseStyle
+
+instance BoxStyle (Slide a) where
+  boxStyle = slideStyle . boxStyle
 
 
 -- Draw a mosaic onto a slide

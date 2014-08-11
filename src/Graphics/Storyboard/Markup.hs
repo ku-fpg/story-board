@@ -85,7 +85,7 @@ li ps = do
   modSlideState incItemCount
   i <- theItemCounter <$> getSlideState
   is <- theItemCounters <$> askSlideStyle
-  par_st  <- theProseStyle <$> theParagraphStyle <$> askSlideStyle
+  par_st  <- theProseStyle <$> askSlideStyle
   BulletFactory fac <- theBulletFactory <$> askSlideStyle
   bullet (fac i is) $ p ps
 
@@ -93,8 +93,9 @@ p :: Prose -> Slide ()
 p ps = do
     (w,h)       <- getCavitySize
     slide_style <- askSlideStyle
+    let prose_style = theProseStyle slide_style
     let par_style = theParagraphStyle slide_style
-    t <- slidePrelude $ renderParagraph par_style w ps
+    t <- slidePrelude $ renderParagraph prose_style par_style w ps
     place top t
 
 ------------------------------------------------------------------------

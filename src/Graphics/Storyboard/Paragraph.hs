@@ -14,8 +14,7 @@ import Graphics.Storyboard.Tile
 -- | The Environment is a grab-bag of (scoped) constants.
 
 data TheParagraphStyle = TheParagraphStyle
-  { theProseStyle   :: TheProseStyle
-  , theAlignment    :: Alignment -- ^ What alignment method are we using, left
+  { theAlignment    :: Alignment -- ^ What alignment method are we using, left
   , theLineWidth    :: Float     -- ^ line width, 1
   , theLeftMargin   :: Float     -- ^ left margin, 0
   , theRightMargin  :: Float     -- ^ right margin, 0
@@ -34,8 +33,7 @@ instance Show Bullet where
 
 defaultParagraphStyle :: TheParagraphStyle
 defaultParagraphStyle = TheParagraphStyle
-  { theProseStyle     = defaultProseStyle
-  , theAlignment      = left
+  { theAlignment      = left
   , theLineWidth      = 1
   , theLeftMargin     = 0
   , theRightMargin    = 0
@@ -44,10 +42,8 @@ defaultParagraphStyle = TheParagraphStyle
   , theBullet         = Nothing
   }
 
-instance ProseStyle TheParagraphStyle where
-  proseStyle f e = e { theProseStyle = f (theProseStyle e) }
 
-class ProseStyle a => ParagraphStyle a where
+class ParagraphStyle a where
   paragraphStyle :: (TheParagraphStyle -> TheParagraphStyle) -> a -> a
 
 instance ParagraphStyle TheParagraphStyle where
@@ -56,9 +52,8 @@ instance ParagraphStyle TheParagraphStyle where
 align :: ParagraphStyle a => Alignment -> a -> a
 align j = paragraphStyle $ \ m -> m { theAlignment = j }
 
-renderParagraph :: TheParagraphStyle -> Float -> Prose -> Prelude (Tile ())
-renderParagraph par_style w ps = do
-  let prose_style = theProseStyle par_style
+renderParagraph :: TheProseStyle -> TheParagraphStyle -> Float -> Prose -> Prelude (Tile ())
+renderParagraph prose_style par_style w ps = do
 
   tiles <- renderProse (theAlignment par_style)
                        (w - (theLeftMargin par_style + theRightMargin par_style))
@@ -78,11 +73,7 @@ renderParagraph par_style w ps = do
               [ anchor left $ blank (theLeftMargin par_style,0)
               ] ++
               [ bullet_mosiac ] ++
-{-
-              [ anchor left $ point top right $ bull prose_style
-              | Just (Bullet bull) <- [theBullet par_style]
-              ] ++
--}
+
               map (anchor top) tiles
 
 leftMargin :: ParagraphStyle a => Float -> a -> a

@@ -80,7 +80,10 @@ slide_background = margin 10 $ fontSize 16 $ do
          ]
     | m <- [1..10]
     ]
-
+  ol $ do
+    li $ lorem
+    p $ lorem
+  
 
 {-
 --  let ft = "monospace"
