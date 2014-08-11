@@ -20,11 +20,14 @@ module Graphics.Storyboard
   , margin
   , hr
   , Prose
+  , prose
     -- * Tiles
   , tile
   , tileSize
   , tileWidth
   , tileHeight
+    -- Tables
+  , tr, td, table
     -- * Mosaic
   , hbrace
   , vbrace

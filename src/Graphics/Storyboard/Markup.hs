@@ -19,8 +19,10 @@ import Graphics.Storyboard.Paragraph
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Bling
 import Graphics.Storyboard.Prelude
+import Graphics.Storyboard.Box
 
 import Control.Monad.IO.Class
+
 
 ------------------------------------------------------------------------
 
@@ -96,3 +98,34 @@ p ps = do
     place top t
 
 ------------------------------------------------------------------------
+
+
+-- boxes :: TheBoxStyle -> [[(TheBoxStyle -> TheBoxStyle,Tile ())]] -> Tile ()
+
+data TD = TD (TheBoxStyle -> TheBoxStyle) (Slide ())
+
+td :: Slide () -> TD
+td = TD id
+
+data TR = TR [TD]
+
+tr :: [TD] -> TR
+tr = TR
+
+table :: [TR] -> Slide ()
+table rows = do
+  (w,_) <- getCavitySize
+
+  let gaps n = w / n - 2
+
+
+  tss :: [[(TheBoxStyle -> TheBoxStyle, Tile ())]] <- sequence
+      [ sequence [ do t <- tileOfSlide (gaps (fromIntegral (length tds)),0) s
+                      return (f,t)
+                 | TD f s <- tds
+                 ]
+      | TR tds <- rows
+      ]
+  boxStyle <- theBoxStyle <$> askSlideStyle
+  place top $ boxes boxStyle tss
+  return ()

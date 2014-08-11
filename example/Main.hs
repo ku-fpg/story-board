@@ -3,6 +3,8 @@ module Main where
 
 import Data.Monoid
 import Control.Monad.IO.Class
+import Data.Text (Text)
+import qualified Data.Text as Text
 
 import Graphics.Storyboard
 
@@ -72,6 +74,14 @@ slide_background = margin 10 $ fontSize 16 $ do
   draw (vbrace h <> hbrace w)
 --  img <- imageTile "jhwk_LF_200px.gif"
 
+  table
+    [ tr [td $ font "sans-serif" $ align center $ p $ prose $ "X " ++ show (n,m)
+         | n <- [1..10], n <= m
+         ]
+    | m <- [1..10]
+    ]
+
+
 {-
 --  let ft = "monospace"
   let ft = "sans-serif"
@@ -86,6 +96,7 @@ slide_background = margin 10 $ fontSize 16 $ do
   return ()
 -}
 
+{-
   let border = box defaultBoxStyle
   let border2 = box defaultBoxStyle { theBackground = LinearGradient "blue" "red" }
 
@@ -112,7 +123,7 @@ slide_background = margin 10 $ fontSize 16 $ do
   place top $ pack $
     border t5 ? left <>
     border t4 ? left
-
+-}
 
 {-
 grd # addColorStop(0, "#8EA154")

@@ -30,6 +30,7 @@ import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Paragraph
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Box
 import Graphics.Storyboard.Prose
 import Graphics.Storyboard.Prelude as Prelude
 
@@ -37,6 +38,7 @@ import Graphics.Storyboard.Prelude as Prelude
 -----------------------------------------------------------------------------
 data TheSlideStyle = TheSlideStyle
   { theParagraphStyle   :: TheParagraphStyle
+  , theBoxStyle         :: TheBoxStyle
   , theItemCounters     :: [Int]
   , theBulletFactory    :: BulletFactory
   , theTabStop          :: Float
@@ -57,6 +59,7 @@ instance Show BulletFactory where
 defaultSlideStyle :: Size Float -> TheSlideStyle
 defaultSlideStyle sz = TheSlideStyle
   { theParagraphStyle = defaultParagraphStyle
+  , theBoxStyle       = defaultBoxStyle
   , theItemCounters   = []
   , theBulletFactory  = defaultBulletFactory
   , theTabStop        = 50

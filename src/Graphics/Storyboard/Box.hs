@@ -2,6 +2,7 @@
 
 module Graphics.Storyboard.Box where
 
+import Data.Monoid
 import Data.Text (Text)
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -10,6 +11,8 @@ import qualified Graphics.Blank.Style as Style
 
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Mosaic
+
 
 data TheBoxStyle = TheBoxStyle
   { theBorderWidth   :: Float
@@ -17,7 +20,7 @@ data TheBoxStyle = TheBoxStyle
   , theBackground    :: TheBackgroundStyle
   , theShadowStyle   :: Maybe TheShadowStyle
   , theSharedBorders :: Set Side            -- ^ a shared border is straight, and perhaps offset
-  }
+  } deriving Show
 
 defaultBoxStyle :: TheBoxStyle
 defaultBoxStyle = TheBoxStyle
@@ -33,7 +36,7 @@ data TheShadowStyle = TheShadowStyle
   , theShadowOffsetX :: Float
   , theShadowOffsetY :: Float
   , theShadowBlur    :: Float
-  }
+  } deriving Show
 
 defaultShadowStyle :: TheShadowStyle
 defaultShadowStyle  = TheShadowStyle
@@ -47,6 +50,7 @@ defaultShadowStyle  = TheShadowStyle
 data TheBackgroundStyle
   = Background Text
   | LinearGradient Text Text
+  deriving Show
 
 class BoxStyle a where
   boxStyle :: (TheBoxStyle -> TheBoxStyle) -> a -> a
@@ -108,3 +112,14 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ sz' -> do
         lineWidth wd
         strokeStyle (theBorderColor st)
         stroke()
+
+
+-- Build a 2D table of boxes
+boxes :: TheBoxStyle -> [[(TheBoxStyle -> TheBoxStyle,Tile ())]] -> Tile ()
+boxes st tss = pack $ mconcat $
+             [ anchor top $ pack $ mconcat
+                [ anchor left $ box (f st) $ t
+                | (f,t) <- ts
+                ]
+             | ts <- tss
+             ]
