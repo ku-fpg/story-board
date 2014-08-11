@@ -57,7 +57,7 @@ class BoxStyle a where
 
 instance BoxStyle TheBoxStyle where
   boxStyle f a = f a
-
+{-
 class ShadowStyle a where
   shadowStyle :: (TheShadowStyle -> TheShadowStyle) -> a -> a
 
@@ -69,6 +69,13 @@ class BackgroundStyle a where
 
 instance BackgroundStyle TheBackgroundStyle where
   backgroundStyle f a = f a
+
+instance BackgroundStyle TheBoxStyle where
+  backgroundStyle f a = f a
+-}
+
+background :: BoxStyle a => TheBackgroundStyle -> a -> a
+background bg  = boxStyle $ \ m -> m { theBackground = bg }
 
 box :: TheBoxStyle -> Tile a -> Tile a
 box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ sz' -> do

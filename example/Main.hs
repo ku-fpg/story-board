@@ -75,7 +75,8 @@ slide_background = margin 10 $ fontSize 16 $ do
 --  img <- imageTile "jhwk_LF_200px.gif"
 
   table
-    [ tr [td $ font "sans-serif" $ align center $ p $ prose $ "X " ++ show (n,m)
+    [ tr [ background (LinearGradient "yellow" "white") $
+            td $ font "sans-serif" $ align center $ p $ prose $ "X " ++ show (n,m)
          | n <- [1..10], n <= m
          ]
     | m <- [1..10]
@@ -83,7 +84,7 @@ slide_background = margin 10 $ fontSize 16 $ do
   ol $ do
     li $ lorem
     p $ lorem
-  
+
 
 {-
 --  let ft = "monospace"

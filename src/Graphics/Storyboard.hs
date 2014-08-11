@@ -28,6 +28,7 @@ module Graphics.Storyboard
   , tileHeight
     -- Tables
   , tr, td, table
+  , background
     -- * Mosaic
   , hbrace
   , vbrace

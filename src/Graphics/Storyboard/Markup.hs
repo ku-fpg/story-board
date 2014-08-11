@@ -100,10 +100,15 @@ p ps = do
 
 ------------------------------------------------------------------------
 
+frame :: Slide () -> Slide ()
+frame s = table [TR [TD s]]
 
 -- boxes :: TheBoxStyle -> [[(TheBoxStyle -> TheBoxStyle,Tile ())]] -> Tile ()
 
 data TD = TD (TheBoxStyle -> TheBoxStyle) (Slide ())
+
+instance BoxStyle TD where
+  boxStyle f (TD g s) = TD (g . f) s
 
 td :: Slide () -> TD
 td = TD id
@@ -118,7 +123,6 @@ table rows = do
   (w,_) <- getCavitySize
 
   let gaps n = w / n - 2
-
 
   tss :: [[(TheBoxStyle -> TheBoxStyle, Tile ())]] <- sequence
       [ sequence [ do t <- tileOfSlide (gaps (fromIntegral (length tds)),0) s
