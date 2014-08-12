@@ -10,6 +10,7 @@ import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Prelude
 import Graphics.Storyboard.Prose
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Types
 
 -- | The Environment is a grab-bag of (scoped) constants.
 
@@ -68,7 +69,6 @@ renderParagraph prose_style par_style w ps = do
                 r <- f prose_style
                 return (anchor left $ point top right $ r)
 
-
   return $ pack $ mconcat $
               [ anchor left $ blank (theLeftMargin par_style,0)
               ] ++
@@ -84,6 +84,18 @@ bullet b = paragraphStyle $ \ m -> m { theBullet = Just b }
 
 noBullet :: ParagraphStyle a => a -> a
 noBullet = paragraphStyle $ \ m -> m { theBullet = Nothing }
+
+
+renderMargin :: TheParagraphStyle -> Mosaic ()
+renderMargin par_style = mconcat
+    [ anchor left $ blank (theLeftMargin par_style,0)
+    ]
+
+
+theParagraphMarginSize :: TheParagraphStyle -> Size Float
+theParagraphMarginSize par_style =
+    (theLeftMargin par_style + theRightMargin par_style, 0)
+
 
 -------------------------------------------------------------------------------
 

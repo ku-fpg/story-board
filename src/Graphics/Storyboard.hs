@@ -29,6 +29,7 @@ module Graphics.Storyboard
     -- Tables
   , tr, td, table
   , background
+  , frame
     -- * Mosaic
   , hbrace
   , vbrace

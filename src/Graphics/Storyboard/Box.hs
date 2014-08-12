@@ -94,7 +94,6 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ sz' -> do
           LinearGradient c0 c1 -> do
             grd <- createLinearGradient(0, 0, 0, h')
             grd # addColorStop(0, c0)
-            -- dark blue
             grd # addColorStop(1, c1)
             Style.fillStyle grd
         beginPath()

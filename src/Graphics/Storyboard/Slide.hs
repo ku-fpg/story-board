@@ -235,6 +235,7 @@ tileOfSlide :: Size Float -> Slide () -> Slide (Tile ())
 tileOfSlide sz (Slide f) = Slide $ \ slide_style slide_state -> do
     let slide_style0 = slide_style
           { theItemCounters = []
+          , theParagraphStyle = defaultParagraphStyle
           , theBulletFactory = defaultBulletFactory
           }
     let slide_state0 = defaultSlideState sz

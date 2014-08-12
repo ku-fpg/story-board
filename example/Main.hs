@@ -84,6 +84,11 @@ slide_background = margin 10 $ fontSize 16 $ do
   ol $ do
     li $ lorem
     p $ lorem
+  indent $ frame $ do
+    p $ "Hello"
+    ul $ do
+      li $ lorem
+      p $ lorem
 
 
 {-

@@ -101,7 +101,7 @@ p ps = do
 ------------------------------------------------------------------------
 
 frame :: Slide () -> Slide ()
-frame s = table [TR [TD s]]
+frame s = table [tr [td s]]
 
 -- boxes :: TheBoxStyle -> [[(TheBoxStyle -> TheBoxStyle,Tile ())]] -> Tile ()
 
@@ -113,7 +113,7 @@ instance BoxStyle TD where
 td :: Slide () -> TD
 td = TD id
 
-data TR = TR [TD]
+newtype TR = TR [TD]
 
 tr :: [TD] -> TR
 tr = TR
@@ -122,8 +122,12 @@ table :: [TR] -> Slide ()
 table rows = do
   (w,_) <- getCavitySize
 
-  let gaps n = w / n - 2
+  paragraphStyle <- theParagraphStyle <$> askSlideStyle
+  let (w',_) = theParagraphMarginSize paragraphStyle
 
+  let gaps n = (w - w') / n - 2
+
+  -- Right now, we divide the width evenly amoung all the elements in each row
   tss :: [[(TheBoxStyle -> TheBoxStyle, Tile ())]] <- sequence
       [ sequence [ do t <- tileOfSlide (gaps (fromIntegral (length tds)),0) s
                       return (f,t)
@@ -132,5 +136,10 @@ table rows = do
       | TR tds <- rows
       ]
   boxStyle <- theBoxStyle <$> askSlideStyle
-  place top $ boxes boxStyle tss
+
+  place top $ pack $ mconcat
+      [ renderMargin paragraphStyle
+      , anchor top $ boxes boxStyle tss
+      ]
+
   return ()
