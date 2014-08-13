@@ -52,7 +52,8 @@ module Graphics.Storyboard
   , tileOfSlide
   , place
   , module Graphics.Storyboard.Box
-
+   -- * adjusting sizes
+  , trueSpace
   )
 
 

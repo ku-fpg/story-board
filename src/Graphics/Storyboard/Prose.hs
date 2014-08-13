@@ -4,7 +4,7 @@ module Graphics.Storyboard.Prose
   ( -- * Prose is story-board's version of Text
     Prose
     -- * Prose Style Environment
-  , TheProseStyle
+  , TheProseStyle(..)
   , defaultProseStyle
     -- * Prose Builders
   , prose
@@ -153,7 +153,7 @@ instance ProseStyle TheProseStyle where
   proseStyle   f s = f s
 
 instance ProseStyle Prose where
-  proseStyle   f s = ProseScope f s 
+  proseStyle   f s = ProseScope f s
 
 i           :: ProseStyle a =>          a -> a
 i             = proseStyle $ \ s -> s { isItalic = True }

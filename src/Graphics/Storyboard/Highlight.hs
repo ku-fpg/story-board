@@ -23,10 +23,10 @@ data TheHighlightStyle = TheHighlightStyle
 
 defaultHighlightStyle = TheHighlightStyle
   { highlightKeyword  = b
-  , highlightLiteral  = color "blue"
+  , highlightLiteral  = color "blue" . b
   , highlightString   = color "green"
   , highlightConstant = color "red"
-  , highlightComment  = i
+  , highlightComment  = color "#723282"
   , theREs = matches [("(\n|.)+",\ st str rest -> prose str <> highlight st rest)]
   , theNextHighlight  = Nothing
   }

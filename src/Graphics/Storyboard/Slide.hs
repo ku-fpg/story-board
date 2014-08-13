@@ -243,3 +243,12 @@ tileOfSlide sz (Slide f) = Slide $ \ slide_style slide_state -> do
     (a, slide_state1) <- f slide_style0 slide_state0
 
     return (pack (theMosaic slide_state1),slide_state)
+
+-------------------------------------------------------------------------
+-- | 'trueSpace' computes the spacing value, based on the actual width inside the font
+
+trueSpace :: Slide a -> Slide a
+trueSpace (Slide f) = Slide $ \ cxt st -> do
+  t <- renderText (theProseStyle cxt) " "
+  let sz = theFontSize $ theProseStyle cxt
+  f (wordSpacing (tileWidth t / fromIntegral sz) cxt) st
