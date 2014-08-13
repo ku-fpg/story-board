@@ -10,7 +10,8 @@ import Graphics.Storyboard
 
 main :: IO ()
 main = storyBoard $ take 1 $ drop 0
-  [ slide_background
+  [ haskell_code
+  , slide_background
   , titleSlide
   , alignSlide
   , bulletSlide
@@ -90,6 +91,12 @@ slide_background = margin 10 $ fontSize 16 $ do
       li $ lorem
       p $ lorem
 
+
+haskell_code :: Slide ()
+haskell_code = do
+  txt <- liftIO $ readFile "example/Main.hs"
+--  liftIO $ print $ highlight haskellHighlightStyle txt
+  font "monospace" $ fontSize 14 $ p $ highlight haskellHighlightStyle (take 2000 txt)
 
 {-
 --  let ft = "monospace"

@@ -33,6 +33,10 @@ module Graphics.Storyboard
     -- * Mosaic
   , hbrace
   , vbrace
+    -- * Highlights
+  , highlight
+  , defaultHighlightStyle
+  , haskellHighlightStyle
     -- * Useful literals
   , module Graphics.Storyboard.Literals
   , font, fontSize
@@ -68,6 +72,7 @@ import Control.Monad.IO.Class
 import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
+import Graphics.Storyboard.Highlight
 import Graphics.Storyboard.Markup
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Images

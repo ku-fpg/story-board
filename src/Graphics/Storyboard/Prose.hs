@@ -33,6 +33,7 @@ module Graphics.Storyboard.Prose
   , noLigatures
   , super
   , sub
+  , parts
   ) where
 
 import qualified Data.Text as Text
@@ -42,11 +43,12 @@ import Control.Applicative
 import Control.Monad (liftM2)
 import Data.Semigroup
 import Data.Text(Text)
+import Data.Char(isSpace)
 import Graphics.Blank hiding (font)
 import qualified Graphics.Blank as Blank
 import Control.Monad.IO.Class
 
-import GHC.Exts (IsString(fromString))
+import Data.String (IsString(fromString))
 
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Types
@@ -67,10 +69,22 @@ data Prose
       | ProseConcat [Prose]
 
 instance IsString Prose where
-  fromString txt = ProseConcat $ List.intersperse (ProseSpace 1)
-      [ ProseItem $ Text.pack $ wd
-      | wd <- words txt
+  fromString txt = ProseConcat $ List.intersperse br
+      [ ProseConcat $ List.intersperse space
+        [ ProseItem $ Text.pack $ wd
+        | wd <- parts isSpace ln
+        ]
+      | ln <- parts (== '\n') txt
       ]
+    where
+
+-- concat (interperse ' ' (parts isSpace xs)) == xs
+parts :: (a -> Bool) -> [a] -> [[a]]
+parts p [] = []
+parts p xs = case span (not . p) xs of
+               (before,[y])    -> before : [[]]
+               (before,(y:ys)) -> before : parts p ys
+               (before,[])     -> [before]
 
 prose :: String -> Prose
 prose = fromString
@@ -139,7 +153,7 @@ instance ProseStyle TheProseStyle where
   proseStyle   f s = f s
 
 instance ProseStyle Prose where
-  proseStyle   _ s = s -- for now
+  proseStyle   f s = ProseScope f s 
 
 i           :: ProseStyle a =>          a -> a
 i             = proseStyle $ \ s -> s { isItalic = True }
