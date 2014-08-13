@@ -61,7 +61,7 @@ instance Center Horizontal where
 -----------------------------------------------------------------------------
 -- http://en.wikipedia.org/wiki/Typographic_alignment
 
-data Alignment = JustLeft | JustCenter | JustRight | Justified
+data Alignment = JustLeft | JustCenter | JustRight | Justified | Truncated
   deriving (Eq,Ord,Show)
 
 instance LR Alignment where
@@ -73,3 +73,6 @@ instance Center Alignment where
 
 justified :: Alignment
 justified = Justified
+
+truncated :: Alignment
+truncated = Truncated
