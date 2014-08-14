@@ -9,7 +9,7 @@ import qualified Data.Text as Text
 import Graphics.Storyboard
 
 main :: IO ()
-main = storyBoard $ take 1 $ drop 0
+main = storyBoard $ take 1 $ drop 1
   [ haskell_code
   , slide_background
   , titleSlide

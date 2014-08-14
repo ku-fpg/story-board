@@ -25,21 +25,21 @@ import Graphics.Blank
 -- The tile can choose to put any extra space on the inside or outside
 -- of any border, etc.
 
-data Tile a = Tile (Size Float) (Size Float -> Canvas a)
+data Tile a = Tile (Size Float) (Coord Float -> Size Float -> Canvas a)
 
 instance Show (Tile a) where
   show (Tile sz _) = show sz
 
 
 instance Functor Tile where
-  fmap f (Tile sz g) = Tile sz (fmap f . g)
+  fmap f (Tile sz g) = Tile sz $ \ ps sz -> fmap f (g ps sz)
 
 -- | tile requests a specific (minimum) size, and provides
 -- a paint routine that takes the *actual* size.
 -- The paint routine can assume the canvas starts at (0,0),
 -- and is the given size. No masking is done by default.
 
-tile :: Size Float -> (Size Float -> Canvas a) -> Tile a
+tile :: Size Float -> (Coord Float -> Size Float -> Canvas a) -> Tile a
 tile = Tile
 
 tileWidth :: Tile a -> Float
@@ -52,10 +52,10 @@ tileSize :: Tile a -> Size Float
 tileSize (Tile sz _) = sz
 
 blank :: Size Float -> Tile ()
-blank sz = tile sz $ const $ return ()
+blank sz = tile sz $ const $ const $ return ()
 
 colorTile :: Text -> Size Float -> Tile ()
-colorTile col (w',h') = tile (w',h') $ \ (w,h) -> do
+colorTile col (w',h') = tile (w',h') $ \ (x,y) (w,h) -> do
     globalAlpha 0.2
     beginPath()
     rect(0, 0, w, h)
@@ -71,7 +71,7 @@ colorTile col (w',h') = tile (w',h') $ \ (w,h) -> do
 
 -- compress a tile into a point.
 point :: Vertical -> Horizontal -> Tile a -> Tile a
-point ver hor (Tile (w,h) f) = Tile (0,0) $ \ _ -> do
+point ver hor (Tile (w,h) f) = Tile (0,0) $ \ (x,y) _ -> do
   let w' = case hor of
             HL -> 0
             HC -> -w / 2
@@ -82,11 +82,11 @@ point ver hor (Tile (w,h) f) = Tile (0,0) $ \ _ -> do
             VB -> -h
   saveRestore $ do
     translate (w',h')
-    f (w,h)
+    f (x+w',y-h') (w,h)
 
 -- nudge the tile into a specific corner of its enclosure
 nudge :: Vertical -> Horizontal -> Tile a -> Tile a
-nudge ver hor (Tile (w,h) f) = Tile (w,h) $ \ (w',h') ->
+nudge ver hor (Tile (w,h) f) = Tile (w,h) $ \ (x,y) (w',h') ->
     let w'' = case hor of
                 HL -> 0
                 HC -> (w' - w) / 2
@@ -97,20 +97,20 @@ nudge ver hor (Tile (w,h) f) = Tile (w,h) $ \ (w',h') ->
                 VB -> h' - h
     in
        saveRestore $ do
-         translate (w'',h'') -- nudge
-         f (w,h)             -- and pretend there is no extra space
+         translate (w'',h'')     -- nudge
+         f (x-w'',y-h'') (w,h)   -- and pretend there is no extra space
 
 
 
 instance Semigroup a => Semigroup (Tile a) where
-  (Tile (x1,y1) c1) <> (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ sz ->
-        do r1 <- c1 sz
-           r2 <- c2 sz -- overlay is the default monoid
+  (Tile (x1,y1) c1) <> (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ ps sz ->
+        do r1 <- c1 ps sz
+           r2 <- c2 ps sz -- overlay is the default monoid
            return (r1 <> r2)
 
 instance Monoid a => Monoid (Tile a) where
   mempty = Tile (0,0) (return mempty)
-  (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ sz ->
-      do r1 <- c1 sz
-         r2 <- c2 sz -- overlay is the default monoid
+  (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ ps sz ->
+      do r1 <- c1 ps sz
+         r2 <- c2 ps sz -- overlay is the default monoid
          return (r1 `mappend` r2)

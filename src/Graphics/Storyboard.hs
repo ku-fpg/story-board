@@ -42,7 +42,6 @@ module Graphics.Storyboard
   , font, fontSize
 --  , word
   , (?)
-  , border
   , point
   , colorTile
   , gap
@@ -128,7 +127,7 @@ margin m inside = do
 hr :: Slide ()
 hr = do
   (_,w) <- getCavitySize
-  draw $ anchor top $ tile (w,2) $ \ (w',h') -> do
+  draw $ anchor top $ tile (w,2) $ \ (x,y) (w',h') -> do
               beginPath()
               moveTo(0,1)
               lineTo(w',0)
@@ -241,7 +240,7 @@ blankCanvasStoryBoard slide = \ context -> send context $ do
     (_,st1) <- Prelude.runPrelude (runSlide (head slide) cxt st0) (eventQueue context)
     let Tile (w,h) m = fillTile (theMosaic st1)
     saveRestore $ do
-      _ <- m (w,h)
+      _ <- m (0,0) (w,h)
       return ()
     return ()
 

@@ -78,6 +78,7 @@ imageTile filePath = liftCanvas $ do
     img <- newImage url
     return ( tile (width img, height img)
            $ const
+           $ const
            $ drawImage (img,[0,0])
            )
 

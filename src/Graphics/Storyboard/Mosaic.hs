@@ -123,31 +123,31 @@ anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
      \ cavity -> do
           a <- saveRestore $ do
               translate $ newOffset side (w,h) cavity
-              k' $ realTileSize side (w,h) cavity
+              k (newOffset side (w,h) cavity) (realTileSize side (w,h) cavity)
           return (a,newCavity side (w,h) cavity)
-     where k' (w,h) = do
 {-
+
+     where k' (w,h) = do
               strokeStyle "red"
               lineWidth 1
               rect(0,0,w,h)
               closePath()
               stroke()
--}
               k (w,h)
+-}
 
 
 gap :: Side -> Mosaic ()
 gap side = Mosaic [fillSpacing side] $
     \ cavity -> return ((),newSpacingCavity side cavity)
 
-
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)
 vbrace :: Float -> Mosaic ()
-vbrace h = anchor left (tile (0,h) $ const $ return ())
+vbrace h = anchor left (tile (0,h) $ const $ const $ return ())
 
 hbrace :: Float -> Mosaic ()
-hbrace w = anchor top (tile (w,0) $ const $ return ())
+hbrace w = anchor top (tile (w,0) $ const $ const $ return ())
 
 column :: [Tile ()] -> Tile ()
 column = pack . mconcat . intersperse (gap left) . map (anchor left)
@@ -205,7 +205,8 @@ pack :: Mosaic a -> Tile a
 pack = fmap fst . fillTile
 
 fillTile :: Mosaic a -> Tile (a,Cavity Float)
-fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (w',h') -> do
+fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
+      -- TODO: use (x,y)
       let sw = if cw + w' < w || w_sps == 0 then 0 else (cw + w' - w) / w_sps
       let sh = if ch + h' < h || h_sps == 0 then 0 else (ch + h' - h) / h_sps
       console_log $ ("fillTile:" :: Text)

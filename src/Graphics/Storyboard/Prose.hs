@@ -211,7 +211,7 @@ renderText st txt = do
     return $ tile (w,fromIntegral
                       $ ceiling
                       $ fromIntegral (theFontSize st) * (1 + theDescenderHeight st))
-           $ const $ do
+           $ const $ const $ do
       Blank.font $ fontName st
       fillStyle (theColor st)
       fillText (txt',0,fromIntegral $ theFontSize st + off)    -- time will tell for this offset
@@ -265,7 +265,7 @@ renderProse alignment w ps_cxt ps = do
                  then pure ()
                  else if just == justified
                       then gap left
-                      else anchor left $ tile (sp,0) $ const $ return ()
+                      else anchor left $ tile (sp,0) $ const $ const $ return ()
                 )
               | (tiles,sp) <- init xs ++ [(fst (last xs),0)]
               ] ++

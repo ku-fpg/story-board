@@ -215,7 +215,7 @@ pause :: Slide ()
 pause = Slide $ \ cxt st -> do
   let Tile (w,h) m = fillTile (theMosaic st)
   ((),cavity) <- Prelude.liftCanvas $ saveRestore $ do
-      m (w,h)
+      m (0,0) (w,h)
 
   () <- liftCanvas sync
 

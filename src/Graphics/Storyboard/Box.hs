@@ -78,7 +78,7 @@ background :: BoxStyle a => TheBackgroundStyle -> a -> a
 background bg  = boxStyle $ \ m -> m { theBackground = bg }
 
 box :: TheBoxStyle -> Tile a -> Tile a
-box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ sz' -> do
+box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' -> do
     before sz'
     r <- during sz'
     after sz'
@@ -110,7 +110,8 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ sz' -> do
         fill()
     during (w',h') = saveRestore $ do
         translate (wd,wd)
-        act (w' - wd * 2,h' - wd * 2)
+        -- TODO
+        act (0,0) (w' - wd * 2,h' - wd * 2)
     after (w',h') = saveRestore $ do
         beginPath()
         rect(0,0,w',h')
