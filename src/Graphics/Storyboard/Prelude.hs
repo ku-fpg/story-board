@@ -1,11 +1,12 @@
-{-# LANGUAGE OverloadedStrings, KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving, OverloadedStrings, KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 module Graphics.Storyboard.Prelude
   ( Prelude
-  , runPrelude
+  , startPrelude
   , wordWidth
   , imageTile
   , liftCanvas
   , keyPress
+  , PreludeEnv(..)
   ) where
 
 import Control.Applicative
@@ -15,6 +16,10 @@ import Graphics.Blank as Blank
 import Control.Applicative
 import Control.Monad
 import Control.Concurrent.STM
+import System.IO
+import System.Directory
+import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 import Graphics.Storyboard.Tile
 import Data.List
@@ -27,7 +32,7 @@ import Data.Text(Text)
 
 -- TODO: perhaps call this the Staging monad?
 
-newtype Prelude a = Prelude { runPrelude :: EventQueue -> Canvas a }
+newtype Prelude a = Prelude { runPrelude :: PreludeEnv -> Canvas a }
 
 instance Functor Prelude where
  fmap f m = pure f <*> m
@@ -52,10 +57,68 @@ liftCanvas = Prelude . const
 
 ------------------------------------------------------------------------
 
+data PreludeEnv = PreludeEnv
+  { memoWordWidth     :: Text -> Text -> Maybe Float
+  , preludeEventQueue :: EventQueue
+  , recordMemo        :: Memo -> IO ()
+  }
+
+data Memo where
+  MemoWordWidth :: Text -> Text -> Float -> Memo
+
+deriving instance Show Memo
+deriving instance Read Memo
+deriving instance Eq Memo
+deriving instance Ord Memo
+
+
+startPrelude :: Prelude a -> EventQueue -> Canvas a
+startPrelude p evQ = do
+  memo <- liftIO $ readMemo
+  liftIO $ print memo
+
+  let dbWordWidth = Map.fromList
+          [ ((t2,t1),w)
+          | MemoWordWidth t1 t2 w <- memo
+          ]
+
+  varMemo <- liftIO $ atomically $ newTVar Set.empty
+
+  r <- runPrelude p $ PreludeEnv
+    { memoWordWidth = \ t1 t2 -> Map.lookup (t2,t1) dbWordWidth
+    , preludeEventQueue = evQ
+    , recordMemo = \ memo -> liftIO $ atomically $ modifyTVar' varMemo $ Set.insert memo
+    }
+
+  memoSet <- liftIO $ atomically $ readTVar varMemo
+  liftIO $ appendFile memoFile $ unlines $ map show $ Set.toList $ memoSet
+
+  -- Write the extras to the cache
+  liftIO $ openFile ".story-board-memo" AppendMode
+  return r
+
+
+memoFile :: FilePath
+memoFile = ".story-board-memo"
+
+readMemo :: IO [Memo]
+readMemo = do
+  b <- doesFileExist memoFile
+  if not b
+  then return []
+  else do
+    txt <- liftIO $ readFile memoFile
+    return [ read ln
+           | ln <- lines txt
+           ]
+
+------------------------------------------------------------------------
+
+
 -- | pause for key press
 keyPress :: Prelude ()
 keyPress = Prelude $ \ ch -> liftIO $ atomically $ do
-  event <- readTChan ch
+  event <- readTChan (preludeEventQueue ch)
   if eType event == "keypress"
   then return ()
   else retry
@@ -65,10 +128,15 @@ keyPress = Prelude $ \ ch -> liftIO $ atomically $ do
 -- This function should be memoize; it will return
 -- the same answer for *every* call.
 wordWidth :: Text -> Text -> Prelude Float
-wordWidth font_name txt = liftCanvas $ saveRestore $ do
-    Blank.font $ font_name
-    TextMetrics w <- measureText txt
-    return w
+wordWidth font_name txt = Prelude $ \ env -> do
+  case memoWordWidth env font_name txt of
+    Nothing -> do
+      TextMetrics w <- saveRestore $ do
+        Blank.font $ font_name
+        measureText txt
+      liftIO $ recordMemo env $ MemoWordWidth font_name txt w
+      return w
+    Just w -> return w
 
 -- This function should be memoize; it should return
 -- the same answer for *every* call.

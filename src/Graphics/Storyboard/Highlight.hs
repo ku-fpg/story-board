@@ -130,7 +130,8 @@ highlight st txt = case m of
   where
     m   = map snd
         $ sortBy (flip compare `on` fst)
-        $ [ traceShow (length d,d,a) $ (length d,f st d a)
+        $ [ -- traceShow (length d,d,a) $ 
+              (length d,f st d a)
           | (re,f) <- theREs st
           , Just ("",d,a,_) <- return $ matchRegexAll re txt
           , not (null d)

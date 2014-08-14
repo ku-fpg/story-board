@@ -301,6 +301,7 @@ splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
 
 -- internal only?
 renderProse' :: TheProseStyle -> Prose -> Prelude [Either Float (Tile ())]
+renderProse' st (ProseItem txt) | Text.null txt = return []
 renderProse' st (ProseItem txt) = do
     t <- renderText st txt
     return [Right t]

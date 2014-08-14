@@ -68,6 +68,7 @@ import Data.String
 import Data.List
 import Data.Maybe
 import Control.Monad.IO.Class
+import Data.Time.Clock
 
 import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Layout
@@ -236,15 +237,19 @@ txt =
 
 
 blankCanvasStoryBoard :: [Slide ()] -> DeviceContext -> IO ()
-blankCanvasStoryBoard slide = \ context -> send context $ do
+blankCanvasStoryBoard slide = \ context -> do
+  tm0 <- getCurrentTime
+  send context $ do
     let cxt = defaultSlideStyle (width context,height context)
     let st0 = defaultSlideState (fullSize cxt)
-    (_,st1) <- Prelude.runPrelude (runSlide (head slide) cxt st0) (eventQueue context)
+    (_,st1) <- Prelude.startPrelude (runSlide (head slide) cxt st0) (eventQueue context)
     let Tile (w,h) m = fillTile (theMosaic st1)
     saveRestore $ do
       _ <- m (0,0) (w,h)
       return ()
-    return ()
+  tm1 <- getCurrentTime
+  print $ diffUTCTime tm1 tm0
+  return ()
 
 storyBoard :: [Slide ()] -> IO ()
 storyBoard = blankCanvas 3000 { middleware = [], events = ["keypress"] }

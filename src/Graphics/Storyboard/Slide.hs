@@ -249,6 +249,6 @@ tileOfSlide sz (Slide f) = Slide $ \ slide_style slide_state -> do
 
 trueSpace :: Slide a -> Slide a
 trueSpace (Slide f) = Slide $ \ cxt st -> do
-  t <- renderText (theProseStyle cxt) " "
   let sz = theFontSize $ theProseStyle cxt
-  f (wordSpacing (tileWidth t / fromIntegral sz) cxt) st
+  w <- wordWidth (fontName $ theProseStyle cxt) " "
+  f (wordSpacing (w / fromIntegral sz) cxt) st
