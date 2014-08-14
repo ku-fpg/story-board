@@ -96,7 +96,7 @@ haskell_code :: Slide ()
 haskell_code = do
   txt <- liftIO $ readFile "example/Main.hs"
 --  liftIO $ print $ highlight haskellHighlightStyle txt
-  font "monospace" $ fontSize 14 $ trueSpace $
+  font "Courier New" $ fontSize 28 $ trueSpace $
     p $ highlight haskellHighlightStyle (take 2000 txt)
 
 {-
