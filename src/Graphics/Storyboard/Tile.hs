@@ -56,6 +56,8 @@ blank sz = tile sz $ const $ const $ return ()
 
 colorTile :: Text -> Size Float -> Tile ()
 colorTile col (w',h') = tile (w',h') $ \ (x,y) (w,h) -> do
+  saveRestore $ do
+    translate (x,y)   -- required in all primitives
     globalAlpha 0.2
     beginPath()
     rect(0, 0, w, h)
@@ -80,9 +82,11 @@ point ver hor (Tile (w,h) f) = Tile (0,0) $ \ (x,y) _ -> do
             VT -> 0
             VC -> -h / 2
             VB -> -h
+  f (x+w',y+h') (w,h)
+{-
   saveRestore $ do
     translate (w',h')
-    f (x+w',y-h') (w,h)
+-}
 
 -- nudge the tile into a specific corner of its enclosure
 nudge :: Vertical -> Horizontal -> Tile a -> Tile a
@@ -96,10 +100,9 @@ nudge ver hor (Tile (w,h) f) = Tile (w,h) $ \ (x,y) (w',h') ->
                 VC -> (h' - h) / 2
                 VB -> h' - h
     in
-       saveRestore $ do
-         translate (w'',h'')     -- nudge
-         f (x-w'',y-h'') (w,h)   -- and pretend there is no extra space
-
+--       saveRestore $ do
+--         translate (w'',h'')     -- nudge
+         f (x+w'',y+h'') (w,h)   -- and pretend there is no extra space
 
 
 instance Semigroup a => Semigroup (Tile a) where

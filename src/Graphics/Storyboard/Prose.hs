@@ -211,7 +211,8 @@ renderText st txt = do
     return $ tile (w,fromIntegral
                       $ ceiling
                       $ fromIntegral (theFontSize st) * (1 + theDescenderHeight st))
-           $ const $ const $ do
+           $ \ (x,y) _  -> saveRestore $ do
+      translate (x,y)
       Blank.font $ fontName st
       fillStyle (theColor st)
       fillText (txt',0,fromIntegral $ theFontSize st + off)    -- time will tell for this offset

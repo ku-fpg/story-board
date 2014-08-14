@@ -79,16 +79,17 @@ background bg  = boxStyle $ \ m -> m { theBackground = bg }
 
 box :: TheBoxStyle -> Tile a -> Tile a
 box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' -> do
-    before sz'
-    r <- during sz'
-    after sz'
+    before ps' sz'
+    r <- during ps' sz'
+    after ps' sz'
     return r
 
   where
     wd = theBorderWidth st
     Background bg = theBackground st
 
-    before (w',h') = saveRestore $ do
+    before (x,y) (w',h') = saveRestore $ do
+        translate (x,y)
         case theBackground st of
           Background bg -> Blank.fillStyle bg
           LinearGradient c0 c1 -> do
@@ -108,11 +109,10 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' -> do
             shadowOffsetY (theShadowOffsetY s_st)
             shadowBlur (theShadowBlur s_st)
         fill()
-    during (w',h') = saveRestore $ do
-        translate (wd,wd)
-        -- TODO
-        act (0,0) (w' - wd * 2,h' - wd * 2)
-    after (w',h') = saveRestore $ do
+    during (x,y) (w',h') =
+        act (x+wd,y+wd) (w' - wd * 2,h' - wd * 2)
+    after (x,y) (w',h') = saveRestore $ do
+        translate (x,y)
         beginPath()
         rect(0,0,w',h')
         closePath()

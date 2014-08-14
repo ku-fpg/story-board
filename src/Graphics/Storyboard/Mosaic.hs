@@ -51,7 +51,7 @@ data Spacing'
 
 data Mosaic a = Mosaic
   { mosaicSpace :: [(Spacing',Spacing')]
-  , runMosaic   :: Cavity Float -> Canvas (a,Cavity Float)
+  , runMosaic   :: Coord Float -> Cavity Float -> Canvas (a,Cavity Float)
   }
 
 instance Show (Mosaic a) where
@@ -61,10 +61,10 @@ instance Functor Mosaic where
  fmap f m = pure f <*> m
 
 instance Applicative Mosaic where
- pure a = Mosaic [] $ \ sz0 -> return (a,sz0)
- Mosaic fs f <*> Mosaic xs x = Mosaic (fs ++ xs) $ \ sz0 -> do
-                    (f',sz1) <- f sz0
-                    (x',sz2) <- x sz1
+ pure a = Mosaic [] $ \ _ sz0 -> return (a,sz0)
+ Mosaic fs f <*> Mosaic xs x = Mosaic (fs ++ xs) $ \ ps sz0 -> do
+                    (f',sz1) <- f ps sz0
+                    (x',sz2) <- x ps sz1
                     return (f' x',sz2)
 
 instance Semigroup a => Semigroup (Mosaic a) where
@@ -120,10 +120,10 @@ infix 8 ?
 
 anchor :: Side -> Tile a -> Mosaic a
 anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
-     \ cavity -> do
-          a <- saveRestore $ do
-              translate $ newOffset side (w,h) cavity
-              k (newOffset side (w,h) cavity) (realTileSize side (w,h) cavity)
+     \ (x,y) cavity -> do
+          let (x',y') = newOffset side (w,h) cavity
+          a <- k (x+x',y+y') -- TODO: this is boxed in
+                 (realTileSize side (w,h) cavity)
           return (a,newCavity side (w,h) cavity)
 {-
 
@@ -139,7 +139,7 @@ anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
 
 gap :: Side -> Mosaic ()
 gap side = Mosaic [fillSpacing side] $
-    \ cavity -> return ((),newSpacingCavity side cavity)
+    \ ps cavity -> return ((),newSpacingCavity side cavity)
 
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)
@@ -216,7 +216,7 @@ fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
             <> show' (w_sps,h_sps)
             <> show' (cw,ch)
             <> show' (sw,sh)
-      k (Cavity (0,0) (w',h') (sw,sh))
+      k (x,y) (Cavity (0,0) (w',h') (sw,sh))
   where
     show' :: Show a => a -> Text
     show' = Text.pack . show
@@ -227,7 +227,6 @@ fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
     (cwr,chr) = cavityRange mosaic (w,h)
 
     (cw,ch) = (fst cwr - snd cwr, fst chr - snd chr)
-
 
     w_sps = fromIntegral $ length [ () | Space' <- map fst cavity ]
     h_sps = fromIntegral $ length [ () | Space' <- map snd cavity ]

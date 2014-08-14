@@ -128,6 +128,8 @@ hr :: Slide ()
 hr = do
   (_,w) <- getCavitySize
   draw $ anchor top $ tile (w,2) $ \ (x,y) (w',h') -> do
+          saveRestore $ do
+              translate (x,y)
               beginPath()
               moveTo(0,1)
               lineTo(w',0)
