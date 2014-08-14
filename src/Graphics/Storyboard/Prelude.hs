@@ -91,10 +91,10 @@ startPrelude p evQ = do
     }
 
   memoSet <- liftIO $ atomically $ readTVar varMemo
-  liftIO $ appendFile memoFile $ unlines $ map show $ Set.toList $ memoSet
+  when (not (Set.null memoSet)) $ do
+    liftIO $ appendFile memoFile $ unlines $ map show $ Set.toList $ memoSet
 
   -- Write the extras to the cache
-  liftIO $ openFile ".story-board-memo" AppendMode
   return r
 
 
