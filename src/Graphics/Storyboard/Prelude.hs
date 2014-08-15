@@ -22,6 +22,7 @@ import qualified Data.Map as Map
 import qualified Data.Set as Set
 
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Types
 import Data.List
 import Data.Text(Text)
 
@@ -52,8 +53,8 @@ instance MonadIO Prelude where
 
 ------------------------------------------------------------------------
 
-liftCanvas :: Canvas a -> Prelude a
-liftCanvas = Prelude . const
+instance MonadCanvas Prelude where
+  liftCanvas = Prelude . const
 
 ------------------------------------------------------------------------
 
