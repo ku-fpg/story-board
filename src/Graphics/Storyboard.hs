@@ -244,6 +244,7 @@ blankCanvasStoryBoard slides context =
     { theSlides         = slides
     , whichSlide        = 1
     , theDeviceContext  = context
+    , profiling         = True
     }
 {-
   tm0 <- getCurrentTime
@@ -263,14 +264,16 @@ blankCanvasStoryBoard slides context =
 
 data StoryBoardState = StoryBoardState
   { theSlides         :: [Slide ()]
-  , whichSlide        :: Int    -- starting at 1
+  , whichSlide        :: Int      -- starting at 1
   , theDeviceContext  :: DeviceContext
+  , profiling         :: Bool     -- ^ do you output profiling information
   }
 
 -- Never finishes
 slideShowr :: StoryBoardState -> IO ()
 slideShowr st = do
-  let StoryBoardState slides n context = st
+  tm0 <- getCurrentTime
+  let StoryBoardState slides n context debug = st
   print ("slideShowr",n)
   panels <- send context $ do
     let cxt = defaultSlideStyle (width context,height context)
@@ -278,27 +281,33 @@ slideShowr st = do
     clearCanvas
     (_,st1) <- Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) (eventQueue context)
     sequence [ let Tile (w,h) m = pack moz
-               in return $ m (0,0) (w,h)
+               in return $! m (0,0) (w,h)
              | moz <- theMosaic st1 : previousMosaics st1
              ]
-
+  tm1 <- getCurrentTime
+  when debug $ do
+    putStrLn $ "profiling: Prelude for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
   subSlideShowr st $ reverse panels
 
 subSlideShowr :: StoryBoardState -> [Canvas ()] -> IO ()
 subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
 subSlideShowr st (panel:panels) = do
+  tm0 <- getCurrentTime
   print ("subSlideShowr",length (panel:panels))
-  let StoryBoardState slides n context = st
+  let StoryBoardState slides n context debug = st
   send context $ do
       panel
       sync  -- or async?
-  print "waiting for key"
+  tm1 <- getCurrentTime
+--  print "waiting for key"
+  when debug $ do
+    putStrLn $ "profiling: Frame for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
   event <- atomically $ do
     event <- readTChan (eventQueue context)
     if eType event == "keypress"
     then return event
     else retry
-  print ("got key",event)
+--  print ("got key",event)
   subSlideShowr st panels
 
 
