@@ -26,6 +26,7 @@ import Control.Monad.IO.Class
 
 import GHC.Exts (IsString(fromString))
 
+import Graphics.Storyboard.Act
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Tile
@@ -51,7 +52,7 @@ data Spacing'
 
 data Mosaic a = Mosaic
   { mosaicSpace :: [(Spacing',Spacing')]
-  , runMosaic   :: Coord Float -> Cavity Float -> (Canvas a,Cavity Float)
+  , runMosaic   :: Coord Float -> Cavity Float -> (Act a,Cavity Float)
   }
 
 instance Show (Mosaic a) where

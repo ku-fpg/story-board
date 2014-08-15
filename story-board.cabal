@@ -18,6 +18,9 @@ cabal-version:       >=1.10
 library
   exposed-modules:
           Graphics.Storyboard
+          Graphics.Storyboard.Act,
+          Graphics.Storyboard.Tile,
+          Graphics.Storyboard.Types
   other-modules:
           Graphics.Storyboard.Bling,
           Graphics.Storyboard.Box,
@@ -30,9 +33,7 @@ library
           Graphics.Storyboard.Paragraph,
           Graphics.Storyboard.Prelude,
           Graphics.Storyboard.Prose,
-          Graphics.Storyboard.Slide,
-          Graphics.Storyboard.Tile,
-          Graphics.Storyboard.Types
+          Graphics.Storyboard.Slide
   other-extensions:    OverloadedStrings
   build-depends:       base >=4.7 && <4.8,
                        blank-canvas >=0.4.0.1,

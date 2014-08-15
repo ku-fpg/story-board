@@ -73,6 +73,7 @@ import Control.Monad.IO.Class
 import Data.Time.Clock
 import Control.Concurrent.STM
 
+import Graphics.Storyboard.Act
 import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling
@@ -131,7 +132,7 @@ margin m inside = do
 hr :: Slide ()
 hr = do
   (_,w) <- getCavitySize
-  draw $ anchor top $ tile (w,2) $ \ (x,y) (w',h') -> do
+  draw $ anchor top $ tile (w,2) $ \ (x,y) (w',h') -> liftCanvas $ do
           saveRestore $ do
               translate (x,y)
               beginPath()
@@ -289,15 +290,17 @@ slideShowr st = do
     putStrLn $ "profiling: Prelude for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
   subSlideShowr st $ reverse panels
 
-subSlideShowr :: StoryBoardState -> [Canvas ()] -> IO ()
+subSlideShowr :: StoryBoardState -> [Act ()] -> IO ()
 subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
 subSlideShowr st (panel:panels) = do
   tm0 <- getCurrentTime
   print ("subSlideShowr",length (panel:panels))
   let StoryBoardState slides n context debug = st
-  send context $ do
-      panel
+  next <- send context $ do
+      ((),next) <- runAct panel
       sync  -- or async?
+      return next
+  print (length next, "NEXT")
   tm1 <- getCurrentTime
 --  print "waiting for key"
   when debug $ do

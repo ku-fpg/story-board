@@ -16,6 +16,7 @@ import GHC.Exts (IsString(fromString))
 
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
+import Graphics.Storyboard.Act
 
 import Graphics.Blank
 
@@ -25,7 +26,7 @@ import Graphics.Blank
 -- The tile can choose to put any extra space on the inside or outside
 -- of any border, etc.
 
-data Tile a = Tile (Size Float) (Coord Float -> Size Float -> Canvas a)
+data Tile a = Tile (Size Float) (Coord Float -> Size Float -> Act a)
 
 instance Show (Tile a) where
   show (Tile sz _) = show sz
@@ -39,7 +40,7 @@ instance Functor Tile where
 -- The paint routine can assume the canvas starts at (0,0),
 -- and is the given size. No masking is done by default.
 
-tile :: Size Float -> (Coord Float -> Size Float -> Canvas a) -> Tile a
+tile :: Size Float -> (Coord Float -> Size Float -> Act a) -> Tile a
 tile = Tile
 
 tileWidth :: Tile a -> Float
@@ -56,7 +57,7 @@ blank sz = tile sz $ const $ const $ return ()
 
 colorTile :: Text -> Size Float -> Tile ()
 colorTile col (w',h') = tile (w',h') $ \ (x,y) (w,h) -> do
-  saveRestore $ do
+  liftCanvas $ saveRestore $ do
     translate (x,y)   -- required in all primitives
     globalAlpha 0.2
     beginPath()
@@ -112,7 +113,7 @@ instance Semigroup a => Semigroup (Tile a) where
            return (r1 <> r2)
 
 instance Monoid a => Monoid (Tile a) where
-  mempty = Tile (0,0) (return mempty)
+  mempty = Tile (0,0) (\ _ _ -> return mempty)
   (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ ps sz ->
       do r1 <- c1 ps sz
          r2 <- c2 ps sz -- overlay is the default monoid

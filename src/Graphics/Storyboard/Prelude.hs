@@ -148,6 +148,7 @@ imageTile filePath = liftCanvas $ do
     return ( tile (width img, height img)
            $ const
            $ const
+           $ liftCanvas
            $ drawImage (img,[0,0])
            )
 

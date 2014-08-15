@@ -11,6 +11,7 @@ import qualified Graphics.Blank.Style as Style
 
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Types
 import Graphics.Storyboard.Mosaic
 
 
@@ -88,7 +89,7 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' -> do
     wd = theBorderWidth st
     Background bg = theBackground st
 
-    before (x,y) (w',h') = saveRestore $ do
+    before (x,y) (w',h') = liftCanvas $ saveRestore $ do
         translate (x,y)
         case theBackground st of
           Background bg -> Blank.fillStyle bg
@@ -111,7 +112,7 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' -> do
         fill()
     during (x,y) (w',h') =
         act (x+wd,y+wd) (w' - wd * 2,h' - wd * 2)
-    after (x,y) (w',h') = saveRestore $ do
+    after (x,y) (w',h') = liftCanvas $ saveRestore $ do
         translate (x,y)
         beginPath()
         rect(0,0,w',h')

@@ -5,8 +5,14 @@ import Data.Monoid
 import Control.Monad.IO.Class
 import Data.Text (Text)
 import qualified Data.Text as Text
+import Graphics.Blank (stroke, translate, beginPath, rect, lineWidth, strokeStyle)
 
 import Graphics.Storyboard
+
+import Graphics.Storyboard.Act
+import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Types
+
 
 main :: IO ()
 main = storyBoard $
@@ -16,6 +22,7 @@ main = storyBoard $
   , alignSlide
   , bulletSlide
   , orderedListSlide
+  , actSlide
   ]
 
 
@@ -182,3 +189,19 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 --  draw (border 1 "red" t ? top)
 ---  let pic = (colorTile "blue" (100,100) ? left) <> (border 1 "orange" (point bottom right t) ? left) <> gap left
 --  draw (border 1 "green" (pack pic) ? top)
+
+actSlide :: Slide ()
+actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
+  fontSize 72 $ p $ "The Act"
+
+  place top $ tile (100,100) $ \ (x,y) (w,h) -> do
+    let loop n = do
+          liftCanvas $ do
+            translate(x,y)
+            beginPath()
+            rect(0,0,w-n,h)
+            strokeStyle "red"
+            lineWidth 3
+            stroke()
+          nextAnimationFrame $ loop (n-1)
+    loop 0
