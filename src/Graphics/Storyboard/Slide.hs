@@ -106,6 +106,7 @@ bulletFactory fac = slideStyle $ \ m -> m { theBulletFactory = fac }
 
 data TheSlideState = TheSlideState
   { theMosaic        :: Mosaic ()
+  , previousMosaics :: [Mosaic ()]
   , theInternalSize  :: Size Float
   , theItemCounter   :: Int
   }
@@ -115,6 +116,7 @@ defaultSlideState :: Size Float -> TheSlideState
 defaultSlideState sz = TheSlideState
   { theMosaic        = (hbrace $ fst $ sz)
                     <> (vbrace $ snd $ sz)
+  , previousMosaics = []
   , theInternalSize  = sz
   , theItemCounter   = 0
   }
@@ -128,6 +130,7 @@ drawMosaic moz st = st
 replaceMosaic :: Mosaic () -> TheSlideState -> TheSlideState
 replaceMosaic moz st = st
     { theMosaic = moz
+    , previousMosaics = theMosaic st : previousMosaics st
     , theInternalSize = cavityMaxSize moz (theInternalSize st)
     }
 
@@ -213,7 +216,9 @@ place s = draw . anchor s
 
 pause :: Slide ()
 pause = Slide $ \ cxt st -> do
-  let Tile (w,h) m = fillTile (theMosaic st)
+  let cavity = cavityOfMosaic (theMosaic st) (fullSize cxt)
+{-
+let Tile (w,h) m = fillTile (theMosaic st)
   ((),cavity) <- Prelude.liftCanvas $ saveRestore $ do
       m (0,0) (w,h)
 
@@ -223,6 +228,7 @@ pause = Slide $ \ cxt st -> do
   Prelude.keyPress
 --  liftIO $ Concurrent.threadDelay (1 * 1000 * 1000)
   liftIO $ putStrLn "paused"
+-}
 
   let currBorder = blankMosaic (fullSize cxt) cavity
 

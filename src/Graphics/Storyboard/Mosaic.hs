@@ -10,8 +10,8 @@ module Graphics.Storyboard.Mosaic
   , gap
   , vbrace
   , hbrace
-  , fillTile
   , blankMosaic
+  , cavityOfMosaic
   ) where
 
 import qualified Data.Text as Text
@@ -51,7 +51,7 @@ data Spacing'
 
 data Mosaic a = Mosaic
   { mosaicSpace :: [(Spacing',Spacing')]
-  , runMosaic   :: Coord Float -> Cavity Float -> Canvas (a,Cavity Float)
+  , runMosaic   :: Coord Float -> Cavity Float -> (Canvas a,Cavity Float)
   }
 
 instance Show (Mosaic a) where
@@ -61,11 +61,11 @@ instance Functor Mosaic where
  fmap f m = pure f <*> m
 
 instance Applicative Mosaic where
- pure a = Mosaic [] $ \ _ sz0 -> return (a,sz0)
- Mosaic fs f <*> Mosaic xs x = Mosaic (fs ++ xs) $ \ ps sz0 -> do
-                    (f',sz1) <- f ps sz0
-                    (x',sz2) <- x ps sz1
-                    return (f' x',sz2)
+ pure a = Mosaic [] $ \ _ sz0 -> (return a,sz0)
+ Mosaic fs f <*> Mosaic xs x = Mosaic (fs ++ xs) $ \ ps sz0 ->
+                 let (f',sz1) = f ps sz0
+                     (x',sz2) = x ps sz1
+                 in (f' <*> x', sz2)
 
 instance Semigroup a => Semigroup (Mosaic a) where
   (<>) = liftA2 (<>)
@@ -120,11 +120,12 @@ infix 8 ?
 
 anchor :: Side -> Tile a -> Mosaic a
 anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
-     \ (x,y) cavity -> do
-          let (x',y') = newOffset side (w,h) cavity
-          a <- k (x+x',y+y') -- TODO: this is boxed in
-                 (realTileSize side (w,h) cavity)
-          return (a,newCavity side (w,h) cavity)
+     \ (x,y) cavity ->
+            ( do let (x',y') = newOffset side (w,h) cavity
+                 k (x+x',y+y') -- TODO: this is boxed in
+                   (realTileSize side (w,h) cavity)
+            , newCavity side (w,h) cavity
+            )
 {-
 
      where k' (w,h) = do
@@ -139,7 +140,7 @@ anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
 
 gap :: Side -> Mosaic ()
 gap side = Mosaic [fillSpacing side] $
-    \ ps cavity -> return ((),newSpacingCavity side cavity)
+    \ ps cavity -> (return (),newSpacingCavity side cavity)
 
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)
@@ -201,23 +202,19 @@ newSpacingCavity side cavity = newCavity side (sw,sh) cavity
 
 -----------------------------------------------------------------------------
 
+{-
 pack :: Mosaic a -> Tile a
 pack = fmap fst . fillTile
 
-fillTile :: Mosaic a -> Tile (a,Cavity Float)
-fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
-      -- TODO: use (x,y)
-      let sw = if cw + w' < w || w_sps == 0 then 0 else (cw + w' - w) / w_sps
-      let sh = if ch + h' < h || h_sps == 0 then 0 else (ch + h' - h) / h_sps
-      console_log $ ("fillTile:" :: Text)
-            <> show' cavity
-            <> show' (w,h)
-            <> show' (w',h')
-            <> show' (w_sps,h_sps)
-            <> show' (cw,ch)
-            <> show' (sw,sh)
-      k (x,y) (Cavity (0,0) (w',h') (sw,sh))
+cavityOfMosaic :: Mosaic a -> (Cavity Float)
+-}
+
+cavityOfMosaic :: Mosaic a -> Size Float -> Cavity Float
+cavityOfMosaic mosaic@(Mosaic cavity k) (w',h') = Cavity (0,0) (w',h') (sw,sh)
   where
+    sw = if cw + w' < w || w_sps == 0 then 0 else (cw + w' - w) / w_sps
+    sh = if ch + h' < h || h_sps == 0 then 0 else (ch + h' - h) / h_sps
+
     show' :: Show a => a -> Text
     show' = Text.pack . show
 
@@ -231,7 +228,15 @@ fillTile mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
     w_sps = fromIntegral $ length [ () | Space' <- map fst cavity ]
     h_sps = fromIntegral $ length [ () | Space' <- map snd cavity ]
 
-    spaceSize :: Spacing' -> Float -> Float
-    spaceSize (Alloc n)   sz = sz + n
-    spaceSize (AtLeast n) sz = sz `max` n
-    spaceSize (Space')    sz = sz
+pack :: Mosaic a -> Tile a
+pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
+      fst $ k (x,y) $ cavityOfMosaic mosaic (w',h')
+  where
+
+    w = foldr spaceSize 0 $ map fst $ cavity
+    h = foldr spaceSize 0 $ map snd $ cavity
+
+spaceSize :: Spacing' -> Float -> Float
+spaceSize (Alloc n)   sz = sz + n
+spaceSize (AtLeast n) sz = sz `max` n
+spaceSize (Space')    sz = sz

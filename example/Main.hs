@@ -9,7 +9,7 @@ import qualified Data.Text as Text
 import Graphics.Storyboard
 
 main :: IO ()
-main = storyBoard $ 
+main = storyBoard $
   [ haskell_code
   , slide_background
   , titleSlide
@@ -57,7 +57,9 @@ bulletSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
   ul $ do
     li $ lorem
+    pause
     li $ lorem
+    pause
     li $ lorem
 
 orderedListSlide :: Slide ()

@@ -53,6 +53,8 @@ module Graphics.Storyboard
   , module Graphics.Storyboard.Box
    -- * adjusting sizes
   , trueSpace
+   -- * timing
+  , pause
   )
 
 
@@ -275,23 +277,25 @@ slideShowr st = do
     let st0 = defaultSlideState (fullSize cxt)
     clearCanvas
     (_,st1) <- Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) (eventQueue context)
-    return $ fillTile (theMosaic st1)
+    return $ pack (theMosaic st1)
 
-  subSlideShowr st [fmap (const ()) $ m (0,0) (w,h)]
+  subSlideShowr st [m (0,0) (w,h)]
 
 subSlideShowr :: StoryBoardState -> [Canvas ()] -> IO ()
 subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
 subSlideShowr st (panel:panels) = do
   print ("subSlideShowr",length (panel:panels))
   let StoryBoardState slides n context = st
-  send context panel
+  send context $ do
+      panel
+      sync  -- or async?
   print "waiting for key"
-  atomically $ do
+  event <- atomically $ do
     event <- readTChan (eventQueue context)
     if eType event == "keypress"
-    then return ()
+    then return event
     else retry
-  print "got key"
+  print ("got key",event)
   subSlideShowr st panels
 
 
