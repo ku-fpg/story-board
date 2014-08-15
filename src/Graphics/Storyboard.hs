@@ -69,6 +69,7 @@ import Data.List
 import Data.Maybe
 import Control.Monad.IO.Class
 import Data.Time.Clock
+import Control.Concurrent.STM
 
 import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Layout
@@ -235,9 +236,14 @@ txt =
   "as needed (it turns out that all var-args functions take a variable number" <+>
   "of JavaScript numbers.)"
 
-
 blankCanvasStoryBoard :: [Slide ()] -> DeviceContext -> IO ()
-blankCanvasStoryBoard slide = \ context -> do
+blankCanvasStoryBoard slides context =
+  slideShowr $ StoryBoardState
+    { theSlides         = slides
+    , whichSlide        = 1
+    , theDeviceContext  = context
+    }
+{-
   tm0 <- getCurrentTime
   send context $ do
     let cxt = defaultSlideStyle (width context,height context)
@@ -247,9 +253,47 @@ blankCanvasStoryBoard slide = \ context -> do
     saveRestore $ do
       _ <- m (0,0) (w,h)
       return ()
+    return ()
   tm1 <- getCurrentTime
   print $ diffUTCTime tm1 tm0
   return ()
+-}
+
+data StoryBoardState = StoryBoardState
+  { theSlides         :: [Slide ()]
+  , whichSlide        :: Int    -- starting at 1
+  , theDeviceContext  :: DeviceContext
+  }
+
+-- Never finishes
+slideShowr :: StoryBoardState -> IO ()
+slideShowr st = do
+  let StoryBoardState slides n context = st
+  print ("slideShowr",n)
+  Tile (w,h) m <- send context $ do
+    let cxt = defaultSlideStyle (width context,height context)
+    let st0 = defaultSlideState (fullSize cxt)
+    clearCanvas
+    (_,st1) <- Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) (eventQueue context)
+    return $ fillTile (theMosaic st1)
+
+  subSlideShowr st [fmap (const ()) $ m (0,0) (w,h)]
+
+subSlideShowr :: StoryBoardState -> [Canvas ()] -> IO ()
+subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
+subSlideShowr st (panel:panels) = do
+  print ("subSlideShowr",length (panel:panels))
+  let StoryBoardState slides n context = st
+  send context panel
+  print "waiting for key"
+  atomically $ do
+    event <- readTChan (eventQueue context)
+    if eType event == "keypress"
+    then return ()
+    else retry
+  print "got key"
+  subSlideShowr st panels
+
 
 storyBoard :: [Slide ()] -> IO ()
 storyBoard = blankCanvas 3000 { middleware = [], events = ["keypress"] }

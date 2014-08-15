@@ -75,7 +75,7 @@ deriving instance Ord Memo
 startPrelude :: Prelude a -> EventQueue -> Canvas a
 startPrelude p evQ = do
   memo <- liftIO $ readMemo
-  liftIO $ print memo
+--  liftIO $ print memo
 
   let dbWordWidth = Map.fromList
           [ ((t2,t1),w)
