@@ -302,16 +302,19 @@ subSlideShowr st (panel:panels) = do
       return next
   print (length next, "NEXT")
   tm1 <- getCurrentTime
---  print "waiting for key"
+  --  print "waiting for key"
   when debug $ do
     putStrLn $ "profiling: Frame for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
-  event <- atomically $ do
-    event <- readTChan (eventQueue context)
-    if eType event == "keypress"
-    then return event
-    else retry
---  print ("got key",event)
-  subSlideShowr st panels
+  case next of
+    [NextAnimationFrame act] -> subSlideShowr st (act:panels)
+    _ -> do
+        event <- atomically $ do
+          event <- readTChan (eventQueue context)
+          if eType event == "keypress"
+          then return event
+          else retry
+      --  print ("got key",event)
+        subSlideShowr st panels
 
 
 storyBoard :: [Slide ()] -> IO ()

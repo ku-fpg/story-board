@@ -5,7 +5,7 @@ import Data.Monoid
 import Control.Monad.IO.Class
 import Data.Text (Text)
 import qualified Data.Text as Text
-import Graphics.Blank (stroke, translate, beginPath, rect, lineWidth, strokeStyle)
+import Graphics.Blank hiding (font)
 
 import Graphics.Storyboard
 
@@ -196,12 +196,15 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
     let loop n = do
-          liftCanvas $ do
+          liftIO $ print n
+          liftCanvas $ saveRestore $ do
             translate(x,y)
+            clearRect(0,0,w,h)
             beginPath()
-            rect(0,0,w-n,h)
+            rect(1,1,w-(n+2),h-2)
             strokeStyle "red"
-            lineWidth 3
+            lineWidth 1
             stroke()
-          nextAnimationFrame $ loop (n-1)
+            closePath()
+          nextAnimationFrame $ loop (n+1)
     loop 0
