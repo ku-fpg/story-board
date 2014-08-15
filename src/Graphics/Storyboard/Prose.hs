@@ -40,7 +40,7 @@ import qualified Data.Text as Text
 import Data.Text(Text)
 import Data.List as List
 import Control.Applicative
-import Control.Monad (liftM2)
+import Control.Monad (liftM2, when)
 import Data.Semigroup
 import Data.Text(Text)
 import Data.Char(isSpace)
@@ -132,6 +132,7 @@ data TheProseStyle = TheProseStyle
   , theColor          :: Text       -- ^ current color, black
   , theLigatures      :: [(Text,Text)]
   , theDescenderHeight:: Float      -- Extra gap below baseline for descenders, ratio of font size, 0.35
+  , isBoxy            :: Bool       -- ^ do you surround every word with a box
   } deriving Show
 
 defaultProseStyle = TheProseStyle
@@ -144,6 +145,7 @@ defaultProseStyle = TheProseStyle
   , theColor           = "black"
   , theLigatures       = []
   , theDescenderHeight = 0.35
+  , isBoxy             = False
   }
 
 class ProseStyle a where
@@ -194,6 +196,9 @@ super         = proseStyle $ \ s -> s { subSuper = subSuper s + 1 }
 sub         :: ProseStyle a =>          a -> a
 sub           = proseStyle $ \ s -> s { subSuper = subSuper s - 1 }
 
+boxy        :: ProseStyle a => Bool -> a -> a
+boxy b        = proseStyle $ \ s -> s { isBoxy = b }
+
 ------------------------------------------------------------------------
 
 -- figure out the full font from the style
@@ -216,6 +221,12 @@ renderText st txt = do
       Blank.font $ fontName st
       fillStyle (theColor st)
       fillText (txt',0,fromIntegral $ theFontSize st + off)    -- time will tell for this offset
+      when (isBoxy st) $ do
+        beginPath()
+        rect(0,0,w,fromIntegral $ theFontSize st + off)
+        lineWidth 0.5;
+        strokeStyle "black";
+        stroke()
 
 renderProse :: Alignment -> Float -> TheProseStyle -> Prose -> Prelude [Tile ()]
 renderProse alignment w ps_cxt ps = do
