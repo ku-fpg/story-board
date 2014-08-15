@@ -281,7 +281,7 @@ slideShowr st = do
     clearCanvas
     (_,st1) <- Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) (eventQueue context)
     sequence [ let Tile (w,h) m = pack moz
-               in return $! m (0,0) (w,h)
+               in return $ m (0,0) (w,h)
              | moz <- theMosaic st1 : previousMosaics st1
              ]
   tm1 <- getCurrentTime
