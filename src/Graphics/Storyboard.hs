@@ -272,14 +272,17 @@ slideShowr :: StoryBoardState -> IO ()
 slideShowr st = do
   let StoryBoardState slides n context = st
   print ("slideShowr",n)
-  Tile (w,h) m <- send context $ do
+  panels <- send context $ do
     let cxt = defaultSlideStyle (width context,height context)
     let st0 = defaultSlideState (fullSize cxt)
     clearCanvas
     (_,st1) <- Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) (eventQueue context)
-    return $ pack (theMosaic st1)
+    sequence [ let Tile (w,h) m = pack moz
+               in return $ m (0,0) (w,h)
+             | moz <- theMosaic st1 : previousMosaics st1
+             ]
 
-  subSlideShowr st [m (0,0) (w,h)]
+  subSlideShowr st $ reverse panels
 
 subSlideShowr :: StoryBoardState -> [Canvas ()] -> IO ()
 subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }

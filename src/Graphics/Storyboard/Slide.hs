@@ -217,6 +217,7 @@ place s = draw . anchor s
 pause :: Slide ()
 pause = Slide $ \ cxt st -> do
   let cavity = cavityOfMosaic (theMosaic st) (fullSize cxt)
+  liftIO $ print (cavity,"Cavity")
 {-
 let Tile (w,h) m = fillTile (theMosaic st)
   ((),cavity) <- Prelude.liftCanvas $ saveRestore $ do

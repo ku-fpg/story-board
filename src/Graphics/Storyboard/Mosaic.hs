@@ -209,8 +209,13 @@ pack = fmap fst . fillTile
 cavityOfMosaic :: Mosaic a -> (Cavity Float)
 -}
 
+-- Hmm. this should assume zero spacing?
 cavityOfMosaic :: Mosaic a -> Size Float -> Cavity Float
-cavityOfMosaic mosaic@(Mosaic cavity k) (w',h') = Cavity (0,0) (w',h') (sw,sh)
+cavityOfMosaic mosaic@(Mosaic cavity k) (w',h')
+  = snd $ k (0,0) $ Cavity (0,0) (w',h') $ spacingInMosaic mosaic (w',h')
+
+spacingInMosaic :: Mosaic a -> Size Float -> Size Float
+spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
   where
     sw = if cw + w' < w || w_sps == 0 then 0 else (cw + w' - w) / w_sps
     sh = if ch + h' < h || h_sps == 0 then 0 else (ch + h' - h) / h_sps
@@ -228,9 +233,11 @@ cavityOfMosaic mosaic@(Mosaic cavity k) (w',h') = Cavity (0,0) (w',h') (sw,sh)
     w_sps = fromIntegral $ length [ () | Space' <- map fst cavity ]
     h_sps = fromIntegral $ length [ () | Space' <- map snd cavity ]
 
+
+-- how about a version that does not use spacing?
 pack :: Mosaic a -> Tile a
 pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
-      fst $ k (x,y) $ cavityOfMosaic mosaic (w',h')
+      fst $ k (x,y) $ Cavity (0,0) (w',h') $ spacingInMosaic mosaic (w',h')
   where
 
     w = foldr spaceSize 0 $ map fst $ cavity

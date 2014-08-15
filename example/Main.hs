@@ -61,6 +61,12 @@ bulletSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
     li $ lorem
     pause
     li $ lorem
+    pause
+    li $ lorem
+    pause
+    li $ lorem
+    pause
+    li $ lorem
 
 orderedListSlide :: Slide ()
 orderedListSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
