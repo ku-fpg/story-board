@@ -234,7 +234,7 @@ renderProse alignment w ps_cxt ps = do
 
     proseTiles <- renderProse' ps_cxt ps
 
-    liftIO $ print ("proseTiles",proseTiles)
+--    liftIO $ print ("proseTiles",proseTiles)
     {-
     liftIO $ sequence_
             [ case v of
@@ -270,12 +270,12 @@ renderProse alignment w ps_cxt ps = do
         ]
 -}
 
-    liftIO $ print ("glyphs2",glyphs2)
+--    liftIO $ print ("glyphs2",glyphs2)
 
     let splits = splitLines w [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
 
 
-    liftIO $ print $ splits
+--    liftIO $ print $ splits
 
     -- now finally laydown the tiles
 
