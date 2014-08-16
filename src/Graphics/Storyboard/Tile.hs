@@ -118,3 +118,7 @@ instance Monoid a => Monoid (Tile a) where
       do r1 <- c1 ps sz
          r2 <- c2 ps sz -- overlay is the default monoid
          return (r1 `mappend` r2)
+
+
+mapTileAct :: (Act a -> Act b) -> Tile a -> Tile b
+mapTileAct f (Tile (w,h) g) = Tile (w,h) $ \ ps sz -> f (g ps sz)
