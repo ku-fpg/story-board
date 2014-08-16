@@ -12,13 +12,13 @@ import Graphics.Storyboard
 
 import Graphics.Storyboard.Act
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Box
 import Graphics.Storyboard.Types
 
 
 main :: IO ()
-main = storyBoard $
+main = storyBoard $ map brand
   [ haskell_code
-  , slide_background
   , titleSlide
   , alignSlide
   , bulletSlide
@@ -84,31 +84,44 @@ orderedListSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
     li $ lorem
     li $ lorem
 
+brand :: Slide () -> Slide ()
+brand slide = font "Gill Sans" $ do
+  img <- imageTile "KUlogo1C.png"
+  place right $ pack $ anchor bottom $ point bottom right $ img
+  t <- tileOfSlide (200,20) $ fontSize 10 $ p $ " \xa9" <> "2014 Andrew Gill" -- tiny
+  place bottom $ point bottom left $ t
+  margin 20 $ fontSize 20 $ slide
 
+{-
 slide_background :: Slide ()
-slide_background = margin 10 $ fontSize 16 $ do
-  (w,h) <- getCavitySize
-  draw (vbrace h <> hbrace w)
---  img <- imageTile "jhwk_LF_200px.gif"
+slide_background = do
+  img <- imageTile "KUlogo1C.png"
+  place right $ pack $ anchor bottom $ point bottom right $ img
 
-  lg <- bgLinear "yellow" "white"
-  table
-    [ tr [ background lg $
-            td $ font "sans-serif" $ align center $ p $ prose $ "X " ++ show (n,m)
-         | n <- [1..10], n <= m
-         ]
-    | m <- [1..10]
-    ]
-  ol $ do
-    li $ lorem
-    p $ lorem
-  indent $ frame $ do
-    p $ "Hello"
-    ul $ do
-      li $ lorem
-      p $ lorem
+  t <- tileOfSlide (200,20) $ do
+    fontSize 10 $ p $ " \xa9" <> "2014 Andrew Gill"  -- tiny
 
+  place bottom $ point bottom left $ t
+-}
 
+{-
+  t <- tileOfSlide (200,20) $ do
+    p $ " \xa9" <> "2014 Andrew Gill"
+    place bottom (box defaultBoxStyle t)
+
+  -- draw (vbrace h <> hbrace w)
+
+  img <- imageTile "KUlogo1C.png"
+  let img' = mapTileAct (\ act -> do
+              liftCanvas (save() >> globalAlpha 0.3)
+              () <- act
+              liftCanvas (restore())
+              return ()) img
+  place right (pack (anchor bottom img'))
+  t <- tileOfSlide (200,20) $ do
+    p $ " \xa9" <> "2014 Andrew Gill"
+  place bottom (box defaultBoxStyle t)
+-}
 haskell_code :: Slide ()
 haskell_code = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   txt <- liftIO $ readFile "example/Main.hs"
@@ -175,12 +188,6 @@ haskell_code = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
     border t4 ? left
 -}
 
-{-
-grd # addColorStop(0, "#8EA154")
--- dark blue
-grd # addColorStop(1, "#7D8E4B")
-
--}
 --  draw (gap bottom)
 
 ---  draw (gap left <> anchor bottom img)
@@ -227,3 +234,23 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
           when (n + 100 < w) $ do
             nextAnimationFrame $ loop (n+10)
     loop 0
+
+
+{-
+  lg <- bgLinear "yellow" "white"
+  table
+    [ tr [ background lg $
+            td $ font "sans-serif" $ align center $ p $ prose $ "X " ++ show (n,m)
+         | n <- [1..10], n <= m
+         ]
+    | m <- [1..10]
+    ]
+  ol $ do
+    li $ lorem
+    p $ lorem
+  indent $ frame $ do
+    p $ "Hello"
+    ul $ do
+      li $ lorem
+      p $ lorem
+-}
