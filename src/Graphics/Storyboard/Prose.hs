@@ -233,6 +233,8 @@ renderProse alignment w ps_cxt ps = do
     -- This function feels like it should be in a higher module
 
     proseTiles <- renderProse' ps_cxt ps
+
+    liftIO $ print ("proseTiles",proseTiles)
     {-
     liftIO $ sequence_
             [ case v of
@@ -242,6 +244,14 @@ renderProse alignment w ps_cxt ps = do
             ]
     -}
     let
+
+        fixNL (Left n:Left m:xs)
+            | alignment == left && isInfinite n
+            = fixNL (Left n:Right (blank (0,0)):Left m:xs)
+        fixNL (x:xs) = x : fixNL xs
+        fixNL [] = []
+
+        -- We Left for the width of spaces, and Right for tiles.
         findT (Left n:xs) ts = findS xs (ts,n)
         findT (Right t:xs) ts = findT xs (ts++[t])
         findT [] ts = [(ts,0)]
@@ -251,20 +261,21 @@ renderProse alignment w ps_cxt ps = do
         findS [] (ts,w) = [(ts,w)]
 
 
-    let glyphs2 :: [([Tile ()],Float)] = findT proseTiles []
+    let glyphs2 :: [([Tile ()],Float)] = findT (fixNL proseTiles) []
 {-
     liftIO $ putStrLn "----------------"
     liftIO $ sequence_
         [ print (map tileWidth ts,w)
         | (ts,w) <- glyphs2
         ]
-
-    liftIO $ print (w,[ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ])
 -}
+
+    liftIO $ print ("glyphs2",glyphs2)
+
     let splits = splitLines w [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
 
 
---    liftIO $ print $ splits
+    liftIO $ print $ splits
 
     -- now finally laydown the tiles
 
