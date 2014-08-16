@@ -313,8 +313,10 @@ subSlideShowr st (panel:panels) = do
           if eType event == "keypress"
           then return event
           else retry
-      --  print ("got key",event)
-        subSlideShowr st panels
+        print ("got key",event)
+        case eWhich event of
+          Just 98 -> slideShowr st { whichSlide = whichSlide st - 1 }
+          _ -> subSlideShowr st panels
 
 
 storyBoard :: [Slide ()] -> IO ()
