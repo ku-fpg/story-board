@@ -6,6 +6,7 @@ module Graphics.Storyboard.Prelude
   , imageTile
   , liftCanvas
   , keyPress
+  , bgLinear
   , PreludeEnv(..)
   ) where
 
@@ -151,6 +152,17 @@ imageTile filePath = liftCanvas $ do
            $ liftCanvas
            $ drawImage (img,[0,0])
            )
+
+------------------------------------------------------------------------
+
+bgLinear :: Text -> Text -> Prelude Background
+bgLinear c0 c1 = liftCanvas $ do
+  -- We normalize the gradient to 1x1, because we can then cache them
+  -- TODO: generalize to different directions
+  grd <- createLinearGradient(0, 0, 0, 1)
+  grd # addColorStop(0, c0)
+  grd # addColorStop(1, c1)
+  return $ Background grd
 
 ------------------------------------------------------------------------
 

@@ -2,6 +2,7 @@
 module Main where
 
 import Data.Monoid
+import Control.Monad
 import Control.Monad.IO.Class
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -90,8 +91,9 @@ slide_background = margin 10 $ fontSize 16 $ do
   draw (vbrace h <> hbrace w)
 --  img <- imageTile "jhwk_LF_200px.gif"
 
+  lg <- bgLinear "yellow" "white"
   table
-    [ tr [ background (LinearGradient "yellow" "white") $
+    [ tr [ background lg $
             td $ font "sans-serif" $ align center $ p $ prose $ "X " ++ show (n,m)
          | n <- [1..10], n <= m
          ]
@@ -108,11 +110,27 @@ slide_background = margin 10 $ fontSize 16 $ do
 
 
 haskell_code :: Slide ()
-haskell_code = do
+haskell_code = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   txt <- liftIO $ readFile "example/Main.hs"
---  liftIO $ print $ highlight haskellHighlightStyle txt
-  font "Courier New" $ fontSize 28 $ trueSpace $
-    p $ highlight haskellHighlightStyle (take 2000 txt)
+  liftIO $ print $ highlight defaultHighlightStyle
+                $ unlines
+                $ take 15
+                $ drop 100
+                $ map (take 72)
+                $ lines
+                $ txt
+
+
+  lg <- bgLinear "red" "blue"
+  font "Courier New" $ fontSize 28 $ trueSpace $ do
+    background lg $ frame $ margin 10 $ do
+      p $ highlight defaultHighlightStyle
+            $ unlines
+            $ take 15
+            $ drop 100
+            $ map (take 72)
+            $ lines
+            $ txt
 
 {-
 --  let ft = "monospace"
@@ -206,5 +224,6 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             lineWidth 1
             stroke()
             closePath()
-          nextAnimationFrame $ loop (n+1)
+          when (n + 100 < w) $ do
+            nextAnimationFrame $ loop (n+10)
     loop 0

@@ -18,7 +18,7 @@ import Graphics.Storyboard.Mosaic
 data TheBoxStyle = TheBoxStyle
   { theBorderWidth   :: Float
   , theBorderColor   :: Text
-  , theBackground    :: TheBackgroundStyle
+  , theBackground    :: Background
   , theShadowStyle   :: Maybe TheShadowStyle
   , theSharedBorders :: Set Side            -- ^ a shared border is straight, and perhaps offset
   } deriving Show
@@ -27,7 +27,7 @@ defaultBoxStyle :: TheBoxStyle
 defaultBoxStyle = TheBoxStyle
   { theBorderWidth   = 1
   , theBorderColor   = "black"
-  , theBackground    = Background "white"
+  , theBackground    = bgColor "white"
   , theShadowStyle   = Just defaultShadowStyle
   , theSharedBorders = Set.empty
   }
@@ -47,11 +47,13 @@ defaultShadowStyle  = TheShadowStyle
   , theShadowBlur    = 5
   }
 
+{-
 -- Later support LinearGradients
 data TheBackgroundStyle
   = Background Text
   | LinearGradient Text Text
   deriving Show
+-}
 
 class BoxStyle a where
   boxStyle :: (TheBoxStyle -> TheBoxStyle) -> a -> a
@@ -75,7 +77,7 @@ instance BackgroundStyle TheBoxStyle where
   backgroundStyle f a = f a
 -}
 
-background :: BoxStyle a => TheBackgroundStyle -> a -> a
+background :: BoxStyle a => Background -> a -> a
 background bg  = boxStyle $ \ m -> m { theBackground = bg }
 
 box :: TheBoxStyle -> Tile a -> Tile a
@@ -87,19 +89,15 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' -> do
 
   where
     wd = theBorderWidth st
-    Background bg = theBackground st
 
     before (x,y) (w',h') = liftCanvas $ saveRestore $ do
         translate (x,y)
         case theBackground st of
-          Background bg -> Blank.fillStyle bg
-          LinearGradient c0 c1 -> do
-            grd <- createLinearGradient(0, 0, 0, h')
-            grd # addColorStop(0, c0)
-            grd # addColorStop(1, c1)
-            Style.fillStyle grd
+          Background bg -> Style.fillStyle bg
+        -- Our backgrounds are scaled to ((0,0),(1,1))
+        scale(w',h')
         beginPath()
-        rect(0,0,w',h')
+        rect(0,0,1,1)
         closePath()
         lineWidth wd
         case theShadowStyle st of

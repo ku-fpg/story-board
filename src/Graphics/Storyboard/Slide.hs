@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
+{-# LANGUAGE KindSignatures, TupleSections, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
 module Graphics.Storyboard.Slide where
 {-
@@ -33,7 +33,9 @@ import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Box
 import Graphics.Storyboard.Prose
-import Graphics.Storyboard.Prelude as Prelude
+import qualified Graphics.Storyboard.Prelude as Prelude
+import Graphics.Storyboard.Prelude (Prelude,wordWidth)
+
 
 
 -----------------------------------------------------------------------------
@@ -259,3 +261,6 @@ trueSpace (Slide f) = Slide $ \ cxt st -> do
   let sz = theFontSize $ theProseStyle cxt
   w <- wordWidth (fontName $ theProseStyle cxt) " "
   f (wordSpacing (w / fromIntegral sz) cxt) st
+
+bgLinear :: Color -> Color -> Slide Background
+bgLinear c0 c1 = Slide $ \ _ st -> fmap (,st) $ Prelude.bgLinear c0 c1

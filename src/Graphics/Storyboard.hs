@@ -55,6 +55,9 @@ module Graphics.Storyboard
   , trueSpace
    -- * timing
   , pause
+   -- * colors
+  , bgLinear
+  , bgColor
   )
 
 
