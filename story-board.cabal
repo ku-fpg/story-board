@@ -19,11 +19,11 @@ library
   exposed-modules:
           Graphics.Storyboard
           Graphics.Storyboard.Act,
+          Graphics.Storyboard.Box,
           Graphics.Storyboard.Tile,
           Graphics.Storyboard.Types
   other-modules:
           Graphics.Storyboard.Bling,
-          Graphics.Storyboard.Box,
           Graphics.Storyboard.Highlight,
           Graphics.Storyboard.Images,
           Graphics.Storyboard.Layout,
