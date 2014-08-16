@@ -146,12 +146,8 @@ imageTile :: FilePath -> Prelude (Tile ())
 imageTile filePath = liftCanvas $ do
     url <- liftIO $ readDataURL (mimeTypes filePath) filePath
     img <- newImage url
-    return ( tile (width img, height img)
-           $ const
-           $ const
-           $ liftCanvas
-           $ drawImage (img,[0,0])
-           )
+    return $ tile (width img, height img) $ \ (x,y) (w,h) -> liftCanvas $ do
+            drawImage (img,[x,y])
 
 ------------------------------------------------------------------------
 
