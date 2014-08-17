@@ -52,12 +52,12 @@ data Spacing'
 
 data Mosaic a = Mosaic
   { mosaicSpace :: [(Spacing',Spacing')]
-  , runMosaic   :: Coord Float -> Cavity Float -> (Act a,Cavity Float)
+  , runMosaic   :: Coord Float -> Cavity Float -> (Act,Cavity Float)
   }
 
 instance Show (Mosaic a) where
   show m = "Mosaic" ++ show (mosaicSpace m)
-
+{-
 instance Functor Mosaic where
  fmap f m = pure f <*> m
 
@@ -68,12 +68,16 @@ instance Applicative Mosaic where
                      (x',sz2) = x ps sz1
                  in (f' <*> x', sz2)
 
-instance Semigroup a => Semigroup (Mosaic a) where
-  (<>) = liftA2 (<>)
+-}
+instance Semigroup (Mosaic a) where
+  Mosaic fs f <> Mosaic xs x = Mosaic (fs ++ xs) $ \ ps sz0 ->
+                let (f',sz1) = f ps sz0
+                    (x',sz2) = x ps sz1
+                in (f' <> x', sz2)
 
-instance Monoid a => Monoid (Mosaic a) where
-  mempty = pure mempty
-  mappend = liftA2 mappend
+instance Monoid (Mosaic a) where
+  mempty = Mosaic [] $ \ _ sz0 -> (mempty,sz0)
+  mappend = (<>)
 
 cavityMaxSize :: Mosaic a -> Size Float -> Size Float
 cavityMaxSize moz sz = (fst h,fst w)
@@ -111,10 +115,6 @@ blankMosaic (w,h) cavity =
 
 -----------------------------------------------------------------------------
 
-class Frame f where
-  anchor_ :: Side -> Tile a -> f a  -- will not work, a is in second stage
-  gap_ :: Side -> f ()
-
 infix 8 ?
 (?) ::Tile a -> Side -> Mosaic a
 (?) = flip anchor
@@ -141,15 +141,15 @@ anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
 
 gap :: Side -> Mosaic ()
 gap side = Mosaic [fillSpacing side] $
-    \ ps cavity -> (return (),newSpacingCavity side cavity)
+    \ ps cavity -> (mempty,newSpacingCavity side cavity)
 
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)
 vbrace :: Float -> Mosaic ()
-vbrace h = anchor left (tile (0,h) $ const $ const $ return ())
+vbrace h = anchor left (blank (0,h))
 
 hbrace :: Float -> Mosaic ()
-hbrace w = anchor top (tile (w,0) $ const $ const $ return ())
+hbrace w = anchor top (blank (w,0))
 
 column :: [Tile ()] -> Tile ()
 column = pack . mconcat . intersperse (gap left) . map (anchor left)

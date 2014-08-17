@@ -26,21 +26,20 @@ import Graphics.Blank
 -- The tile can choose to put any extra space on the inside or outside
 -- of any border, etc.
 
-data Tile a = Tile (Size Float) (Coord Float -> Size Float -> Act a)
+data Tile a = Tile (Size Float) (Coord Float -> Size Float -> Act)
 
 instance Show (Tile a) where
   show (Tile sz _) = show sz
 
-
-instance Functor Tile where
-  fmap f (Tile sz g) = Tile sz $ \ ps sz -> fmap f (g ps sz)
+--instance Functor Tile where
+--  fmap f (Tile sz g) = Tile sz $ \ ps sz -> fmap f (g ps sz)
 
 -- | tile requests a specific (minimum) size, and provides
 -- a paint routine that takes the *actual* size.
 -- The paint routine can assume the canvas starts at (0,0),
 -- and is the given size. No masking is done by default.
 
-tile :: Size Float -> (Coord Float -> Size Float -> Act a) -> Tile a
+tile :: Size Float -> (Coord Float -> Size Float -> Act) -> Tile a
 tile = Tile
 
 tileWidth :: Tile a -> Float
@@ -53,11 +52,11 @@ tileSize :: Tile a -> Size Float
 tileSize (Tile sz _) = sz
 
 blank :: Size Float -> Tile ()
-blank sz = tile sz $ const $ const $ return ()
+blank sz = tile sz $ const $ const $ mempty
 
 colorTile :: Text -> Size Float -> Tile ()
 colorTile col (w',h') = tile (w',h') $ \ (x,y) (w,h) -> do
-  liftCanvas $ saveRestore $ do
+  action $ saveRestore $ do
     translate (x,y)   -- required in all primitives
     globalAlpha 0.2
     beginPath()
@@ -108,17 +107,13 @@ nudge ver hor (Tile (w,h) f) = Tile (w,h) $ \ (x,y) (w',h') ->
 
 instance Semigroup a => Semigroup (Tile a) where
   (Tile (x1,y1) c1) <> (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ ps sz ->
-        do r1 <- c1 ps sz
-           r2 <- c2 ps sz -- overlay is the default monoid
-           return (r1 <> r2)
+        c1 ps sz <> c2 ps sz
 
 instance Monoid a => Monoid (Tile a) where
-  mempty = Tile (0,0) (\ _ _ -> return mempty)
+  mempty = Tile (0,0) (\ _ _ -> mempty)
   (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ ps sz ->
-      do r1 <- c1 ps sz
-         r2 <- c2 ps sz -- overlay is the default monoid
-         return (r1 `mappend` r2)
+      c1 ps sz `mappend` c2 ps sz
 
 
-mapTileAct :: (Act a -> Act b) -> Tile a -> Tile b
-mapTileAct f (Tile (w,h) g) = Tile (w,h) $ \ ps sz -> f (g ps sz)
+--mapTileAct :: (Act a -> Act b) -> Tile a -> Tile b
+--mapTileAct f (Tile (w,h) g) = Tile (w,h) $ \ ps sz -> f (g ps sz)

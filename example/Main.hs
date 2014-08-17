@@ -223,7 +223,7 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 actSlide :: Slide ()
 actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act"
-
+{-
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
     let loop n = do
           liftIO $ print n
@@ -239,7 +239,7 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
           when (n + 100 < w) $ do
             nextAnimationFrame $ loop (n+10)
     loop 0
-
+-}
 
 {-
   lg <- bgLinear "yellow" "white"

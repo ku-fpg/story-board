@@ -23,6 +23,7 @@ import System.Directory
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 
+import Graphics.Storyboard.Act
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Types
 import Data.List
@@ -146,7 +147,7 @@ wordWidth font_name txt = Prelude $ \ env -> do
 imageTile :: FilePath -> Prelude (Tile ())
 imageTile filePath = liftCanvas $ do
     img <- newImage ("/" <> pack filePath)
-    return $ tile (width img, height img) $ \ (x,y) (w,h) -> liftCanvas $ do
+    return $ tile (width img, height img) $ \ (x,y) (w,h) -> action $ do
             drawImage (img,[x,y])
 
 ------------------------------------------------------------------------

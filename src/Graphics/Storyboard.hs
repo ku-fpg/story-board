@@ -135,7 +135,7 @@ margin m inside = do
 hr :: Slide ()
 hr = do
   (_,w) <- getCavitySize
-  draw $ anchor top $ tile (w,2) $ \ (x,y) (w',h') -> liftCanvas $ do
+  draw $ anchor top $ tile (w,2) $ \ (x,y) (w',h') -> action $ do
           saveRestore $ do
               translate (x,y)
               beginPath()
@@ -293,24 +293,33 @@ slideShowr st = do
     putStrLn $ "profiling: Prelude for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
   subSlideShowr st $ reverse panels
 
-subSlideShowr :: StoryBoardState -> [Act ()] -> IO ()
+subSlideShowr :: StoryBoardState -> [Act] -> IO ()
 subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
 subSlideShowr st (panel:panels) = do
   tm0 <- getCurrentTime
   print ("subSlideShowr",length (panel:panels))
   let StoryBoardState slides n context debug = st
-  next <- send context $ do
-      ((),next) <- runAct panel
-      sync  -- or async?
-      return next
-  print (length next, "NEXT")
+  let acts = runAct panel
+
+  let innerLoop m [] = return (m,[])
+      innerLoop m (Action a:xs) = do
+        innerLoop (m >> a) xs
+
+  let outerLoop acts = do
+        (m,next) <- innerLoop (return ()) acts
+        send context $ do
+            m
+            sync
+        if null next
+        then return ()
+        else outerLoop next
+
+  outerLoop acts
   tm1 <- getCurrentTime
   --  print "waiting for key"
   when debug $ do
     putStrLn $ "profiling: Frame for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
-  case next of
-    [NextAnimationFrame act] -> subSlideShowr st (act:panels)
-    _ -> do
+  do
         event <- atomically $ do
           event <- readTChan (eventQueue context)
           if eType event == "keypress"
@@ -320,7 +329,6 @@ subSlideShowr st (panel:panels) = do
         case eWhich event of
           Just 98 -> slideShowr st { whichSlide = whichSlide st - 1 }
           _ -> subSlideShowr st panels
-
 
 storyBoard :: [Slide ()] -> IO ()
 storyBoard = blankCanvas 3000 { middleware = [], events = ["keypress"] }

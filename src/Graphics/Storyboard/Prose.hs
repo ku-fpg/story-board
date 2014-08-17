@@ -50,6 +50,7 @@ import Control.Monad.IO.Class
 
 import Data.String (IsString(fromString))
 
+import Graphics.Storyboard.Act
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
@@ -216,7 +217,7 @@ renderText st txt = do
     return $ tile (w,fromIntegral
                       $ ceiling
                       $ fromIntegral (theFontSize st) * (1 + theDescenderHeight st))
-           $ \ (x,y) _  -> liftCanvas $ saveRestore $ do
+           $ \ (x,y) _  -> action $ saveRestore $ do
       translate (x,y)
       Blank.font $ fontName st
       fillStyle (theColor st)
@@ -285,10 +286,10 @@ renderProse alignment w ps_cxt ps = do
               [ gap left | True <- [just `elem` [ center, right]]] ++
               [ mconcat [ anchor left $ tile | tile <- tiles ] <>
                 (if sp == 0
-                 then pure ()
+                 then mempty
                  else if just == justified
                       then gap left
-                      else anchor left $ tile (sp,0) $ const $ const $ return ()
+                      else anchor left $ blank (sp,0)
                 )
               | (tiles,sp) <- init xs ++ [(fst (last xs),0)]
               ] ++

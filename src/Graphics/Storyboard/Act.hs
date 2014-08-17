@@ -5,18 +5,31 @@ module Graphics.Storyboard.Act where
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
+import Data.Semigroup
 import Graphics.Blank
+
 
 import Graphics.Storyboard.Types
 
-newtype Act a = Act { runAct :: Canvas (a,[NextAct]) }
+newtype Act = Act { runAct :: [Action] }
 
-data NextAct where
-  NextAnimationFrame :: Act () -> NextAct
+data Action where
+  Action       :: Canvas ()        -> Action
+--  NextAnimationFrame :: Act -> NextAct
 
-nextAnimationFrame :: Act () -> Act ()
-nextAnimationFrame = Act .return . ((),) . (:[]) . NextAnimationFrame
+action :: Canvas () -> Act
+action = Act . (:[]) . Action
 
+instance Semigroup Act where
+  Act xs <> Act ys = Act (xs ++ ys)
+
+instance Monoid Act where
+  mempty = Act []
+  Act xs `mappend` Act ys = Act (xs ++ ys)
+
+--nextAnimationFrame :: Act () -> Act ()
+--nextAnimationFrame = Act .return . ((),) . (:[]) . NextAnimationFrame
+{-
 instance MonadCanvas Act where
   liftCanvas m = Act $ fmap (,[]) m
 
@@ -34,6 +47,12 @@ instance Monad Act where
       (r,nx2) <- runAct (k a)
       return (r,nx1 ++ nx2)
 
-
 instance MonadIO Act where
     liftIO = Act . fmap (,[]) . liftIO
+-}
+
+
+-- replay :: (Int,Int) -> (Int -> Canvas ()) -> Act
+-- act    :: Canvas () -> Act
+-- react  :: Queue a -> (a -> Canvas ()) -> Act
+-- listen :: IO a -> Queue a -> Act          -- listen for mouse or keyboard

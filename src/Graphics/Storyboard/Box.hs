@@ -9,6 +9,7 @@ import qualified Data.Set as Set
 import Graphics.Blank as Blank
 import qualified Graphics.Blank.Style as Style
 
+import Graphics.Storyboard.Act
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Types
@@ -81,16 +82,15 @@ background :: BoxStyle a => Background -> a -> a
 background bg  = boxStyle $ \ m -> m { theBackground = bg }
 
 box :: TheBoxStyle -> Tile a -> Tile a
-box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' -> do
-    before ps' sz'
-    r <- during ps' sz'
-    after ps' sz'
-    return r
+box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' ->
+    action (before ps' sz') <>
+    during ps' sz'          <>
+    action (after ps' sz')
 
   where
     wd = theBorderWidth st
 
-    before (x,y) (w',h') = liftCanvas $ saveRestore $ do
+    before (x,y) (w',h') = saveRestore $ do
         translate (x,y)
         case theBackground st of
           Background bg -> Style.fillStyle bg
@@ -110,7 +110,7 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' -> do
         fill()
     during (x,y) (w',h') =
         act (x+wd,y+wd) (w' - wd * 2,h' - wd * 2)
-    after (x,y) (w',h') = liftCanvas $ saveRestore $ do
+    after (x,y) (w',h') = saveRestore $ do
         translate (x,y)
         beginPath()
         rect(0,0,w',h')
