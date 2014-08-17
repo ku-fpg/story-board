@@ -223,23 +223,18 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 actSlide :: Slide ()
 actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act"
-{-
+
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
-    let loop n = do
-          liftIO $ print n
-          liftCanvas $ saveRestore $ do
+    replay (0,100) $ \ n ->
+          saveRestore $ do
             translate(x,y)
             clearRect(0,0,w,h)
             beginPath()
-            rect(1,1,w-(n+2),h-2)
+            rect(1,1,w-(fromIntegral n*10+2),h-2)
             strokeStyle "red"
             lineWidth 1
             stroke()
             closePath()
-          when (n + 100 < w) $ do
-            nextAnimationFrame $ loop (n+10)
-    loop 0
--}
 
 {-
   lg <- bgLinear "yellow" "white"

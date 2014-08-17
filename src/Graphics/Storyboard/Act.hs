@@ -15,10 +15,13 @@ newtype Act = Act { runAct :: [Action] }
 
 data Action where
   Action       :: Canvas ()        -> Action
---  NextAnimationFrame :: Act -> NextAct
+  Replay       :: (Int,Int) -> (Int -> Canvas ()) -> Action
 
 action :: Canvas () -> Act
 action = Act . (:[]) . Action
+
+replay       :: (Int,Int) -> (Int -> Canvas ()) -> Act
+replay (start,end) k = Act $ (:[]) $  Replay (start,end) k
 
 instance Semigroup Act where
   Act xs <> Act ys = Act (xs ++ ys)

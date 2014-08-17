@@ -301,20 +301,29 @@ subSlideShowr st (panel:panels) = do
   let StoryBoardState slides n context debug = st
   let acts = runAct panel
 
-  let innerLoop m [] = return (m,[])
-      innerLoop m (Action a:xs) = do
-        innerLoop (m >> a) xs
+  let innerLoop n m [] = return (m,[])
+      innerLoop n m (Action a:xs) = do
+        innerLoop n (m >> a) xs
 
-  let outerLoop acts = do
-        (m,next) <- innerLoop (return ()) acts
+      innerLoop n m (r@(Replay (start,end) k):xs) = do
+        let m' = if n >= start && n <= end
+              then m >> k n
+              else m
+        (m'',ys) <- innerLoop n m' xs
+        return (m'',if n >= end
+                   then ys
+                   else r : ys)
+
+  let outerLoop n acts = do
+        (m,next) <- innerLoop n (return ()) acts
         send context $ do
             m
             sync
         if null next
         then return ()
-        else outerLoop next
+        else outerLoop (n+1) next
 
-  outerLoop acts
+  outerLoop 0 acts
   tm1 <- getCurrentTime
   --  print "waiting for key"
   when debug $ do
