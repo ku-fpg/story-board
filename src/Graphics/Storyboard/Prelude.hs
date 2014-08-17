@@ -12,7 +12,8 @@ module Graphics.Storyboard.Prelude
 
 import Control.Applicative
 import Control.Monad.IO.Class
-import Data.Text(Text)
+import Data.Text(Text,pack)
+import Data.Monoid((<>))
 import Graphics.Blank as Blank
 import Control.Applicative
 import Control.Monad
@@ -144,8 +145,7 @@ wordWidth font_name txt = Prelude $ \ env -> do
 -- the same answer for *every* call.
 imageTile :: FilePath -> Prelude (Tile ())
 imageTile filePath = liftCanvas $ do
-    url <- liftIO $ readDataURL (mimeTypes filePath) filePath
-    img <- newImage url
+    img <- newImage ("/" <> pack filePath)
     return $ tile (width img, height img) $ \ (x,y) (w,h) -> liftCanvas $ do
             drawImage (img,[x,y])
 
