@@ -20,12 +20,20 @@ main :: IO ()
 main = storyBoard $ map brand
   [ haskell_code
   , titleSlide
+  , bigBackground
   , alignSlide
   , bulletSlide
   , orderedListSlide
   , actSlide
   ]
 
+brand :: Slide () -> Slide ()
+brand slide = font "Gill Sans" $ do
+  img <- imageTile "KUlogo1C.png"
+  place right $ pack $ anchor bottom $ point bottom right $ img
+  t <- tileOfSlide (200,20) $ fontSize 10 $ p $ " \xa9" <> "2014 Andrew Gill" -- tiny
+  place bottom $ point bottom left $ t
+  margin 20 $ fontSize 20 $ slide
 
 titleSlide :: Slide ()
 titleSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ align center $ do
@@ -39,6 +47,11 @@ titleSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ align center $ do
   vspace 100
   fontSize 18 $ p $ "\xa9" <+> "2014 Andrew Gill"
 
+
+bigBackground :: Slide ()
+bigBackground = do
+  img <- imageTile "KU.png"
+  place left $ point top left $ img
 
 lorem :: Prose
 lorem =
@@ -83,14 +96,6 @@ orderedListSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
     li $ lorem
     li $ lorem
     li $ lorem
-
-brand :: Slide () -> Slide ()
-brand slide = font "Gill Sans" $ do
-  img <- imageTile "KUlogo1C.png"
-  place right $ pack $ anchor bottom $ point bottom right $ img
-  t <- tileOfSlide (200,20) $ fontSize 10 $ p $ " \xa9" <> "2014 Andrew Gill" -- tiny
-  place bottom $ point bottom left $ t
-  margin 20 $ fontSize 20 $ slide
 
 {-
 slide_background :: Slide ()
