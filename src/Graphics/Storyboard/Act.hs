@@ -1,27 +1,32 @@
-{-# LANGUAGE KindSignatures, TupleSections, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
+{-# LANGUAGE KindSignatures, TupleSections, GADTs,
+     GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
 module Graphics.Storyboard.Act where
 
 import Control.Applicative
+import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Semigroup
 import Graphics.Blank
-
 
 import Graphics.Storyboard.Types
 
 newtype Act = Act { runAct :: [Action] }
 
 data Action where
-  Action       :: Canvas ()        -> Action
-  Replay       :: (Int,Int) -> (Int -> Canvas ()) -> Action
+  Action       :: Canvas ()                      -> Action
+  Replay       :: Float -> (Float -> Canvas ())  -> Action
+  Listen       :: STM a -> Queue a               -> Action
 
 action :: Canvas () -> Act
 action = Act . (:[]) . Action
 
-replay       :: (Int,Int) -> (Int -> Canvas ()) -> Act
-replay (start,end) k = Act $ (:[]) $  Replay (start,end) k
+replay       :: Float -> (Float -> Canvas ()) -> Act
+replay dur k = Act $ (:[]) $  Replay dur k
+
+listen :: STM a -> Queue a -> Act          -- listen for mouse or keyboard
+listen stm q = Act $ (:[]) $  Listen stm q
 
 instance Semigroup Act where
   Act xs <> Act ys = Act (xs ++ ys)
@@ -30,29 +35,14 @@ instance Monoid Act where
   mempty = Act []
   Act xs `mappend` Act ys = Act (xs ++ ys)
 
---nextAnimationFrame :: Act () -> Act ()
---nextAnimationFrame = Act .return . ((),) . (:[]) . NextAnimationFrame
-{-
-instance MonadCanvas Act where
-  liftCanvas m = Act $ fmap (,[]) m
+-----------------------------------------------------------------
 
-instance Functor Act where
- fmap f m = pure f <*> m
+-- The actor's queue.
 
-instance Applicative Act where
-  pure = return
-  f <*> a = liftM2 ($) f a
+data Queue a = Queue { theQueue :: TVar (Maybe a) }
 
-instance Monad Act where
-  return = Act . return . (,[])
-  Act m >>= k = Act $ do
-      (a,nx1) <- m
-      (r,nx2) <- runAct (k a)
-      return (r,nx1 ++ nx2)
-
-instance MonadIO Act where
-    liftIO = Act . fmap (,[]) . liftIO
--}
+newQueue :: IO (Queue a)
+newQueue = atomically $ fmap Queue $ newTVar $ Nothing
 
 
 -- replay :: (Int,Int) -> (Int -> Canvas ()) -> Act

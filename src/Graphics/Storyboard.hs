@@ -273,6 +273,13 @@ data StoryBoardState = StoryBoardState
   , profiling         :: Bool     -- ^ do you output profiling information
   }
 
+storyBoard :: [Slide ()] -> IO ()
+storyBoard = blankCanvas 3000 { middleware = [], events = ["keypress"] }
+           . blankCanvasStoryBoard
+
+main :: IO ()
+main = storyBoard [example3]
+
 -- Never finishes
 slideShowr :: StoryBoardState -> IO ()
 slideShowr st = do
@@ -293,6 +300,13 @@ slideShowr st = do
     putStrLn $ "profiling: Prelude for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
   subSlideShowr st $ reverse panels
 
+data FrameState = FrameState
+  { todo :: [Action]       -- things to try every iteration
+  }
+
+
+
+
 subSlideShowr :: StoryBoardState -> [Act] -> IO ()
 subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
 subSlideShowr st (panel:panels) = do
@@ -305,8 +319,8 @@ subSlideShowr st (panel:panels) = do
       innerLoop n m (Action a:xs) = do
         innerLoop n (m >> a) xs
 
-      innerLoop n m (r@(Replay (start,end) k):xs) = do
-        let m' = if n >= start && n <= end
+      innerLoop n m (r@(Replay end k):xs) = do
+        let m' = if n <= end
               then m >> k n
               else m
         (m'',ys) <- innerLoop n m' xs
@@ -314,16 +328,32 @@ subSlideShowr st (panel:panels) = do
                    then ys
                    else r : ys)
 
-  let outerLoop n acts = do
-        (m,next) <- innerLoop n (return ()) acts
+  let outerLoop tm0 acts = do
+        tm1 <- getCurrentTime
+        let diff :: Float = realToFrac (diffUTCTime tm1 tm0)
+        (m,next) <- innerLoop diff (return ()) acts
         send context $ do
             m
-            sync
+            async
         if null next
         then return ()
-        else outerLoop (n+1) next
+        else do d <- registerDelay (10 * 1000)
+                let ev = do
+                       event <- readTChan (eventQueue context)
+                       if eType event == "keypress"
+                         then return (Just event)
+                         else retry
+                let pz = do
+                        b <- readTVar d
+                        if b then return Nothing
+                             else retry
+                rz <- atomically $ ev `orElse` pz
+                case rz of
+                  Just _ -> return ()
+                  Nothing -> outerLoop tm0 next
 
-  outerLoop 0 acts
+  start_tm <- getCurrentTime
+  outerLoop start_tm acts
   tm1 <- getCurrentTime
   --  print "waiting for key"
   when debug $ do
@@ -338,10 +368,3 @@ subSlideShowr st (panel:panels) = do
         case eWhich event of
           Just 98 -> slideShowr st { whichSlide = whichSlide st - 1 }
           _ -> subSlideShowr st panels
-
-storyBoard :: [Slide ()] -> IO ()
-storyBoard = blankCanvas 3000 { middleware = [], events = ["keypress"] }
-           . blankCanvasStoryBoard
-
-main :: IO ()
-main = storyBoard [example3]
