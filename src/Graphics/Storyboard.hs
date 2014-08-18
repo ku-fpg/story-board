@@ -320,10 +320,8 @@ subSlideShowr st (panel:panels) = do
         innerLoop n (m >> a) xs
 
       innerLoop n m (r@(Replay end k):xs) = do
-        let m' = if n <= end
-              then m >> k n
-              else m
-        (m'',ys) <- innerLoop n m' xs
+        -- Will always end with 'end'
+        (m'',ys) <- innerLoop n (m >> k (min end n)) xs
         return (m'',if n >= end
                    then ys
                    else r : ys)
