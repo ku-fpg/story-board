@@ -16,27 +16,40 @@ import Graphics.Storyboard.Types
 
 data Act where
     -- | the bool signifies the finality of the drawing; False = more to draw
-  Action       :: Canvas Bool              -> Act
---  Replay       :: Float -> (Float -> Canvas ())  -> Act
-  OnEvent      :: Event a -> (a -> Act)    -> Act
-  Acts         :: Act -> Act               -> Act
-  NoAct        ::                             Act
+  Act     :: Canvas ()                     -> Act
+  OnEvent :: Event a -> (a -> Canvas Bool) -> Act
+  Acts    :: Act -> Act                    -> Act
+  NoAct   ::                                   Act
 
 -- return True if you are finished.
-animation :: Canvas Bool -> Act
-animation = Action
+--animation :: Canvas Bool -> Act
+--animation = Action
 
+-- TODO: change to act
 action :: Canvas () -> Act
-action = animation . fmap (const True)
+action = Act
+
+onEvent :: Event a -> (a -> Canvas Bool) -> Act
+onEvent = OnEvent
+
 
 --onEvent :: Canvas a -> Act (a -> Act a)
 
 --  Listen       :: STM a -> Event a               -> Action
 
+runFirstAct :: Act -> Canvas ()
+runFirstAct (Act m)      = m
+runFirstAct (OnEvent Now k) = return ()
+runFirstAct (Acts a1 a2) = do
+  runFirstAct a1
+  runFirstAct a2
+runFirstAct NoAct = return ()
+
+
 -- run the Act; return True if you are finished
 runAct :: Float -> Act -> Canvas Bool
-runAct t (Action m)     = m
-runAct t (OnEvent Now k) = runAct t (k t)
+runAct t (Act m)         = return True
+runAct t (OnEvent Now k) = k t
 runAct t (Acts a1 a2) = do
   r1 <- runAct t a1
   r2 <- runAct t a2
@@ -47,9 +60,6 @@ runAct t NoAct = return True
 
 --replay       :: Float -> (Float -> Canvas ()) -> Act
 --replay dur k = Replay dur k
-
-onEvent :: Event a -> (a -> Act) -> Act
-onEvent = OnEvent
 
 done :: Float -> Act
 done = undefined
@@ -71,13 +81,13 @@ instance Monoid Act where
 
 data Event :: * -> * where
   Event :: TVar (Maybe a) -> Event a
-  Now   ::                   Event Float
+  Now   ::               Event Float
 
 now :: Event Float
 now = Now
 
-newEvent :: IO (Event a)
-newEvent = atomically $ fmap Event $ newTVar $ Nothing
+newEvent :: a -> IO (Event a)
+newEvent _ = atomically $ fmap Event $ newTVar $ Nothing
 
 
 -- replay :: (Int,Int) -> (Int -> Canvas ()) -> Act

@@ -306,8 +306,6 @@ subSlideShowr st (panel:panels) = do
   tm0 <- getCurrentTime
   print ("subSlideShowr",length (panel:panels))
   let StoryBoardState slides n context debug = st
-  let acts = panel
-
 {-
   let innerLoop n m [] = return (m,[])
       innerLoop n m (act:xs) = do
@@ -345,7 +343,10 @@ subSlideShowr st (panel:panels) = do
                   Nothing -> outerLoop tm0 acts
 
   start_tm <- getCurrentTime
-  outerLoop start_tm acts
+  send context $ do
+            runFirstAct panel
+            runAct 0 panel
+  outerLoop start_tm panel
   tm1 <- getCurrentTime
   --  print "waiting for key"
   when debug $ do

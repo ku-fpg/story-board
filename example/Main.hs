@@ -225,7 +225,7 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act"
 
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
-    onEvent now $ \ n -> animation $ do
+    onEvent now $ \ n -> do
           let n' = min n 1
           saveRestore $ do
             translate(x,y)
@@ -236,7 +236,44 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             lineWidth 1
             stroke()
             closePath()
-            return True -- (n >= 1)
+            return (n >= 1)
+
+  slider <- liftIO $ newEvent 0
+
+{-
+  place top $ tile (500,50) $ \ (x,y) (w,h) -> do
+
+    let bar = do
+          beginPath()
+          moveTo(25,25)
+          lineTo(500 - 25,25)
+          strokeStyle "blue"
+          stroke()
+          closePath()
+
+    action $ do
+        translate(x,y)
+        clearRect(0,0,w,h)
+        bar
+
+    onEvent slider $ \ n -> do
+          let n' = min n 1
+          translate(x,y)
+          clearRect(0,0,w,h)
+          bar
+          saveRestore $ do
+            translate(x,y)
+            clearRect(0,0,w,h)
+            beginPath()
+            rect(1,1,w-(n'*1000+2),h-2)
+            strokeStyle "red"
+            lineWidth 1
+            stroke()
+            closePath()
+            return (n >= 1)
+-}
+  return ()
+
 
 {-
   lg <- bgLinear "yellow" "white"
