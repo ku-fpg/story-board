@@ -300,40 +300,34 @@ slideShowr st = do
     putStrLn $ "profiling: Prelude for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
   subSlideShowr st $ reverse panels
 
-data FrameState = FrameState
-  { todo :: [Action]       -- things to try every iteration
-  }
-
-
-
-
 subSlideShowr :: StoryBoardState -> [Act] -> IO ()
 subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
 subSlideShowr st (panel:panels) = do
   tm0 <- getCurrentTime
   print ("subSlideShowr",length (panel:panels))
   let StoryBoardState slides n context debug = st
-  let acts = runAct panel
+  let acts = panel
 
+{-
   let innerLoop n m [] = return (m,[])
-      innerLoop n m (Action a:xs) = do
+      innerLoop n m (act:xs) = do
+
         innerLoop n (m >> a) xs
 
       innerLoop n m (r@(Replay end k):xs) = do
+        print n
         -- Will always end with 'end'
         (m'',ys) <- innerLoop n (m >> k (min end n)) xs
         return (m'',if n >= end
                    then ys
                    else r : ys)
+-}
 
   let outerLoop tm0 acts = do
         tm1 <- getCurrentTime
         let diff :: Float = realToFrac (diffUTCTime tm1 tm0)
-        (m,next) <- innerLoop diff (return ()) acts
-        send context $ do
-            m
-            async
-        if null next
+        done <- send context $ runAct diff acts
+        if done
         then return ()
         else do d <- registerDelay (10 * 1000)
                 let ev = do
@@ -348,7 +342,7 @@ subSlideShowr st (panel:panels) = do
                 rz <- atomically $ ev `orElse` pz
                 case rz of
                   Just _ -> return ()
-                  Nothing -> outerLoop tm0 next
+                  Nothing -> outerLoop tm0 acts
 
   start_tm <- getCurrentTime
   outerLoop start_tm acts

@@ -17,7 +17,7 @@ import Graphics.Storyboard.Types
 
 
 main :: IO ()
-main = storyBoard $ map brand
+main = storyBoard $ map brand $ drop 0
   [ haskell_code
   , titleSlide
   , bigBackground
@@ -225,16 +225,18 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act"
 
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
-    replay 1 $ \ n ->
+    onEvent now $ \ n -> animation $ do
+          let n' = min n 1
           saveRestore $ do
             translate(x,y)
             clearRect(0,0,w,h)
             beginPath()
-            rect(1,1,w-(n*1000+2),h-2)
+            rect(1,1,w-(n'*1000+2),h-2)
             strokeStyle "red"
             lineWidth 1
             stroke()
             closePath()
+            return True -- (n >= 1)
 
 {-
   lg <- bgLinear "yellow" "white"
