@@ -55,9 +55,12 @@ module Graphics.Storyboard
   , trueSpace
    -- * timing
   , pause
+  , theClock
    -- * colors
   , bgLinear
   , bgColor
+  -- * Other
+  , askSlideStyle
   )
 
 
@@ -286,9 +289,10 @@ slideShowr st = do
   tm0 <- getCurrentTime
   let StoryBoardState slides n context debug = st
   print ("slideShowr",n)
+  clk <- newBehavior 0
+  let cxt = defaultSlideStyle clk (width context,height context)
+  let st0 = defaultSlideState (fullSize cxt)
   panels <- send context $ do
-    let cxt = defaultSlideStyle (width context,height context)
-    let st0 = defaultSlideState (fullSize cxt)
     clearCanvas
     (_,st1) <- Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) (eventQueue context)
     sequence [ let Tile (w,h) m = pack moz
@@ -298,11 +302,11 @@ slideShowr st = do
   tm1 <- getCurrentTime
   when debug $ do
     putStrLn $ "profiling: Prelude for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
-  subSlideShowr st $ reverse panels
+  subSlideShowr st clk $ reverse panels
 
-subSlideShowr :: StoryBoardState -> [Act] -> IO ()
-subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
-subSlideShowr st (panel:panels) = do
+subSlideShowr :: StoryBoardState -> Behavior Float -> [Act] -> IO ()
+subSlideShowr st _ [] = slideShowr st { whichSlide = whichSlide st + 1 }
+subSlideShowr st clk (panel:panels) = do
   tm0 <- getCurrentTime
   print ("subSlideShowr",length (panel:panels))
   let StoryBoardState slides n context debug = st
@@ -324,7 +328,8 @@ subSlideShowr st (panel:panels) = do
   let outerLoop tm0 acts = do
         tm1 <- getCurrentTime
         let diff :: Float = realToFrac (diffUTCTime tm1 tm0)
-        done <- send context $ runAct diff acts
+        atomically $ setBehavior clk diff   -- set global timer
+        done <- send context $ runAct acts
         if done
         then return ()
         else do d <- registerDelay (10 * 1000)
@@ -343,9 +348,10 @@ subSlideShowr st (panel:panels) = do
                   Nothing -> outerLoop tm0 acts
 
   start_tm <- getCurrentTime
+  atomically $ setBehavior clk 0
   send context $ do
             runFirstAct panel
-            runAct 0 panel
+            runAct panel
   outerLoop start_tm panel
   tm1 <- getCurrentTime
   --  print "waiting for key"
@@ -360,4 +366,4 @@ subSlideShowr st (panel:panels) = do
         print ("got key",event)
         case eWhich event of
           Just 98 -> slideShowr st { whichSlide = whichSlide st - 1 }
-          _ -> subSlideShowr st panels
+          _ -> subSlideShowr st clk panels

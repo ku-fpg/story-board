@@ -17,7 +17,7 @@ import Graphics.Storyboard.Types
 data Act where
     -- | the bool signifies the finality of the drawing; False = more to draw
   Act     :: Canvas ()                     -> Act
-  OnEvent :: Event a -> (a -> Canvas Bool) -> Act
+  OnEvent :: Behavior a -> (a -> Canvas Bool) -> Act
   Acts    :: Act -> Act                    -> Act
   NoAct   ::                                   Act
 
@@ -29,7 +29,7 @@ data Act where
 action :: Canvas () -> Act
 action = Act
 
-onEvent :: Event a -> (a -> Canvas Bool) -> Act
+onEvent :: Behavior a -> (a -> Canvas Bool) -> Act
 onEvent = OnEvent
 
 
@@ -39,7 +39,7 @@ onEvent = OnEvent
 
 runFirstAct :: Act -> Canvas ()
 runFirstAct (Act m)      = m
-runFirstAct (OnEvent Now k) = return ()
+runFirstAct (OnEvent _ k) = return ()
 runFirstAct (Acts a1 a2) = do
   runFirstAct a1
   runFirstAct a2
@@ -47,14 +47,16 @@ runFirstAct NoAct = return ()
 
 
 -- run the Act; return True if you are finished
-runAct :: Float -> Act -> Canvas Bool
-runAct t (Act m)         = return True
-runAct t (OnEvent Now k) = k t
-runAct t (Acts a1 a2) = do
-  r1 <- runAct t a1
-  r2 <- runAct t a2
+runAct :: Act -> Canvas Bool
+runAct (Act m)         = return True
+runAct (OnEvent (Behavior b) k) = do
+      t <- liftIO $ atomically $ readTVar b
+      k t
+runAct (Acts a1 a2) = do
+  r1 <- runAct a1
+  r2 <- runAct a2
   return $ r1 && r2
-runAct t NoAct = return True
+runAct NoAct = return True
 
 --actAct ::
 
@@ -79,16 +81,22 @@ instance Monoid Act where
 
 -- The actor's queue.
 
-data Event :: * -> * where
-  Event :: TVar (Maybe a) -> Event a
-  Now   ::               Event Float
+data Behavior :: * -> * where
+  Behavior :: TVar a -> Behavior a
+--  Now   ::              Event Float
 
-now :: Event Float
-now = Now
+--now :: Behavior Float
+--now = Now
 
-newEvent :: a -> IO (Event a)
-newEvent _ = atomically $ fmap Event $ newTVar $ Nothing
+newBehavior :: a -> IO (Behavior a)
+newBehavior = atomically . fmap Behavior . newTVar
 
+instance Show (Behavior a) where
+  show _ = "Behavior{}a"
+
+
+setBehavior :: Behavior a -> a -> STM ()
+setBehavior (Behavior v) = writeTVar v
 
 -- replay :: (Int,Int) -> (Int -> Canvas ()) -> Act
 -- act    :: Canvas () -> Act

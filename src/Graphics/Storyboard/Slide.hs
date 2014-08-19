@@ -25,6 +25,7 @@ import Control.Concurrent as Concurrent
 
 import GHC.Exts (IsString(fromString))
 
+import Graphics.Storyboard.Act (Behavior)
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Paragraph
@@ -49,6 +50,7 @@ data TheSlideStyle = TheSlideStyle
   , fullSize            :: Size Float
   , theSlideNumber      :: Int
   , theLastSlide        :: Int
+  , theClock            :: Behavior Float
   }
   deriving Show
 
@@ -60,8 +62,8 @@ instance Show BulletFactory where
   show _ = "BulletFactory{}"
 
 
-defaultSlideStyle :: Size Float -> TheSlideStyle
-defaultSlideStyle sz = TheSlideStyle
+defaultSlideStyle :: Behavior Float -> Size Float -> TheSlideStyle
+defaultSlideStyle clk sz = TheSlideStyle
   { theProseStyle     = defaultProseStyle
   , theParagraphStyle = defaultParagraphStyle
   , theBoxStyle       = defaultBoxStyle
@@ -71,6 +73,7 @@ defaultSlideStyle sz = TheSlideStyle
   , fullSize          = sz
   , theSlideNumber    = 0
   , theLastSlide      = 0
+  , theClock          = clk
   }
 
 defaultBulletFactory :: BulletFactory

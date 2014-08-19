@@ -5,6 +5,7 @@ import Data.Monoid
 import Control.Monad
 import Control.Monad.IO.Class
 import Data.Text (Text)
+import Control.Applicative
 import qualified Data.Text as Text
 import Graphics.Blank hiding (font)
 
@@ -223,22 +224,22 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 actSlide :: Slide ()
 actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act"
-
+  clk <- theClock <$> askSlideStyle
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
-    onEvent now $ \ n -> do
+    onEvent clk $ \ n -> do
           let n' = min n 1
           saveRestore $ do
             translate(x,y)
             clearRect(0,0,w,h)
             beginPath()
-            rect(1,1,w-(n'*1000+2),h-2)
+            rect(1,1,w-(n'*1000+2),sin n' * 100 + h-2)
             strokeStyle "red"
             lineWidth 1
             stroke()
             closePath()
             return (n >= 1)
 
-  slider <- liftIO $ newEvent 0
+  slider <- liftIO $ newBehavior 0
 
 {-
   place top $ tile (500,50) $ \ (x,y) (w,h) -> do
