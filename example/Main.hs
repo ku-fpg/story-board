@@ -226,7 +226,7 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act"
   clk <- theClock <$> askSlideStyle
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
-    onEvent clk $ \ n -> do
+    actOnBehavior clk $ \ n -> do
           let n' = min n 1
           saveRestore $ do
             translate(x,y)

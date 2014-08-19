@@ -342,7 +342,9 @@ subSlideShowr st clk (panel:panels) = do
                         b <- readTVar d
                         if b then return Nothing
                              else retry
-                rz <- atomically $ ev `orElse` pz
+                let lz = runListen acts >> return Nothing
+
+                rz <- atomically $ ev `orElse` pz `orElse` lz
                 case rz of
                   Just _ -> return ()
                   Nothing -> outerLoop tm0 acts

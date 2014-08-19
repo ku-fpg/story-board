@@ -18,6 +18,8 @@ data Act where
     -- | the bool signifies the finality of the drawing; False = more to draw
   Act     :: Canvas ()                     -> Act
   OnEvent :: Behavior a -> (a -> Canvas Bool) -> Act
+  Listen  :: STM a -> Behavior a         -> Act
+
   Acts    :: Act -> Act                    -> Act
   NoAct   ::                                   Act
 
@@ -29,9 +31,12 @@ data Act where
 action :: Canvas () -> Act
 action = Act
 
-onEvent :: Behavior a -> (a -> Canvas Bool) -> Act
-onEvent = OnEvent
+actOnBehavior :: Behavior a -> (a -> Canvas Bool) -> Act
+actOnBehavior = OnEvent
 
+
+listen :: STM a -> Behavior a -> Act
+listen = Listen
 
 --onEvent :: Canvas a -> Act (a -> Act a)
 
@@ -47,6 +52,8 @@ runFirstAct NoAct = return ()
 
 
 -- run the Act; return True if you are finished
+-- Still considering threading time through here.
+-- it will allow a isClocked :: Act -> Bool function.
 runAct :: Act -> Canvas Bool
 runAct (Act m)         = return True
 runAct (OnEvent (Behavior b) k) = do
@@ -57,6 +64,15 @@ runAct (Acts a1 a2) = do
   r2 <- runAct a2
   return $ r1 && r2
 runAct NoAct = return True
+
+
+-- This STM only succeeds if one of STM succeeded
+runListen :: Act -> STM ()
+runListen (Act m) = return ()
+runListen (OnEvent _ k) = return ()
+runListen (Listen m v) = m >>= setBehavior v
+runListen (Acts a1 a2) = runListen a1 `orElse` runListen a2
+runListen NoAct = return ()
 
 --actAct ::
 
