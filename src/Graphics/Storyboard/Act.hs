@@ -126,11 +126,8 @@ type Timestamp = Int
 type Historic a = (a,Timestamp,a)
 
 data Behavior :: * -> * where
-  Behavior :: TVar (a,Timestamp,a)
-           -> (TheBehaviorEnv -> STM a)
+  Behavior :: (TheBehaviorEnv -> STM a)
            -> Behavior a
-  PureB     :: a -> Behavior a
-  AppB      :: Behavior (a -> b) -> Behavior a -> Behavior b
   TimerB    :: Behavior Float
   EventB    :: Behavior (Maybe Blank.Event)
 
@@ -141,17 +138,9 @@ eventB    :: Behavior (Maybe Blank.Event)
 eventB = EventB
 
 evalBehavior ::TheBehaviorEnv -> Behavior a -> STM a
-evalBehavior env (Behavior var fn) = do
-  history@(new,clk,old) <- readTVar var
-  if clk + 1 == theTimestamp env
-  then do
-    newest <- fn env
-    writeTVar var (newest,clk + 1,new)
-    return newest
-  else return $ evalHistoric env history
-
-evalBehavior env (PureB a) = return a
-evalBehavior env (AppB f a) = evalBehavior env f <*> evalBehavior env a
+evalBehavior env (Behavior fn) = fn env
+--evalBehavior env (PureB a) = return a
+--evalBehavior env (AppB f a) = evalBehavior env f <*> evalBehavior env a
 evalBehavior env TimerB = return $ evalHistoric env (theTimer env)
 evalBehavior env EventB = return $ evalHistoric env (theEvent env)
 
@@ -168,57 +157,22 @@ instance Functor Behavior where
   fmap f b = pure f <*> b
 
 instance Applicative Behavior where
-  pure = PureB
-  (<*>) = AppB
+  pure = Behavior . const . return
+  f <*> x = Behavior $ \ env -> evalBehavior env f <*> evalBehavior env x
 
 switch :: (a -> b -> b) -> b -> Behavior a -> IO (Behavior b)
 switch f b bah = do
   var <- newTVarIO (b,0,b)
-  let ret = Behavior var $ \ env -> do
-        a <- evalBehavior env bah
-        -- look back a bit in time, to see what the value was
-        b <- evalBehavior env { theTimestamp = theTimestamp env - 1 } ret
-        return $ f a b
-  return $ ret
+  return $ Behavior $ \ env -> do
+        history@(new,clk,_) <- readTVar var
+        if clk + 1 == theTimestamp env
+        then do
+          a <- evalBehavior env bah
+          let newest = f a new
+          writeTVar var $ consHistoric newest $ history
+          return newest
+        else return $ evalHistoric env history
 
---  Behavior :: TVar a -> Behavior a
-{-
-  TimerB    :: Behavior Float
-  EventB    :: Behavior Blank.Event
-  Pure      :: a -> Behavior a
-  Ap        :: Behavior (a -> b) -> Behavior a -> Behavior b
---  Now   ::              Event Float
-
-switch :: (a -> b -> b) -> Behaviour a -> Behavior b
-
-evalBehaviour :: Behavior Float -> Behavior (Maybe Blank.Event) -> Behaviour a -> STM a
-evalBehaviour
--}
---now :: Behavior Float
---now = Now
-
-{-
-
--- There are only three primitive behaviors
-
-timerB :: Behavior Float
-
-frameB :: Behavior Int
-
-eventB :: Behavior Event
-
-
--- fmap :: (a -> b) -> B a -> B b
-
--- pure
-
-
-readBehavior :: Behavior a -> STM a
-
-
--}
---newBehavior :: a -> IO (Behavior a)
---newBehavior = undefined -- atomically . fmap Behavior . newTVar
 
 instance Show (Behavior a) where
   show _ = "Behavior{}"
