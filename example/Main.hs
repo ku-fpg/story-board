@@ -20,7 +20,7 @@ import Graphics.Storyboard.Types
 
 
 main :: IO ()
-main = storyBoard $ map brand $ drop 6
+main = storyBoard $ map brand $ drop 0
   [ haskell_code
   , titleSlide
   , bigBackground
@@ -234,21 +234,53 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             closePath()
             return (n >= 1)
 
-  place top $ tile (100,100) $ \ (x,y) (w,h) -> do
-    actOnBehavior eventB $ \ n -> do
-          case n of
-            Just v -> liftIO $ print v
-            _ -> return ()
-          saveRestore $ do
-            translate(x,y)
-            clearRect(0,0,w,h)
-            beginPath()
-            rect(1,1,w - 2, h-2)
-            strokeStyle "red"
-            lineWidth 1
-            stroke()
-            closePath()
-            return False
+  (t1,b) <- liftIO $ tileAddress (100,100)
+
+  let f a b = case a of
+                Just event | eType event == "mousemove" ->
+                    case ePageXY event of
+                      Just (x,y) -> (x,y)
+                      _ -> b
+                _ -> b
+  mm <- liftIO $ atomically $ switch f (0,0) $ eventB
+
+
+  let inside ((x,y),(w,h)) (w',h')
+            | w' >= x && h' >= y && (w' - x) <= w && (h' - y) <= h
+            = return (w'-x,h'-y)
+      inside _ _ = Nothing
+
+  let insideB :: Behavior (Maybe (Float,Float))
+      insideB = pure inside
+          <*> b
+          <*> mm
+
+  let t2 = tile (100,100) $ \ (x,y) (w,h) -> do
+              actOnBehavior insideB $ \ n -> do
+                    liftIO $ print n
+                    saveRestore $ do
+                      translate(x,y)
+                      clearRect(0,0,w,h)
+                      beginPath()
+                      rect(1,1,w-2,h-2)
+                      strokeStyle (case n of
+                                     Nothing -> "red"
+                                     Just _ -> "green")
+                      lineWidth 1
+                      stroke()
+                      closePath()
+
+                      case n of
+                        Nothing -> return ()
+                        Just (x',y') -> do
+                          beginPath()
+                          arc(x', y', 10, 0, 2 * pi, False)
+                          fillStyle "#8ED6FF"
+                          fill()
+
+                    return False
+
+  place top $ t1 <> t2
 
 {-
   slider <- liftIO $ newBehavior Nothing
@@ -318,7 +350,12 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
       p $ lorem
 -}
 
+tileAddress :: Size Float -> IO (Tile (),Behavior (Coord Float,Size Float))
+tileAddress (w,h) = do
+  var <- newTVarIO ((0,0),(0,0))
 
--- slider :: Size Float -> (Tile (),Behavior Float)
+  let t = Tile (w,h) $ \ (x,y) (w',h') -> action $ liftIO $ atomically $ writeTVar var ((x,y),(w',h'))
 
---inTile :: IO (Tile (),Behavior (Maybe Event))
+  s <- atomically $ sample $ readTVar $ var
+
+  return (t,s)
