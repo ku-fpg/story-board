@@ -20,7 +20,7 @@ import Graphics.Storyboard.Types
 
 
 main :: IO ()
-main = storyBoard $ map brand $ drop 0
+main = storyBoard $ map brand $ drop 6
   [ haskell_code
   , titleSlide
   , bigBackground
@@ -227,12 +227,29 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             translate(x,y)
             clearRect(0,0,w,h)
             beginPath()
-            rect(1,1,w-(n'*1000+2),sin n' * 100 + h-2)
+            rect(1,1,w-(n'*1000+2),h-2)
             strokeStyle "red"
             lineWidth 1
             stroke()
             closePath()
             return (n >= 1)
+
+  place top $ tile (100,100) $ \ (x,y) (w,h) -> do
+    actOnBehavior eventB $ \ n -> do
+          case n of
+            Just v -> liftIO $ print v
+            _ -> return ()
+          saveRestore $ do
+            translate(x,y)
+            clearRect(0,0,w,h)
+            beginPath()
+            rect(1,1,w - 2, h-2)
+            strokeStyle "red"
+            lineWidth 1
+            stroke()
+            closePath()
+            return False
+
 {-
   slider <- liftIO $ newBehavior Nothing
   TheEventQueue eventQ <- theEventQueue <$> askSlideStyle

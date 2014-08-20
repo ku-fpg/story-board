@@ -325,51 +325,50 @@ subSlideShowr st (panel:panels) = do
                    else r : ys)
 -}
 
-  let outerLoop tm0 behEnv0 acts = do
-        tm1 <- getCurrentTime
-        let diff :: Float = realToFrac (diffUTCTime tm1 tm0)
-        let behEnv1 = nextBehaviorEnv diff Nothing behEnv0
-        done <- send context $ runAct behEnv1 acts
+  start_tm <- getCurrentTime
+  -- Draw the basic static stuff
+  send context $ runFirstAct panel
+  let outerLoop behEnv0 acts = do
+        -- First, animate the frame
+        done <- send context $ runAct behEnv0 acts
         if done
         then return ()
-        else do d <- registerDelay (10 * 1000)
+        else do -- next figure out the events
+                d <- registerDelay (10 * 1000)
                 let ev = do
                        event <- readTChan (eventQueue context)
-                       if eType event == "keypress"
-                         then return (Just event)
-                         else retry
+                       return (Just event)
                 let pz = do
                         b <- readTVar d
                         if b then return Nothing
                              else retry
-                let lz = runListen acts >> return Nothing
 
-                -- Throw away any mouse events (that the listeners do not take)
-                let oz = do
-                       event <- readTChan (eventQueue context)
-                       if eType event == "mousemove"
-                         then return Nothing
-                         else retry
+                rz <- atomically $ ev `orElse` pz
 
-                rz <- atomically $ ev `orElse` pz `orElse` lz `orElse` oz
+                -- next, reset the env
+                tm1 <- getCurrentTime
+                let diff :: Float = realToFrac (diffUTCTime tm1 start_tm)
+                let behEnv1 = nextBehaviorEnv diff rz behEnv0
+
                 case rz of
-                  Just _ -> return ()
-                  Nothing -> outerLoop tm0 behEnv1 acts
+                  Just event | eType event == "keypress" ->
+                      do atomically $ unGetTChan (eventQueue context) event
+                         return ()
+                  _ -> outerLoop behEnv1 acts
 
-  start_tm <- getCurrentTime
-  send context $ do
-            runFirstAct panel
-  outerLoop start_tm defaultBehaviorEnv panel
+  -- And animate!
+  outerLoop defaultBehaviorEnv panel
   tm1 <- getCurrentTime
   --  print "waiting for key"
   when debug $ do
     putStrLn $ "profiling: Frame for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
   do
-        event <- atomically $ do
-          event <- readTChan (eventQueue context)
-          if eType event == "keypress"
-          then return event
-          else retry
+        let loop = do
+                  event <- readTChan (eventQueue context)
+                  if eType event == "keypress"
+                  then return event
+                  else loop -- ignore other things, for now
+        event <- atomically $ loop
         print ("got key",event)
         case eWhich event of
           Just 98 -> slideShowr st { whichSlide = whichSlide st - 1 }
