@@ -160,9 +160,23 @@ instance Applicative Behavior where
   pure = Behavior . const . return
   f <*> x = Behavior $ \ env -> evalBehavior env f <*> evalBehavior env x
 
-switch :: (a -> b -> b) -> b -> Behavior a -> IO (Behavior b)
+sample :: STM a -> STM (Behavior a)
+sample m = do
+  b <- m
+  var <- newTVar (b,0,b)
+  return $ Behavior $ \ env -> do
+      history@(new,clk,_) <- readTVar var
+      if clk + 1 == theTimestamp env
+      then do
+        a <- m
+        writeTVar var $ consHistoric a $ history
+        return a
+      else return $ evalHistoric env history
+
+
+switch :: (a -> b -> b) -> b -> Behavior a -> STM (Behavior b)
 switch f b bah = do
-  var <- newTVarIO (b,0,b)
+  var <- newTVar (b,0,b)
   return $ Behavior $ \ env -> do
         history@(new,clk,_) <- readTVar var
         if clk + 1 == theTimestamp env
