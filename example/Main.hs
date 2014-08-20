@@ -8,12 +8,14 @@ import Data.Text (Text)
 import Control.Applicative
 import qualified Data.Text as Text
 import Graphics.Blank hiding (font)
+import Control.Concurrent.STM
 
 import Graphics.Storyboard
 
 import Graphics.Storyboard.Act
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Box
+import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Types
 
 
@@ -78,12 +80,6 @@ bulletSlide :: Slide ()
 bulletSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
   ul $ do
-    li $ lorem
-    pause
-    li $ lorem
-    pause
-    li $ lorem
-    pause
     li $ lorem
     pause
     li $ lorem
@@ -224,9 +220,8 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 actSlide :: Slide ()
 actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act"
-  clk <- theClock <$> askSlideStyle
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
-    actOnBehavior clk $ \ n -> do
+    actOnBehavior timerB $ \ n -> do
           let n' = min n 1
           saveRestore $ do
             translate(x,y)
@@ -238,9 +233,20 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             stroke()
             closePath()
             return (n >= 1)
+{-
+  slider <- liftIO $ newBehavior Nothing
+  TheEventQueue eventQ <- theEventQueue <$> askSlideStyle
 
-  slider <- liftIO $ newBehavior 0
-
+  place top $ tile (100,100) $ \ (x,y) (w,h) ->
+    (listen $ do
+      event <- readTChan eventQ
+      if eType event == "mousemove"
+      then setBehavior slider (Just event)
+      else retry) <>
+    (actOnBehavior slider $ \ v -> do
+        liftIO $ print v
+        return False)
+-}
 {-
   place top $ tile (500,50) $ \ (x,y) (w,h) -> do
 
@@ -294,3 +300,8 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
       li $ lorem
       p $ lorem
 -}
+
+
+-- slider :: Size Float -> (Tile (),Behavior Float)
+
+--inTile :: IO (Tile (),Behavior (Maybe Event))

@@ -23,6 +23,8 @@ import Graphics.Blank (Canvas,saveRestore,sync)
 import Control.Monad.IO.Class
 import Control.Concurrent as Concurrent
 
+import Graphics.Blank(EventQueue)
+
 import GHC.Exts (IsString(fromString))
 
 import Graphics.Storyboard.Act (Behavior)
@@ -50,7 +52,7 @@ data TheSlideStyle = TheSlideStyle
   , fullSize            :: Size Float
   , theSlideNumber      :: Int
   , theLastSlide        :: Int
-  , theClock            :: Behavior Float
+  , theEventQueue       :: TheEventQueue
   }
   deriving Show
 
@@ -62,8 +64,8 @@ instance Show BulletFactory where
   show _ = "BulletFactory{}"
 
 
-defaultSlideStyle :: Behavior Float -> Size Float -> TheSlideStyle
-defaultSlideStyle clk sz = TheSlideStyle
+defaultSlideStyle :: EventQueue -> Size Float -> TheSlideStyle
+defaultSlideStyle eventQ sz = TheSlideStyle
   { theProseStyle     = defaultProseStyle
   , theParagraphStyle = defaultParagraphStyle
   , theBoxStyle       = defaultBoxStyle
@@ -73,11 +75,16 @@ defaultSlideStyle clk sz = TheSlideStyle
   , fullSize          = sz
   , theSlideNumber    = 0
   , theLastSlide      = 0
-  , theClock          = clk
+  , theEventQueue     = TheEventQueue eventQ
   }
 
 defaultBulletFactory :: BulletFactory
 defaultBulletFactory = BulletFactory $ \ _ _ -> bulletText "\x2022 "
+
+
+newtype TheEventQueue = TheEventQueue EventQueue
+
+instance Show TheEventQueue where show _ = "TheEventQueue{}"
 
 class (ProseStyle a, ParagraphStyle a, BoxStyle a) => SlideStyle a where
   slideStyle :: (TheSlideStyle -> TheSlideStyle) -> a -> a

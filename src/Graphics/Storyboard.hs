@@ -55,12 +55,13 @@ module Graphics.Storyboard
   , trueSpace
    -- * timing
   , pause
-  , theClock
+--  , theClock
    -- * colors
   , bgLinear
   , bgColor
   -- * Other
   , askSlideStyle
+  , actOnBehavior
   )
 
 
@@ -277,7 +278,7 @@ data StoryBoardState = StoryBoardState
   }
 
 storyBoard :: [Slide ()] -> IO ()
-storyBoard = blankCanvas 3000 { middleware = [], events = ["keypress"] }
+storyBoard = blankCanvas 3000 { middleware = [], events = ["keypress","mousemove"] }
            . blankCanvasStoryBoard
 
 main :: IO ()
@@ -289,8 +290,7 @@ slideShowr st = do
   tm0 <- getCurrentTime
   let StoryBoardState slides n context debug = st
   print ("slideShowr",n)
-  clk <- newBehavior 0
-  let cxt = defaultSlideStyle clk (width context,height context)
+  let cxt = defaultSlideStyle (eventQueue context) (width context,height context)
   let st0 = defaultSlideState (fullSize cxt)
   panels <- send context $ do
     clearCanvas
@@ -302,11 +302,11 @@ slideShowr st = do
   tm1 <- getCurrentTime
   when debug $ do
     putStrLn $ "profiling: Prelude for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
-  subSlideShowr st clk $ reverse panels
+  subSlideShowr st $ reverse panels
 
-subSlideShowr :: StoryBoardState -> Behavior Float -> [Act] -> IO ()
-subSlideShowr st _ [] = slideShowr st { whichSlide = whichSlide st + 1 }
-subSlideShowr st clk (panel:panels) = do
+subSlideShowr :: StoryBoardState -> [Act] -> IO ()
+subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
+subSlideShowr st (panel:panels) = do
   tm0 <- getCurrentTime
   print ("subSlideShowr",length (panel:panels))
   let StoryBoardState slides n context debug = st
@@ -325,11 +325,11 @@ subSlideShowr st clk (panel:panels) = do
                    else r : ys)
 -}
 
-  let outerLoop tm0 acts = do
+  let outerLoop tm0 behEnv0 acts = do
         tm1 <- getCurrentTime
         let diff :: Float = realToFrac (diffUTCTime tm1 tm0)
-        atomically $ setBehavior clk diff   -- set global timer
-        done <- send context $ runAct acts
+        let behEnv1 = nextBehaviorEnv diff Nothing behEnv0
+        done <- send context $ runAct behEnv1 acts
         if done
         then return ()
         else do d <- registerDelay (10 * 1000)
@@ -344,17 +344,22 @@ subSlideShowr st clk (panel:panels) = do
                              else retry
                 let lz = runListen acts >> return Nothing
 
-                rz <- atomically $ ev `orElse` pz `orElse` lz
+                -- Throw away any mouse events (that the listeners do not take)
+                let oz = do
+                       event <- readTChan (eventQueue context)
+                       if eType event == "mousemove"
+                         then return Nothing
+                         else retry
+
+                rz <- atomically $ ev `orElse` pz `orElse` lz `orElse` oz
                 case rz of
                   Just _ -> return ()
-                  Nothing -> outerLoop tm0 acts
+                  Nothing -> outerLoop tm0 behEnv1 acts
 
   start_tm <- getCurrentTime
-  atomically $ setBehavior clk 0
   send context $ do
             runFirstAct panel
-            runAct panel
-  outerLoop start_tm panel
+  outerLoop start_tm defaultBehaviorEnv panel
   tm1 <- getCurrentTime
   --  print "waiting for key"
   when debug $ do
@@ -368,4 +373,4 @@ subSlideShowr st clk (panel:panels) = do
         print ("got key",event)
         case eWhich event of
           Just 98 -> slideShowr st { whichSlide = whichSlide st - 1 }
-          _ -> subSlideShowr st clk panels
+          _ -> subSlideShowr st panels
