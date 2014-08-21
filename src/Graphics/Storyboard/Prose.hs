@@ -24,6 +24,7 @@ module Graphics.Storyboard.Prose
   , b
   , font
   , fontSize
+  , scaleFont
   , big
   , small
   , color
@@ -33,7 +34,7 @@ module Graphics.Storyboard.Prose
   , noLigatures
   , super
   , sub
-  , parts
+  , boxy
   ) where
 
 import qualified Data.Text as Text
@@ -170,11 +171,16 @@ font        f = proseStyle $ \ s -> s { theFont = f }
 fontSize    :: ProseStyle a => Int  ->  a -> a
 fontSize    n = proseStyle $ \ s -> s { theFontSize = n }
 
+scaleFont   :: ProseStyle a => Float ->  a -> a
+scaleFont  sc = proseStyle $ \ s -> s { theFontSize = rounding $ fromIntegral (theFontSize s) * sc }
+  where
+    rounding = if sc >= 1 then ceiling else floor
+
 big         :: ProseStyle a =>          a -> a
-big           = proseStyle $ \ s -> s { theFontSize = ceiling $ fromIntegral (theFontSize s) * 1.2 }
+big           = scaleFont (1.2)
 
 small       :: ProseStyle a =>          a -> a
-small         = proseStyle $ \ s -> s { theFontSize = floor   $ fromIntegral (theFontSize s) / 1.2 }
+small         = scaleFont (1 / 1.2)
 
 color       :: ProseStyle a => Text ->  a -> a
 color       c = proseStyle $ \ s -> s { theColor = c }
@@ -207,13 +213,18 @@ fontName :: TheProseStyle -> Text
 fontName cxt = Text.intercalate " " $
     [ "italics" | isItalic cxt ] ++
     [ "bold"    | isBold cxt ] ++
-    [Text.pack $ show (theFontSize cxt), theFont cxt]
+    [Text.pack $ show realFontSize, theFont cxt]
+  where
+      realFontSize = round
+                   $ fromIntegral (theFontSize cxt)
+                   * (0.7 ^ abs (subSuper cxt))
 
 renderText :: TheProseStyle -> Text -> Prelude (Tile ())
 renderText st txt = do
     let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures st)
     w <- wordWidth (fontName st) txt'
-    let off = 0 -- if Super `elem` emph then (-5) else 0
+    let off :: Float
+        off = -0.4 * fromIntegral (subSuper st) * fromIntegral (theFontSize st)
     return $ tile (w,fromIntegral
                       $ ceiling
                       $ fromIntegral (theFontSize st) * (1 + theDescenderHeight st))
@@ -221,10 +232,10 @@ renderText st txt = do
       translate (x,y)
       Blank.font $ fontName st
       fillStyle (theColor st)
-      fillText (txt',0,fromIntegral $ theFontSize st + off)    -- time will tell for this offset
+      fillText (txt',0,fromIntegral (theFontSize st) + off)    -- time will tell for this offset
       when (isBoxy st) $ do
         beginPath()
-        rect(0,0,w,fromIntegral $ theFontSize st + off)
+        rect(0,0,w,fromIntegral (theFontSize st) + off)
         lineWidth 0.5;
         strokeStyle "black";
         stroke()
