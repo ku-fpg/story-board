@@ -124,8 +124,9 @@ table rows = do
 
   paragraphStyle <- theParagraphStyle <$> askSlideStyle
   let (w',_) = theParagraphMarginSize paragraphStyle
+  ln_wd <- theBorderWidth <$> theBoxStyle <$> askSlideStyle
 
-  let gaps n = (w - w') / n - 2
+  let gaps n = (w - w') / n - ln_wd * 2
 
   -- Right now, we divide the width evenly amoung all the elements in each row
   tss :: [[(TheBoxStyle -> TheBoxStyle, Tile ())]] <- sequence
