@@ -6,6 +6,22 @@ module Graphics.Storyboard
   , ul
   , ol
   , li
+    -- * Prose
+  , i
+  , b
+  , font
+  , fontSize
+  , scaleFont
+  , big
+  , small
+  , color
+  , plain
+  , wordSpacing
+  , ligature
+  , noLigatures
+  , super
+  , sub
+  , boxy
     -- * Spacing
   , vspace
   , (<+>)
@@ -26,6 +42,7 @@ module Graphics.Storyboard
   , tileSize
   , tileWidth
   , tileHeight
+  , nudge
     -- Tables
   , tr, td, table
   , background
@@ -39,7 +56,6 @@ module Graphics.Storyboard
   , haskellHighlightStyle
     -- * Useful literals
   , module Graphics.Storyboard.Literals
-  , font, fontSize
 --  , word
   , (?)
   , point

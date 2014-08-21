@@ -20,7 +20,7 @@ import Graphics.Storyboard.Types
 
 
 main :: IO ()
-main = storyBoard $ map brand $ drop 0
+main = storyBoard $ map brand $ drop 7
   [ haskell_code
   , titleSlide
   , bigBackground
@@ -28,6 +28,7 @@ main = storyBoard $ map brand $ drop 0
   , bulletSlide
   , orderedListSlide
   , actSlide
+  , subSuperSlide
   ]
 
 brand :: Slide () -> Slide ()
@@ -349,6 +350,20 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
       li $ lorem
       p $ lorem
 -}
+
+subSuperSlide :: Slide ()
+subSuperSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
+
+  -- Try sub and super
+  sequence_
+      [ fontSize sz $ ul $ do
+          li $ "The" <> sub "quick" <+> "brown" <> super ("fox") <+> "jumped" <+>
+               "over" <+> "the" <> super ("lazy" <> super "dog") <> "." <+>
+               "10" <> super "10" <+>
+               "1"<>super "st" <+> "2"<>super "nd" <+> "3"<>super "rd"
+      | sz <- [10, 12, 16, 20, 28, 48 ]
+      ]
+
 
 tileAddress :: Size Float -> IO (Tile (),Behavior (Coord Float,Size Float))
 tileAddress (w,h) = do
