@@ -8,6 +8,7 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Graphics.Blank as Blank
 import qualified Graphics.Blank.Style as Style
+import Control.Monad.IO.Class
 
 import Graphics.Storyboard.Act
 import Graphics.Storyboard.Literals
@@ -18,7 +19,7 @@ import Graphics.Storyboard.Mosaic
 
 data TheBoxStyle = TheBoxStyle
   { theBorderWidth   :: Float
-  , theBorderColor   :: Text
+  , theBorderColor   :: Color
   , theBackground    :: Background
   , theShadowStyle   :: Maybe TheShadowStyle
   , theSharedBorders :: Set Side            -- ^ a shared border is straight, and perhaps offset
@@ -61,6 +62,7 @@ class BoxStyle a where
 
 instance BoxStyle TheBoxStyle where
   boxStyle f a = f a
+
 {-
 class ShadowStyle a where
   shadowStyle :: (TheShadowStyle -> TheShadowStyle) -> a -> a
@@ -81,6 +83,20 @@ instance BackgroundStyle TheBoxStyle where
 background :: BoxStyle a => Background -> a -> a
 background bg  = boxStyle $ \ m -> m { theBackground = bg }
 
+
+shadows :: BoxStyle a => Bool -> a -> a
+shadows s = boxStyle $ \ m -> m
+  { theShadowStyle =
+        if s
+        then Just defaultShadowStyle
+        else Nothing
+  }
+
+borderWidth :: BoxStyle a => Float -> a -> a
+borderWidth w = boxStyle $ \ m -> m { theBorderWidth = w }
+borderColor :: BoxStyle a => Color -> a -> a
+borderColor c = boxStyle $ \ m -> m { theBorderColor = c }
+
 box :: TheBoxStyle -> Tile a -> Tile a
 box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' ->
     action (before ps' sz') <>
@@ -91,6 +107,8 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' ->
     wd = theBorderWidth st
 
     before (x,y) (w',h') = saveRestore $ do
+        liftIO $ print (x,y)
+        liftIO $ print (w',h')
         translate (x,y)
         case theBackground st of
           Background bg -> Style.fillStyle bg
@@ -99,7 +117,7 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' ->
         beginPath()
         rect(0,0,1,1)
         closePath()
-        lineWidth wd
+--        lineWidth wd
         case theShadowStyle st of
           Nothing -> return ()
           Just s_st -> do
@@ -110,14 +128,16 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' ->
         fill()
     during (x,y) (w',h') =
         act (x+wd,y+wd) (w' - wd * 2,h' - wd * 2)
-    after (x,y) (w',h') = saveRestore $ do
-        translate (x,y)
-        beginPath()
-        rect(0,0,w',h')
-        closePath()
-        lineWidth wd
-        strokeStyle (theBorderColor st)
-        stroke()
+    after (x,y) (w',h')
+      | wd == 0 = return ()
+      | otherwise = saveRestore $ do
+          translate (x,y)
+          beginPath()
+          rect(0,0,w',h')
+          closePath()
+          lineWidth wd
+          strokeStyle (theBorderColor st)
+          stroke()
 
 
 -- Build a 2D table of boxes
