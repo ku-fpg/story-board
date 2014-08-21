@@ -17,7 +17,7 @@ import Graphics.Storyboard.Types
 --newtype Act = Act { runAct :: [Action] }
 
 data Act where
-    -- | the bool signifies the finality of the drawing; False = more to draw
+    -- the bool signifies the finality of the drawing; False = more to draw
   Act     :: Canvas ()                     -> Act
   OnEvent :: Behavior a -> (a -> Canvas Bool) -> Act
   Listen  :: STM ()                         -> Act
