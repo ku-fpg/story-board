@@ -43,6 +43,8 @@ module Graphics.Storyboard
   , tileWidth
   , tileHeight
   , nudge
+  , column
+  , row
     -- Tables
   , tr, td, table
   , background
@@ -50,6 +52,11 @@ module Graphics.Storyboard
     -- * Mosaic
   , hbrace
   , vbrace
+    -- * Types
+  , Background
+  , Size
+  , Coord
+  , MonadCanvas
     -- * Highlights
   , highlight
   , defaultHighlightStyle
@@ -72,7 +79,8 @@ module Graphics.Storyboard
    -- * timing
   , pause
 --  , theClock
-   -- * colors
+   -- * Colors
+  , Color
   , bgLinear
   , bgColor
   -- * Other
