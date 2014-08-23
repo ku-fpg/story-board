@@ -12,6 +12,8 @@ module Graphics.Storyboard.Mosaic
   , hbrace
   , blankMosaic
   , cavityOfMosaic
+  , row
+  , column
   ) where
 
 import qualified Data.Text as Text
