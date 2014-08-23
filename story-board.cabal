@@ -20,6 +20,7 @@ library
           Graphics.Storyboard
           Graphics.Storyboard.Act,
           Graphics.Storyboard.Box,
+          Graphics.Storyboard.Markup,
           Graphics.Storyboard.Tile,
           Graphics.Storyboard.Types,
           Graphics.Storyboard.Slide
@@ -29,7 +30,6 @@ library
           Graphics.Storyboard.Images,
           Graphics.Storyboard.Layout,
           Graphics.Storyboard.Literals,
-          Graphics.Storyboard.Markup,
           Graphics.Storyboard.Mosaic,
           Graphics.Storyboard.Paragraph,
           Graphics.Storyboard.Prelude,
