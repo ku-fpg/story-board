@@ -316,13 +316,16 @@ slideShowr st = do
   print ("slideShowr",n)
   let cxt = defaultSlideStyle (eventQueue context) (width context,height context)
   let st0 = defaultSlideState (fullSize cxt)
-  panels <- send context $ do
+  (_,st1) <- send context $ do
     clearCanvas
-    (_,st1) <- Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) (eventQueue context)
-    sequence [ let Tile (w,h) m = pack moz
-               in return $ m (0,0) (w,h)
-             | moz <- theMosaic st1 : previousMosaics st1
-             ]
+    -- This would double the space of the picture
+    -- scale (0.5,0.5)
+    Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) (eventQueue context)
+  let panels =
+         [ let Tile (w,h) m = pack moz
+           in m (0,0) (fullSize cxt)--(w,h)
+         | moz <- theMosaic st1 : previousMosaics st1
+         ]
   tm1 <- getCurrentTime
   when debug $ do
     putStrLn $ "profiling: Prelude for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
