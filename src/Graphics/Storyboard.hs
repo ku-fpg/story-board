@@ -25,6 +25,7 @@ module Graphics.Storyboard
     -- * Spacing
   , vspace
   , (<+>)
+  , (</>)
   , align
   , getCavitySize
   , imageTile
@@ -83,6 +84,8 @@ module Graphics.Storyboard
   , Color
   , bgLinear
   , bgColor
+  -- * Internal State and Environment
+  , TheSlideStyle(..)
   -- * Other
   , askSlideStyle
   , actOnBehavior
@@ -314,7 +317,8 @@ slideShowr st = do
   tm0 <- getCurrentTime
   let StoryBoardState slides n context debug = st
   print ("slideShowr",n)
-  let cxt = defaultSlideStyle (eventQueue context) (width context,height context)
+  let cxt = (defaultSlideStyle (eventQueue context) (width context,height context))
+          { theSlideNumber = n, theLastSlide = length slides }
   let st0 = defaultSlideState (fullSize cxt)
   (_,st1) <- send context $ do
     clearCanvas
