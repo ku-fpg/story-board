@@ -17,10 +17,11 @@ import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Box
 import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Types
+import Graphics.Storyboard.Highlight
 
 
 main :: IO ()
-main = storyBoard $ map brand $ drop 7
+main = storyBoard $ map brand $ drop 0
   [ haskell_code
   , titleSlide
   , bigBackground
@@ -128,10 +129,11 @@ slide_background = do
 haskell_code :: Slide ()
 haskell_code = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   txt <- liftIO $ readFile "example/Main.hs"
-  liftIO $ print $ highlight defaultHighlightStyle
+  let txt = "Hello, World\nPrelude> 1 + 2\n For 1 + 2 now"
+  liftIO $ print $ highlight ghciHighlightStyle
                 $ unlines
-                $ take 15
-                $ drop 100
+--                $ take 15
+--                $ drop 100
                 $ map (take 72)
                 $ lines
                 $ txt
@@ -140,10 +142,10 @@ haskell_code = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   lg <- bgLinear "red" "blue"
   font "Courier New" $ fontSize 28 $ trueSpace $ do
     background lg $ frame $ margin 10 $ do
-      p $ highlight defaultHighlightStyle
+      p $ highlight ghciHighlightStyle
             $ unlines
-            $ take 15
-            $ drop 100
+--            $ take 15
+--            $ drop 100
             $ map (take 72)
             $ lines
             $ txt
