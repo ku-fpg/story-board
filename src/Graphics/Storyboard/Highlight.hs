@@ -52,6 +52,19 @@ highlightLess = const id
 
 --(~=) :: String -> (String -> String -> Prose) -> (String,String -> String -> Prose)
 
+ghciHighlightStyle :: TheHighlightStyle
+ghciHighlightStyle = defaultHighlightStyle
+ { theREs = matches
+      [ ("Prelude>",
+          \ st this rest ->
+              proseStyle (highlightKeyword st) (prose this) <>
+              highlight haskellHighlightStyle (takeWhile (/= '\n') rest) <>
+              highlight st (dropWhile (/= '\n') rest))
+      , ("(.|\n)",\ st str rest -> prose str <> highlight st rest)
+      ]
+ , highlightKeyword  = b . color "red"
+ }
+
 haskellHighlightStyle :: TheHighlightStyle
 haskellHighlightStyle = defaultHighlightStyle
  { theREs = matches $
@@ -130,7 +143,7 @@ highlight st txt = case m of
   where
     m   = map snd
         $ sortBy (flip compare `on` fst)
-        $ [ -- traceShow (length d,d,a) $ 
+        $ [ -- traceShow (length d,d,a) $
               (length d,f st d a)
           | (re,f) <- theREs st
           , Just ("",d,a,_) <- return $ matchRegexAll re txt
