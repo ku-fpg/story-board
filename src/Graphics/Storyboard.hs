@@ -62,6 +62,7 @@ module Graphics.Storyboard
   , highlight
   , defaultHighlightStyle
   , haskellHighlightStyle
+  , ghciHighlightStyle
     -- * Useful literals
   , module Graphics.Storyboard.Literals
 --  , word
