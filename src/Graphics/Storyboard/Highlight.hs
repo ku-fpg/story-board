@@ -23,7 +23,7 @@ data TheHighlightStyle = TheHighlightStyle
 
 defaultHighlightStyle = TheHighlightStyle
   { highlightKeyword  = b
-  , highlightLiteral  = color "blue" . b
+  , highlightLiteral  = color "blue"
   , highlightString   = color "green"
   , highlightConstant = color "red"
   , highlightComment  = color "#723282"
@@ -65,6 +65,9 @@ ghciHighlightStyle = defaultHighlightStyle
  , highlightKeyword  = b . color "red"
  }
 
+haskellSymbols :: String
+haskellSymbols = "[:_$#<>\\+\\*\\-\\/\\^\\\\]"
+
 haskellHighlightStyle :: TheHighlightStyle
 haskellHighlightStyle = defaultHighlightStyle
  { theREs = matches $
@@ -78,13 +81,16 @@ haskellHighlightStyle = defaultHighlightStyle
         "jvm dotnet safe unsafe family forall mdo proc rec"
     ] ++
     [ ("[a-z][\\.a-zA-Z0-9_']*",accept highlightLess)
-    , ("[A-z][\\.a-zA-Z0-9_']*",accept highlightConstant)
+    , ("[A-Z][\\.a-zA-Z0-9_']*",accept highlightConstant)
+    , ("`[a-z][\\.a-zA-Z0-9_']*`",accept highlightLess)
+    , ("`[A-Z][\\.a-zA-Z0-9_']*`",accept highlightConstant)
 
     , ("::",accept highlightKeyword)
     , ("=>",accept highlightKeyword)
     , ("->",accept highlightKeyword)
     , ("=",accept highlightKeyword)
     , (",",accept highlightLess)
+    , ("\\.\\.",accept highlightLess)
 
 
    , ("[0-9]+",accept highlightLiteral)
@@ -104,10 +110,12 @@ haskellHighlightStyle = defaultHighlightStyle
                       }
                 in highlight str_st rest)
 
-    , (":[_$#<>\\+\\*\\-]",accept highlightConstant)
-    , ("[_$#<>\\+\\*\\-]+",accept highlightLess)
+    , (":" ++ haskellSymbols ++ "*",accept highlightConstant)
+    , (haskellSymbols ++ "+",accept highlightLess)
     , ("[\\(\\)]+",accept highlightLess)
-    , ("[{}\\[\\]]",accept highlightLess)
+    , ("[\\{\\}]",accept highlightLess)
+    , ("\\[",accept highlightLess)
+    , ("\\]",accept highlightLess)
     ]
  } where
     comment st = st
