@@ -7,6 +7,7 @@ module Graphics.Storyboard
   , ol
   , li
     -- * Prose
+  , ProseStyle
   , i
   , b
   , font
