@@ -55,7 +55,7 @@ highlightLess = const id
 ghciHighlightStyle :: TheHighlightStyle
 ghciHighlightStyle = defaultHighlightStyle
  { theREs = matches
-      [ ("Prelude>",
+      [ ("[A-Za-z0-9]+>",
           \ st this rest ->
               proseStyle (highlightKeyword st) (prose this) <>
               highlight haskellHighlightStyle (takeWhile (/= '\n') rest) <>
