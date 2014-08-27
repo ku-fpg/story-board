@@ -105,6 +105,7 @@ import qualified Data.Text as Text
 import Data.String
 import Data.List
 import Data.Maybe
+import Text.Printf
 import Control.Monad.IO.Class
 import Data.Time.Clock
 import Control.Concurrent.STM
@@ -282,6 +283,7 @@ blankCanvasStoryBoard slides context =
     , whichSlide        = 1
     , theDeviceContext  = context
     , profiling         = True
+    , snapShot          = return "slides"
     }
 {-
   tm0 <- getCurrentTime
@@ -304,6 +306,7 @@ data StoryBoardState = StoryBoardState
   , whichSlide        :: Int      -- starting at 1
   , theDeviceContext  :: DeviceContext
   , profiling         :: Bool     -- ^ do you output profiling information
+  , snapShot          :: Maybe String
   }
 
 storyBoard :: [Slide ()] -> IO ()
@@ -317,7 +320,7 @@ main = storyBoard [example3]
 slideShowr :: StoryBoardState -> IO ()
 slideShowr st = do
   tm0 <- getCurrentTime
-  let StoryBoardState slides n context debug = st
+  let StoryBoardState slides n context debug _ = st
   print ("slideShowr",n)
   let cxt = (defaultSlideStyle (eventQueue context) (width context,height context))
           { theSlideNumber = n, theLastSlide = length slides }
@@ -342,7 +345,7 @@ subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
 subSlideShowr st (panel:panels) = do
   tm0 <- getCurrentTime
   print ("subSlideShowr",length (panel:panels))
-  let StoryBoardState slides n context debug = st
+  let StoryBoardState slides n context debug snap = st
 {-
   let innerLoop n m [] = return (m,[])
       innerLoop n m (act:xs) = do
@@ -396,6 +399,13 @@ subSlideShowr st (panel:panels) = do
   when debug $ do
     putStrLn $ "profiling: Frame for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
   do
+        case snap of
+          Nothing -> return ()
+          Just s -> do
+            url <- send context $ toDataURL()
+            let fileName = s ++ "/" ++ printf "%04d.png" n
+            writeDataURL fileName url
+
         let loop = do
                   event <- readTChan (eventQueue context)
                   if eType event == "keypress"
