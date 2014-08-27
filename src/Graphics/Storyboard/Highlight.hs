@@ -64,9 +64,16 @@ ghciHighlightStyle = defaultHighlightStyle
       ]
  , highlightKeyword  = b . color "red"
  }
+{-
+
+*Graphics.Storyboard.Highlight> let r = mkRegex ('^' : haskellSymbols)
+*Graphics.Storyboard.Highlight> [ x | Just (_,x,_,_) <- map (\ c -> matchRegexAll r [c]) [' ' .. '~'] ]
+["#","$","*","+","-","/",":","<",">","\\","^","_"]
+
+-}
 
 haskellSymbols :: String
-haskellSymbols = "[:_$#<>\\+\\*\\-\\/\\^\\\\]"
+haskellSymbols = "[:_$#<>\\+\\*\\/\\^\\-]"
 
 haskellHighlightStyle :: TheHighlightStyle
 haskellHighlightStyle = defaultHighlightStyle
