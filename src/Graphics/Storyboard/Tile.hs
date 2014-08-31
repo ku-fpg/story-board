@@ -17,6 +17,7 @@ import GHC.Exts (IsString(fromString))
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Act
+import Graphics.Storyboard.Behavior
 
 import Graphics.Blank
 
@@ -117,7 +118,17 @@ instance Monoid a => Monoid (Tile a) where
 drawTile :: Drawing picture => Size Float -> picture -> Tile ()
 drawTile (w',h') pic = tile (w',h') $ \ (x,y) (w,h) -> action $ saveRestore $ do
       translate (x,y)   -- required in all primitives
-      drawCanvas (w',h') pic 
+      drawCanvas (w',h') pic
+
+-- It might be possible to combine these two functions
+drawMovieTile :: (Playing movie, Drawing picture) => Size Float -> movie picture -> Tile ()
+drawMovieTile (w',h') movie = case wrapMovie movie of
+    Movie bhr f stop -> tile (w',h') $ \ (x,y) (w,h) ->
+     actOnBehavior bhr $ \ b ->
+      saveRestore $ do
+          translate (x,y)
+          drawCanvas (w',h') $ f b
+          return (stop b)
 
 --mapTileAct :: (Act a -> Act b) -> Tile a -> Tile b
 --mapTileAct f (Tile (w,h) g) = Tile (w,h) $ \ ps sz -> f (g ps sz)

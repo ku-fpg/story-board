@@ -27,6 +27,3 @@ bgColor = Background
 
 class Drawing picture where
    drawCanvas :: Size Float -> picture -> Canvas ()
-
-class Movie play where
-   playCanvas :: Float -> Size Float -> play picture -> Canvas ()

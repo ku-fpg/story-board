@@ -94,7 +94,9 @@ module Graphics.Storyboard
   , actOnBehavior
   -- * Plugin to other
   , Drawing
+  , Playing
   , drawTile
+  , drawMovieTile
   )
 
 

@@ -89,7 +89,11 @@ instance Monoid Act where
 -----------------------------------------------------------------
 
 drawAct :: Drawing picture => Size Float -> picture -> Act
-drawAct pic sz = action $ drawCanvas pic sz
+drawAct sz pic = action $ drawCanvas sz pic
+
+drawMovieAct :: (Playing movie, Drawing picture) => Size Float -> movie picture -> Act
+drawMovieAct sz movie = case wrapMovie movie of
+    Movie bhr f stop -> actOnBehavior bhr (\ b -> drawCanvas sz (f b) >> return (stop b))
 
 --drawTite ::
 

@@ -1,5 +1,6 @@
 {-# LANGUAGE KindSignatures, TupleSections, GADTs,
-     GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
+     GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings,
+     ExistentialQuantification, FlexibleInstances #-}
 
 module Graphics.Storyboard.Behavior where
 
@@ -109,3 +110,16 @@ switch f b bah = do
 
 instance Show (Behavior a) where
   show _ = "Behavior{}"
+
+
+data Movie p = forall b . Movie
+  { movieBehavior :: Behavior b
+  , movieSnapshot :: b -> p
+  , movieStop     :: b -> Bool
+  }
+
+class Playing movie where
+  wrapMovie :: movie picture -> Movie picture
+
+instance Playing ((->) Float) where
+   wrapMovie f = Movie timerB f (const False)
