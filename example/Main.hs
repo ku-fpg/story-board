@@ -13,6 +13,7 @@ import Control.Concurrent.STM
 import Graphics.Storyboard
 
 import Graphics.Storyboard.Act
+import Graphics.Storyboard.Behavior
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Box
 import Graphics.Storyboard.Slide

@@ -27,7 +27,7 @@ import Graphics.Blank(EventQueue)
 
 import GHC.Exts (IsString(fromString))
 
-import Graphics.Storyboard.Act (Behavior)
+import Graphics.Storyboard.Behavior
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Paragraph

@@ -19,6 +19,7 @@ library
   exposed-modules:
           Graphics.Storyboard
           Graphics.Storyboard.Act,
+          Graphics.Storyboard.Behavior,
           Graphics.Storyboard.Box,
           Graphics.Storyboard.Highlight,
           Graphics.Storyboard.Markup,

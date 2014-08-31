@@ -112,6 +112,7 @@ import Data.Time.Clock
 import Control.Concurrent.STM
 
 import Graphics.Storyboard.Act
+import Graphics.Storyboard.Behavior
 import Graphics.Storyboard.Slide
 import Graphics.Storyboard.Layout
 import Graphics.Storyboard.Bling

@@ -1,7 +1,7 @@
 {-# LANGUAGE KindSignatures, TupleSections, GADTs,
      GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
-module Graphics.Storyboard.Act where
+module Graphics.Storyboard.Behavior where
 
 import Control.Applicative
 import Control.Concurrent.STM
@@ -13,91 +13,9 @@ import qualified Graphics.Blank as Blank
 
 
 import Graphics.Storyboard.Types
-import Graphics.Storyboard.Behavior
-
---newtype Act = Act { runAct :: [Action] }
-
-data Act where
-{-
-  Act     :: Canvas ()                     -> Act
-  OnEvent :: Behavior a -> (a -> Canvas Bool) -> Act
-  Listen  :: STM ()                         -> Act
-
-  Acts    :: Act -> Act                    -> Act
-  NoAct   ::                                   Act
--}
--- the bool signifies the finality of the drawing; False = more to draw
-  Act_    :: Canvas () -> Behavior a -> (a -> Canvas Bool) -> Act
-
-
--- return True if you are finished.
---animation :: Canvas Bool -> Act
---animation = Action
-
--- TODO: change to act
-action :: Canvas () -> Act
-action m = Act_ m (pure ()) $ \ () -> return True
-
-actOnBehavior :: Behavior a -> (a -> Canvas Bool) -> Act
-actOnBehavior = Act_ (return ())
-
---listen :: STM () -> Act
---listen = Listen
-
---onEvent :: Canvas a -> Act (a -> Act a)
-
---  Listen       :: STM a -> Event a               -> Action
-
-runFirstAct :: Act -> Canvas ()
-{-
-runFirstAct (Act m)      = m
-runFirstAct (OnEvent _ k) = return ()
-runFirstAct (Listen m) = return ()
-runFirstAct (Acts a1 a2) = do
-  runFirstAct a1
-  runFirstAct a2
-runFirstAct NoAct = return ()
--}
-runFirstAct (Act_ m _ _) = m
-
-
--- run the Act; return True if you are finished
--- Still considering threading time through here.
--- it will allow a isClocked :: Act -> Bool function.
-runAct :: TheBehaviorEnv -> Act -> Canvas Bool
-{-
-runAct env (Act m)         = return True
-runAct env (OnEvent beh k) = do
-      t <- liftIO $ atomically $ evalBehavior env beh
-      k t
-runAct env (Listen m) = return True
-runAct env (Acts a1 a2) = do
-  r1 <- runAct env a1
-  r2 <- runAct env a2
-  return $ r1 && r2
-runAct env NoAct = return True
--}
-runAct env (Act_ _ beh k) = do
-  t <- liftIO $ atomically $ evalBehavior env beh
-  k t
-
---listen :: STM a -> Queue a -> Act          -- listen for mouse or keyboard
---listen stm q = Act $ (:[]) $  Listen stm q
-
-instance Semigroup Act where
-  -- may optimize for PureB.
-  Act_ m1 b1 k1 <> Act_ m2 b2 k2 =
-      Act_ (m1 >> m2)
-           (liftA2 (,) b1 b2)
-           (\ (a,b) -> do liftM2 (&&) (k1 a) (k2 b))
-
-
-instance Monoid Act where
-  mempty = action (return ())
-  mappend = (<>)
 
 -----------------------------------------------------------------
-{-
+
 
 -- The assumption is that the history timestamps are the same
 -- as the main timestamp.
@@ -191,18 +109,3 @@ switch f b bah = do
 
 instance Show (Behavior a) where
   show _ = "Behavior{}"
-
-loop def b = do
-  a <- atomically $ evalBehavior def b
-  print a
-  loop (nextBehaviorEnv (case theTimer def of (a,_,_) -> a + 0.001) Nothing def) b
-
--}
-
-{-
-lass Picture picture where
-   drawPicture :: picture -> (Int,Int) -> Canvas ()
-
-class Picture picture -> Movie movie where
-   directMovie :: movie picture -> (Int,Int) -> Canvas ()
--}
