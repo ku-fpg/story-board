@@ -24,3 +24,9 @@ instance Show Background where
 
 bgColor :: Text -> Background
 bgColor = Background
+
+class Drawing picture where
+   drawCanvas :: picture -> Size Float -> Canvas ()
+
+class Movie play where
+   playCanvas :: play picture -> Float -> Size Float -> Canvas ()
