@@ -6,20 +6,31 @@ import Diagrams.Prelude as Dia
 import Diagrams.Backend.Canvas
 import Graphics.Storyboard.Diagrams
 
-import Graphics.Storyboard as SB
+import qualified Graphics.Storyboard as SB
 
 main :: IO ()
-main = storyBoard [ slide ]
+main = SB.storyBoard [ slide ]
 
-slide :: Slide ()
+slide :: SB.Slide ()
 slide = do
-      SB.align SB.center $ p $ "Diagrams Plugin Example"
+      SB.align SB.center $ SB.p $ "Diagrams Plugin Example"
       
-      let t = drawTile dig (200,200)
+      let t = SB.drawTile dig (200,200)
 
-      SB.place top t
+      SB.place SB.top t
 
       return ()
 
 dig :: Diagram B R2
-dig = circle 1
+dig = tournament 6 
+
+node :: Int -> Diagram B R2
+node n = text (show n) # fontSizeN 0.1 # fc white
+      <> circle 0.2 # fc green # named n
+
+arrowOpts = with & gaps  .~ small
+                 & headLength .~ Global 0.2
+
+tournament :: Int -> Diagram B R2
+tournament n = decorateTrail (regPoly n 1) (map node [1..n])
+  # applyAll [connectOutside' arrowOpts j k | j <- [1 .. n-1], k <- [j+1 .. n]]
