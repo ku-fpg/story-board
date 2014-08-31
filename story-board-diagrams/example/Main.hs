@@ -19,6 +19,10 @@ slide = do
 
       SB.place SB.top (SB.nudge SB.top SB.center t)
 
+      let t = SB.drawMovieTile (200,200) (tournament . succ. (`mod` 10) . (floor :: (Float -> Int)))
+
+      SB.place SB.top (SB.nudge SB.top SB.center t)
+
       return ()
 
 dig :: Diagram B R2
