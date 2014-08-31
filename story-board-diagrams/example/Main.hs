@@ -14,15 +14,15 @@ main = SB.storyBoard [ slide ]
 slide :: SB.Slide ()
 slide = do
       SB.align SB.center $ SB.p $ "Diagrams Plugin Example"
-      
-      let t = SB.drawTile dig (200,200)
 
-      SB.place SB.top t
+      let t = SB.drawTile dig (400,400)
+
+      SB.place SB.top (SB.nudge SB.center SB.center t)
 
       return ()
 
 dig :: Diagram B R2
-dig = tournament 6 
+dig = tournament 6
 
 node :: Int -> Diagram B R2
 node n = text (show n) # fontSizeN 0.1 # fc white
