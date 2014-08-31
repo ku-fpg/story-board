@@ -127,6 +127,7 @@ drawMovieTile (w',h') movie = case wrapMovie movie of
      actOnBehavior bhr $ \ b ->
       saveRestore $ do
           translate (x,y)
+          clearRect(0,0,w',h')
           drawCanvas (w',h') $ f b
           return (stop b)
 
