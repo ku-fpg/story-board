@@ -96,6 +96,7 @@ haskellHighlightStyle = defaultHighlightStyle
     , ("=>",accept highlightKeyword)
     , ("->",accept highlightKeyword)
     , ("=",accept highlightKeyword)
+    , ("\\|",accept highlightLess)
     , (",",accept highlightLess)
     , ("\\.\\.",accept highlightLess)
 
@@ -116,6 +117,19 @@ haskellHighlightStyle = defaultHighlightStyle
                       , theNextHighlight = Just st
                       }
                 in highlight str_st rest)
+    , ("\'", \ st this rest -> proseStyle (highlightString st) (prose this) <>
+                 let str_st = st
+                       { theREs = matches [("\\\\\'",accept highlightString)
+                                          ,("\'",\ st this rest ->
+                                                proseStyle (highlightString st) (prose this) <>
+                                                highlight (pop st) rest)
+                                          ,("[^\\\']+",accept highlightString)
+                                          ,("\\\\",accept highlightString)
+                                          ]
+                       , theNextHighlight = Just st
+                       }
+                 in highlight str_st rest)
+
 
     , (":" ++ haskellSymbols ++ "*",accept highlightConstant)
     , (haskellSymbols ++ "+",accept highlightLess)
