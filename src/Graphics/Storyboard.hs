@@ -97,6 +97,7 @@ module Graphics.Storyboard
   , Playing
   , drawTile
   , drawMovieTile
+  , Movie -- not sure about this; do we need to export this?
   )
 
 

@@ -1,0 +1,34 @@
+name:                story-board-active
+version:             0.1.0.0
+-- synopsis:
+-- description:
+-- license:
+license-file:        LICENSE
+author:              Andy Gill
+maintainer:          andygill@ku.edu
+-- copyright:
+-- category:
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+
+library
+  exposed-modules:     Graphics.Storyboard.Active
+  -- other-modules:
+  -- other-extensions:
+  hs-source-dirs:      src
+  build-depends:       base >=4.7 && <4.8,
+                       story-board == 0.1.*,
+                       active == 0.1.0.*
+  default-language:    Haskell2010
+
+executable story-board-example
+  main-is:             Main.hs
+  build-depends:      base  >= 4.7 && < 4.8,
+                       story-board-active == 0.1.*,
+                       story-board == 0.1.*,
+                       active == 0.1.*,
+                       blank-canvas == 0.4.*
+  hs-source-dirs:      example
+  default-language:    Haskell2010
+  GHC-options:         -threaded -Wall
