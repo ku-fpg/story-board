@@ -25,19 +25,22 @@ data Act where
   Acts    :: Act -> Act                    -> Act
   NoAct   ::                                   Act
 
+  Act_    :: Canvas () -> Behavior a -> (a -> Canvas Bool) -> Act
+
+
 -- return True if you are finished.
 --animation :: Canvas Bool -> Act
 --animation = Action
 
 -- TODO: change to act
 action :: Canvas () -> Act
-action = Act
+action m = Act_ m (pure ()) $ \ () -> return True
 
 actOnBehavior :: Behavior a -> (a -> Canvas Bool) -> Act
-actOnBehavior = OnEvent
+actOnBehavior = Act_ (return ())
 
-listen :: STM () -> Act
-listen = Listen
+--listen :: STM () -> Act
+--listen = Listen
 
 --onEvent :: Canvas a -> Act (a -> Act a)
 
@@ -51,6 +54,7 @@ runFirstAct (Acts a1 a2) = do
   runFirstAct a1
   runFirstAct a2
 runFirstAct NoAct = return ()
+runFirstAct (Act_ m _ _) = m
 
 
 -- run the Act; return True if you are finished
@@ -67,23 +71,9 @@ runAct env (Acts a1 a2) = do
   r2 <- runAct env a2
   return $ r1 && r2
 runAct env NoAct = return True
-
-
--- This STM only succeeds if one of STM succeeded
-runListen :: Act -> STM ()
-runListen (Act m) = return ()
-runListen (OnEvent _ k) = return ()
-runListen (Listen m) = m
-runListen (Acts a1 a2) = runListen a1 `orElse` runListen a2
-runListen NoAct = return ()
-
---actAct ::
-
---replay       :: Float -> (Float -> Canvas ()) -> Act
---replay dur k = Replay dur k
-
-done :: Float -> Act
-done = undefined
+runAct env (Act_ _ beh k) = do
+  t <- liftIO $ atomically $ evalBehavior env beh
+  k t
 
 --listen :: STM a -> Queue a -> Act          -- listen for mouse or keyboard
 --listen stm q = Act $ (:[]) $  Listen stm q
@@ -94,7 +84,6 @@ instance Semigroup Act where
 instance Monoid Act where
   mempty = NoAct
   mappend = Acts
-
 
 -----------------------------------------------------------------
 
@@ -130,6 +119,7 @@ data Behavior :: * -> * where
            -> Behavior a
   TimerB    :: Behavior Float
   EventB    :: Behavior (Maybe Blank.Event)
+  PureB     :: a -> Behavior a
 
 timerB    :: Behavior Float
 timerB = TimerB
@@ -139,10 +129,9 @@ eventB = EventB
 
 evalBehavior ::TheBehaviorEnv -> Behavior a -> STM a
 evalBehavior env (Behavior fn) = fn env
---evalBehavior env (PureB a) = return a
---evalBehavior env (AppB f a) = evalBehavior env f <*> evalBehavior env a
 evalBehavior env TimerB = return $ evalHistoric env (theTimer env)
 evalBehavior env EventB = return $ evalHistoric env (theEvent env)
+evalBehavior env (PureB a) = return a
 
 evalHistoric :: TheBehaviorEnv -> Historic a -> a
 evalHistoric env (new,clk,old)
@@ -157,7 +146,8 @@ instance Functor Behavior where
   fmap f b = pure f <*> b
 
 instance Applicative Behavior where
-  pure = Behavior . const . return
+  pure = PureB
+  PureB f <*> PureB x = PureB $ f x
   f <*> x = Behavior $ \ env -> evalBehavior env f <*> evalBehavior env x
 
 sample :: STM a -> STM (Behavior a)
@@ -195,3 +185,12 @@ loop def b = do
   a <- atomically $ evalBehavior def b
   print a
   loop (nextBehaviorEnv (case theTimer def of (a,_,_) -> a + 0.001) Nothing def) b
+
+
+{-
+lass Picture picture where
+   drawPicture :: picture -> (Int,Int) -> Canvas ()
+
+class Picture picture -> Movie movie where
+   directMovie :: movie picture -> (Int,Int) -> Canvas ()
+-}
