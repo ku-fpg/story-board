@@ -114,10 +114,10 @@ instance Monoid a => Monoid (Tile a) where
   (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ ps sz ->
       c1 ps sz `mappend` c2 ps sz
 
-drawTile :: Drawing picture => picture -> Size Float -> Tile ()
-drawTile pic (w',h') = tile (w',h') $ \ (x,y) (w,h) -> action $ saveRestore $ do
+drawTile :: Drawing picture => Size Float -> picture -> Tile ()
+drawTile (w',h') pic = tile (w',h') $ \ (x,y) (w,h) -> action $ saveRestore $ do
       translate (x,y)   -- required in all primitives
-      drawCanvas pic (w',h')
+      drawCanvas (w',h') pic 
 
 --mapTileAct :: (Act a -> Act b) -> Tile a -> Tile b
 --mapTileAct f (Tile (w,h) g) = Tile (w,h) $ \ ps sz -> f (g ps sz)

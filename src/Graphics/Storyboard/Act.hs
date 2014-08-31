@@ -88,7 +88,7 @@ instance Monoid Act where
 
 -----------------------------------------------------------------
 
-drawAct :: Drawing picture => picture -> Size Float -> Act
+drawAct :: Drawing picture => Size Float -> picture -> Act
 drawAct pic sz = action $ drawCanvas pic sz
 
 --drawTite ::
