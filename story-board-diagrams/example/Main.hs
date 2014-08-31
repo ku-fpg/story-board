@@ -15,9 +15,9 @@ slide :: SB.Slide ()
 slide = do
       SB.align SB.center $ SB.p $ "Diagrams Plugin Example"
 
-      let t = SB.drawTile dig (400,400)
+      let t = SB.drawTile (200,200) dig
 
-      SB.place SB.top (SB.nudge SB.center SB.center t)
+      SB.place SB.top (SB.nudge SB.top SB.center t)
 
       return ()
 
