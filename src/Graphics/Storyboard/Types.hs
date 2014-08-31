@@ -1,4 +1,6 @@
-{-# LANGUAGE KindSignatures, RankNTypes, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
+{-# LANGUAGE KindSignatures, RankNTypes, TemplateHaskell, GADTs,
+              GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings,
+              FlexibleInstances #-}
 
 module Graphics.Storyboard.Types where
 
@@ -27,3 +29,6 @@ bgColor = Background
 
 class Drawing picture where
    drawCanvas :: Size Float -> picture -> Canvas ()
+
+instance Drawing (Canvas ()) where
+   drawCanvas _ canvas = canvas
