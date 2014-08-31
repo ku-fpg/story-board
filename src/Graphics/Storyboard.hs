@@ -92,6 +92,9 @@ module Graphics.Storyboard
   -- * Other
   , askSlideStyle
   , actOnBehavior
+  -- * Plugin to other
+  , Drawing
+  , drawTile
   )
 
 
