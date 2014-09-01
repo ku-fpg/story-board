@@ -47,7 +47,15 @@ library
   hs-source-dirs:      src
   default-language:    Haskell2010
 
+flag example
+  Description: Build the examples
+  Default:     False
+
 executable story-board-example
+  if flag(example)
+    buildable:	       True
+  else
+    buildable:	       False
   main-is:             Main.hs
   build-depends:       base         >= 4.7 && < 4.8,
                        blank-canvas >=0.4.0.1,
