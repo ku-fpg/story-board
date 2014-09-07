@@ -60,17 +60,20 @@ ghciHighlightStyle = defaultHighlightStyle
               proseStyle (highlightKeyword st) (prose this) <>
               highlight haskellHighlightStyle (takeWhile (/= '\n') rest) <>
               highlight st (dropWhile (/= '\n') rest))
-      , ("(.|\n)",\ st str rest -> prose str <> highlight st rest)
+      , ("\n",\ st str rest -> prose str <> highlight st rest)
+      , (".",\ st str rest -> prose str <>
+            let ghci_st = st
+                  { theREs = matches [("\n",\ st this rest ->
+                                           prose this <>
+                                           highlight (pop st) rest)
+                                     ,(".+",accept highlightLess)
+                                     ]
+                  , theNextHighlight = Just st
+                  }
+             in highlight ghci_st rest)
       ]
  , highlightKeyword  = b . color "red"
  }
-{-
-
-*Graphics.Storyboard.Highlight> let r = mkRegex ('^' : haskellSymbols)
-*Graphics.Storyboard.Highlight> [ x | Just (_,x,_,_) <- map (\ c -> matchRegexAll r [c]) [' ' .. '~'] ]
-["#","$","*","+","-","/",":","<",">","\\","^","_"]
-
--}
 
 haskellSymbols :: String
 haskellSymbols = "[:_$#<>\\+\\*\\/\\^\\-]"
@@ -96,6 +99,7 @@ haskellHighlightStyle = defaultHighlightStyle
     , ("=>",accept highlightKeyword)
     , ("->",accept highlightKeyword)
     , ("=",accept highlightKeyword)
+    , (";",accept highlightLess)
     , ("\\|",accept highlightLess)
     , (",",accept highlightLess)
     , ("\\.\\.",accept highlightLess)
