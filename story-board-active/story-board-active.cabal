@@ -27,7 +27,7 @@ flag example
   Default:     False
 
 
-executable story-board-diagrams-example
+executable story-board-active-example
   if flag(example)
     buildable:	       True
   else
