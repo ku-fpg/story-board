@@ -291,7 +291,8 @@ blankCanvasStoryBoard slides context =
     , whichSlide        = 1
     , theDeviceContext  = context
     , profiling         = True
-    , snapShot          = return "slides"
+    , snapShot          = -- Nothing 
+      			 return "slides"
     }
 {-
   tm0 <- getCurrentTime
