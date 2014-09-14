@@ -76,13 +76,14 @@ ghciHighlightStyle = defaultHighlightStyle
  }
 
 haskellSymbols :: String
-haskellSymbols = "[:_$#<>\\+\\*\\/\\^\\-]"
+haskellSymbols = "[:_$!#<>\\+\\*\\/\\^\\-]"
 
 haskellHighlightStyle :: TheHighlightStyle
 haskellHighlightStyle = defaultHighlightStyle
  { theREs = matches $
     [("[ \n\t]+",accept (const id))] ++
     startComment ++
+    startLineComment ++
     [ (kw,accept highlightKeyword)
     | kw <- words $
         "let in if then else case of where do module import hiding " ++
@@ -135,7 +136,7 @@ haskellHighlightStyle = defaultHighlightStyle
                  in highlight str_st rest)
 
 
-    , (":" ++ haskellSymbols ++ "*",accept highlightConstant)
+    , (":" ++ haskellSymbols ++ "*",accept highlightLess)
     , (haskellSymbols ++ "+",accept highlightLess)
     , ("[\\(\\)]+",accept highlightLess)
     , ("[\\{\\}]",accept highlightLess)
@@ -159,6 +160,20 @@ haskellHighlightStyle = defaultHighlightStyle
                     ,("-",accept highlightComment)
                     ]
 
+    lineComment st = st
+      { theREs = matches (startLineComment ++ stopLineComment ++ insideLineComment)
+      , theNextHighlight = Just st
+      }
+    startLineComment  = [("\\-\\-(\\-)*", \ st this rest ->
+                            proseStyle (highlightComment st) (prose this) <>
+                            highlight (lineComment st) rest
+                      )]
+    stopLineComment   = [("\n",\ st this rest ->
+                            proseStyle (highlightComment st) (prose this) <>
+                            highlight (pop st) rest
+                      )]
+    insideLineComment = [(".+",accept highlightComment)
+                        ]
 
 
 {-
