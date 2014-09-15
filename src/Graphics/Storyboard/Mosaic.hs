@@ -58,7 +58,7 @@ data Spacing'
 
 data Mosaic a = Mosaic
   { mosaicSpace :: [(Spacing',Spacing')]
-  , runMosaic   :: Coord Float -> Cavity Float -> (Act,Cavity Float)
+  , _runMosaic  :: Coord Float -> Cavity Float -> (Act,Cavity Float)
   }
 
 instance Show (Mosaic a) where
@@ -242,6 +242,7 @@ spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
 
 
 -- how about a version that does not use spacing?
+-- TOD: make pack use runMosaic
 pack :: Mosaic a -> Tile a
 pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
       fst $ k (x,y) $ Cavity (0,0) (w',h') $ spacingInMosaic mosaic (w',h')
@@ -249,6 +250,12 @@ pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
 
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
+
+runMosaic :: Mosaic a -> Coord Float -> Size Float -> (Act, Coord Float, Size Float)
+runMosaic mosaic@(Mosaic spaces k) (x,y) (w,h) = (act,cavityCorner cavity', cavitySize cavity')
+  where
+   (act,cavity') =  k (x,y) $ Cavity (0,0) (w,h) $ spacingInMosaic mosaic (w,h)
+
 
 spaceSize :: Spacing' -> Float -> Float
 spaceSize (Alloc n)   sz = sz + n
