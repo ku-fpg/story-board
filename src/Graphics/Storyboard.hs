@@ -98,12 +98,14 @@ module Graphics.Storyboard
   , drawTile
   , drawMovieTile
   , Movie -- not sure about this; do we need to export this?
+  , Options(..)
   )
 
 
 where
 
-import Graphics.Blank hiding (eval,font)
+import Graphics.Blank hiding (eval,font, port, Options)
+import qualified Graphics.Blank as Blank
 import Data.Semigroup
 import Control.Applicative
 import Control.Monad
@@ -284,15 +286,14 @@ txt =
   "as needed (it turns out that all var-args functions take a variable number" <+>
   "of JavaScript numbers.)"
 
-blankCanvasStoryBoard :: [Slide ()] -> DeviceContext -> IO ()
-blankCanvasStoryBoard slides context =
+blankCanvasStoryBoard :: Options -> [Slide ()] -> DeviceContext -> IO ()
+blankCanvasStoryBoard opts slides context =
   slideShowr $ StoryBoardState
     { theSlides         = slides
     , whichSlide        = 1
     , theDeviceContext  = context
     , profiling         = True
-    , snapShot          = -- Nothing 
-      			 return "slides"
+    , options           = opts
     }
 {-
   tm0 <- getCurrentTime
@@ -315,15 +316,24 @@ data StoryBoardState = StoryBoardState
   , whichSlide        :: Int      -- starting at 1
   , theDeviceContext  :: DeviceContext
   , profiling         :: Bool     -- ^ do you output profiling information
-  , snapShot          :: Maybe String
+  , options           :: Options
   }
 
-storyBoard :: [Slide ()] -> IO ()
-storyBoard = blankCanvas 3000 { middleware = [], events = ["keypress","mousemove"] }
-           . blankCanvasStoryBoard
+data Options = Options
+  { snapShot          :: Maybe String
+  , port              :: Int
+  }
+
+instance Num Options where
+  fromInteger n = Options { snapShot = Nothing, port = fromIntegral n }
+
+storyBoard :: Options -> [Slide ()] -> IO ()
+storyBoard opt
+        = blankCanvas (fromIntegral (port opt)) { middleware = [], events = ["keypress","mousemove"] }
+        . blankCanvasStoryBoard opt
 
 main :: IO ()
-main = storyBoard [example3]
+main = storyBoard 3000 [example3]
 
 -- Never finishes
 slideShowr :: StoryBoardState -> IO ()
@@ -354,7 +364,7 @@ subSlideShowr st [] = slideShowr st { whichSlide = whichSlide st + 1 }
 subSlideShowr st (panel:panels) = do
   tm0 <- getCurrentTime
   print ("subSlideShowr",length (panel:panels))
-  let StoryBoardState slides n context debug snap = st
+  let StoryBoardState slides n context debug opt = st
 {-
   let innerLoop n m [] = return (m,[])
       innerLoop n m (act:xs) = do
@@ -408,7 +418,7 @@ subSlideShowr st (panel:panels) = do
   when debug $ do
     putStrLn $ "profiling: Frame for slide " ++ show n ++ " : " ++ show (diffUTCTime tm1 tm0)
   do
-        case snap of
+        case snapShot opt of
           Nothing -> return ()
           Just s -> do
             url <- send context $ toDataURL()

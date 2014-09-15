@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Graphics.Storyboard.Deck where
 
-import Graphics.Blank(Canvas)
+import Graphics.Blank(Canvas,DeviceContext)
+import Graphics.Storyboard.Mosaic
+import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Types
 import Control.Applicative
 import Control.Monad
@@ -31,28 +33,45 @@ instance MonadCanvas Deck where
       r <- m
       return (r,st)
 
-data DeckState = DeckState {}
 
-defaultDeckState :: DeckState
-defaultDeckState = DeckState {}
+data DeckEnv = DeckEnv
+  {
+  }
 
+data DeckState = DeckState
+  { deckMosaics :: [Mosaic ()]
+  , deckCavity  :: Cavity Float
+  , deckContext :: DeviceContext
+  }
 
--- All comands reflect the internal state on the screen
---pushDeck  :: Mosaic -> Deak ()    -- draw a mosaic onto the deak, in the cavity
---popDeck   :: Deck ()               -- remove single Mosaic
---resetDeak :: Deck ()              -- remove *all* the Mosaics
+defaultDeckState :: DeviceContext -> Size Float -> DeckState
+defaultDeckState cxt sz = DeckState
+  { deckMosaics = []
+  , deckCavity = sz
+  , deckContext = cxt
+  }
 
-runDeck :: Deck a -> Canvas a
-runDeck (Deck f) = do
-    (r,_) <- f defaultDeckState
+runDeck :: DeviceContext -> Size Float -> Deck a -> Canvas a
+runDeck cxt sz (Deck f) = do
+    (r,_) <- f $ defaultDeckState cxt sz
     return r
 
-{-
-deak         :: Deak                      -- empty, nothing, none
-transparency :: Mosaic -> Deck -> Deck    -- place virtual slide on deak
+-- Mini-DSL
 
-drawDeak :: Deak -> Canvas Deak       -- Remember what you have drawn
+waitForKey :: Deck ()
+waitForKey = return ()  -- for now
 
-pushMosaic :: Mosaic -> Deck -> Canvas Deck   -- draw a mosaic onto the deak, in the cavity
-popMosaic  :: Deck           -> Canvas Deck   -- remove a Foil
--}
+-- All comands reflect the internal state on the screen
+pushDeck  :: Mosaic () -> Deck ()    -- draw a mosaic onto the deak, in the cavity
+pushDeck mos = Deck $ \ st -> do
+  let Tile (_,_) m = pack mos
+  let act = m (deckOffset st) (deckCavity st)
+  let cavity = spacingInMosaic mos (deckCavity st)
+  -- And print to the screen, please
+  return ((),st { deckMosaics = mos : deckMosaics st
+                , deckOffset = cavityCorner cavity
+                , deckSize   = cavitySize cavity
+                })
+
+--popDeck   :: Deck ()               -- remove single Mosaic
+--resetDeak :: Deck ()              -- remove *all* the Mosaics

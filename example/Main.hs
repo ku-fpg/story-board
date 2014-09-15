@@ -22,7 +22,7 @@ import Graphics.Storyboard.Highlight
 
 
 main :: IO ()
-main = storyBoard $ map brand $ drop 0
+main = storyBoard 3000 $ map brand $ drop 0
   [ haskell_code
   , titleSlide
   , bigBackground
