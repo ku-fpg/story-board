@@ -76,7 +76,7 @@ ghciHighlightStyle = defaultHighlightStyle
  }
 
 haskellSymbols :: String
-haskellSymbols = "[:_$!#<>\\+\\*\\/\\^\\-]"
+haskellSymbols = "[:_$!#<>\\.\\+\\*\\/\\^\\-]"
 
 haskellHighlightStyle :: TheHighlightStyle
 haskellHighlightStyle = defaultHighlightStyle
@@ -104,7 +104,7 @@ haskellHighlightStyle = defaultHighlightStyle
     , ("\\|",accept highlightLess)
     , (",",accept highlightLess)
     , ("\\.\\.",accept highlightLess)
-
+    , ("\\.\\.\\.",accept highlightLess)  -- why?
 
    , ("[0-9]+",accept highlightLiteral)
    , ("[0-9]+\\.[0-9]+",accept highlightLiteral)
