@@ -15,7 +15,6 @@ module Graphics.Storyboard.Mosaic
   , spacingInMosaic
   , row
   , column
-  , Cavity(..)
   , runMosaic
   ) where
 
@@ -36,13 +35,6 @@ import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Tile
 
-data Cavity f = Cavity
-  { cavityCorner :: Coord f
-  , cavitySize   :: Size f
---  , cavitySpacer :: Size f  --
-  }
-  deriving Show
-
 type Spacer f = (f,f) -- the spacing, take height *or* width, not both
 
 data Spacing'
@@ -50,7 +42,6 @@ data Spacing'
   | AtLeast Float  -- be at least this wide
   | Space'         -- space Mosaic
   deriving (Eq, Ord, Show)
-
 
 -----------------------------------------------------------------------------
 

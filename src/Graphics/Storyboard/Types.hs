@@ -11,6 +11,13 @@ import Graphics.Blank.Style(Style)
 type Size  f = (f,f)
 type Coord f = (f,f)
 
+
+data Cavity f = Cavity
+  { cavityCorner :: Coord f
+  , cavitySize   :: Size f
+  }
+  deriving Show
+
 type Color = Text
 
 class Monad m => MonadCanvas m where
