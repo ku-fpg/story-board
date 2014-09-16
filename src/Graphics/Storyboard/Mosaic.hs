@@ -60,8 +60,7 @@ data Spacing'
 
 data Mosaic a = Mosaic
   { mosaicSpace :: [(Spacing',Spacing')]
-          --  This Coords Float argument feels wrong. The cavity has an Coord offset as well.
-  , _runMosaic  :: Coord Float -> Spacer Float -> Cavity Float -> (Act,Cavity Float)
+  , _runMosaic  :: Spacer Float -> Cavity Float -> (Act,Cavity Float)
   }
 
 instance Show (Mosaic a) where
@@ -79,13 +78,13 @@ instance Applicative Mosaic where
 
 -}
 instance Semigroup (Mosaic a) where
-  Mosaic fs f <> Mosaic xs x = Mosaic (fs ++ xs) $ \ ps sp0 sz0 ->
-                let (f',sz1) = f ps sp0 sz0
-                    (x',sz2) = x ps sp0 sz1
+  Mosaic fs f <> Mosaic xs x = Mosaic (fs ++ xs) $ \ sp0 sz0 ->
+                let (f',sz1) = f sp0 sz0
+                    (x',sz2) = x sp0 sz1
                 in (f' <> x', sz2)
 
 instance Monoid (Mosaic a) where
-  mempty = Mosaic [] $ \ _ _ sz0 -> (mempty,sz0)
+  mempty = Mosaic [] $ \ _ sz0 -> (mempty,sz0)
   mappend = (<>)
 
 cavityMaxSize :: Mosaic a -> Size Float -> Size Float
@@ -130,27 +129,15 @@ infix 8 ?
 
 anchor :: Side -> Tile a -> Mosaic a
 anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
-     \ (x,y) _ cavity ->
-            ( do let (x',y') = newOffset side (w,h) cavity
-                 k (x+x',y+y') -- TODO: this is boxed in
-                   (realTileSize side (w,h) cavity)
+     \ _ cavity ->
+            (k (newOffset side (w,h) cavity)
+               (realTileSize side (w,h) cavity)
             , newCavity side (w,h) cavity
             )
-{-
-
-     where k' (w,h) = do
-              strokeStyle "red"
-              lineWidth 1
-              rect(0,0,w,h)
-              closePath()
-              stroke()
-              k (w,h)
--}
-
 
 gap :: Side -> Mosaic ()
 gap side = Mosaic [fillSpacing side] $
-    \ ps sp0 cavity -> (mempty,newSpacingCavity side sp0 cavity)
+    \ sp0 cavity -> (mempty,newSpacingCavity side sp0 cavity)
 
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)
@@ -222,7 +209,7 @@ cavityOfMosaic :: Mosaic a -> (Cavity Float)
 -- Hmm. this should assume zero spacing?
 cavityOfMosaic :: Mosaic a -> Size Float -> Cavity Float
 cavityOfMosaic mosaic@(Mosaic cavity k) (w',h')
-  = snd $ k (0,0) (spacingInMosaic mosaic (w',h')) $ Cavity (0,0) (w',h')
+  = snd $ k (spacingInMosaic mosaic (w',h')) $ Cavity (0,0) (w',h')
 
 spacingInMosaic :: Mosaic a -> Size Float -> Size Float
 spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
@@ -256,7 +243,7 @@ pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
 runMosaic :: Mosaic a -> Cavity Float -> (Act, Cavity Float)
 runMosaic mosaic@(Mosaic spaces k) (Cavity (x,y) (w,h)) = (act,cavity')
   where
-   (act,cavity') =  k (0,0) (spacingInMosaic mosaic (w,h)) $ Cavity (x,y) (w,h)
+   (act,cavity') =  k (spacingInMosaic mosaic (w,h)) $ Cavity (x,y) (w,h)
 
 spaceSize :: Spacing' -> Float -> Float
 spaceSize (Alloc n)   sz = sz + n
