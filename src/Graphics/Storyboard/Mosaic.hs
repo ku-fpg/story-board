@@ -55,6 +55,7 @@ data Spacing'
 
 -- Anchored ??
 -- Placed ??
+-- Overlay??
 
 data Mosaic a = Mosaic
   { mosaicSpace :: [(Spacing',Spacing')]
@@ -245,9 +246,10 @@ spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
 -- TOD: make pack use runMosaic
 pack :: Mosaic a -> Tile a
 pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
-      fst $ k (x,y) $ Cavity (0,0) (w',h') $ spacingInMosaic mosaic (w',h')
+      fst3 $ runMosaic mosaic (x,y) (w',h')
+--      k (x,y) $ Cavity (0,0) (w',h') $ spacingInMosaic mosaic (w',h')
   where
-
+    fst3 (x,_,_) = x
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
 
