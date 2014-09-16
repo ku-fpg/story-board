@@ -202,7 +202,7 @@ cavityOfMosaic :: Mosaic a -> Size Float -> Cavity Float
 cavityOfMosaic mosaic@(Mosaic cavity k) (w',h')
   = snd $ k (spacingInMosaic mosaic (w',h')) $ Cavity (0,0) (w',h')
 
-spacingInMosaic :: Mosaic a -> Size Float -> Size Float
+spacingInMosaic :: Mosaic a -> Size Float -> Spacer Float
 spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
   where
     sw = if cw + w' < w || w_sps == 0 then 0 else (cw + w' - w) / w_sps
