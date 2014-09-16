@@ -45,7 +45,7 @@ import Control.Monad (liftM2, when)
 import Data.Semigroup
 import Data.Text(Text)
 import Data.Char(isSpace)
-import Graphics.Blank hiding (font)
+import Graphics.Blank hiding (font, Alignment)
 import qualified Graphics.Blank as Blank
 import Control.Monad.IO.Class
 
