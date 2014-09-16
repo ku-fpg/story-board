@@ -40,9 +40,11 @@ import Graphics.Storyboard.Tile
 data Cavity f = Cavity
   { cavityCorner :: Coord f
   , cavitySize   :: Size f
-  , cavitySpacer :: Size f  -- take height *or* width, not both
+--  , cavitySpacer :: Size f  --
   }
   deriving Show
+
+type Spacer f = (f,f) -- the spacing, take height *or* width, not both
 
 data Spacing'
   = Alloc Float    -- take up space
@@ -59,7 +61,7 @@ data Spacing'
 
 data Mosaic a = Mosaic
   { mosaicSpace :: [(Spacing',Spacing')]
-  , _runMosaic  :: Coord Float -> Cavity Float -> (Act,Cavity Float)
+  , _runMosaic  :: Coord Float -> Spacer Float -> Cavity Float -> (Act,Cavity Float)
   }
 
 instance Show (Mosaic a) where
@@ -77,13 +79,13 @@ instance Applicative Mosaic where
 
 -}
 instance Semigroup (Mosaic a) where
-  Mosaic fs f <> Mosaic xs x = Mosaic (fs ++ xs) $ \ ps sz0 ->
-                let (f',sz1) = f ps sz0
-                    (x',sz2) = x ps sz1
+  Mosaic fs f <> Mosaic xs x = Mosaic (fs ++ xs) $ \ ps sp0 sz0 ->
+                let (f',sz1) = f ps sp0 sz0
+                    (x',sz2) = x ps sp0 sz1
                 in (f' <> x', sz2)
 
 instance Monoid (Mosaic a) where
-  mempty = Mosaic [] $ \ _ sz0 -> (mempty,sz0)
+  mempty = Mosaic [] $ \ _ _ sz0 -> (mempty,sz0)
   mappend = (<>)
 
 cavityMaxSize :: Mosaic a -> Size Float -> Size Float
@@ -116,7 +118,7 @@ blankMosaic (w,h) cavity =
     anchor right  (blank (cy',0)) <>
     hbrace cw <>
     vbrace ch
-  where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
+  where Cavity (cx,cy) (cw,ch) = cavity
         (cx',cy') = (w - (cx + cw), h - (cy + ch))
 
 
@@ -128,7 +130,7 @@ infix 8 ?
 
 anchor :: Side -> Tile a -> Mosaic a
 anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
-     \ (x,y) cavity ->
+     \ (x,y) _ cavity ->
             ( do let (x',y') = newOffset side (w,h) cavity
                  k (x+x',y+y') -- TODO: this is boxed in
                    (realTileSize side (w,h) cavity)
@@ -148,7 +150,7 @@ anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
 
 gap :: Side -> Mosaic ()
 gap side = Mosaic [fillSpacing side] $
-    \ ps cavity -> (mempty,newSpacingCavity side cavity)
+    \ ps sp0 cavity -> (mempty,newSpacingCavity side sp0 cavity)
 
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)
@@ -175,11 +177,11 @@ newSpacing R (w,h) = (Alloc w, AtLeast h)
 -- Note that newCavity ignores either the width or height, as appropreate
 newCavity :: Side -> Size Float -> Cavity Float -> Cavity Float
 newCavity side (w,h) cavity = case side of
-    T -> Cavity (cx,cy + h) (cw,ch - h) (sw,sh)
-    B -> Cavity (cx,cy)     (cw,ch - h) (sw,sh)
-    L -> Cavity (cx + w,cy) (cw - w,ch) (sw,sh)
-    R -> Cavity (cx,cy)     (cw - w,ch) (sw,sh)
-  where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
+    T -> Cavity (cx,cy + h) (cw,ch - h)
+    B -> Cavity (cx,cy)     (cw,ch - h)
+    L -> Cavity (cx + w,cy) (cw - w,ch)
+    R -> Cavity (cx,cy)     (cw - w,ch)
+  where Cavity (cx,cy) (cw,ch) = cavity
 
 newOffset :: Side -> Size Float -> Cavity Float -> Coord Float
 newOffset side (w,h) cavity = case side of
@@ -187,7 +189,7 @@ newOffset side (w,h) cavity = case side of
     B -> (cx,cy + ch - h)
     L -> (cx,cy)
     R -> (cx + cw - w,cy)
-  where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
+  where Cavity (cx,cy) (cw,ch) = cavity
 
 realTileSize :: Side -> Size Float -> Cavity Float -> Size Float
 realTileSize side (w,h) cavity = case side of
@@ -195,7 +197,7 @@ realTileSize side (w,h) cavity = case side of
     B -> (cw,h)
     L -> (w,ch)
     R -> (w,ch)
-  where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
+  where Cavity (cx,cy) (cw,ch) = cavity
 
 fillSpacing :: Side -> (Spacing',Spacing')
 fillSpacing side = case side of
@@ -204,9 +206,10 @@ fillSpacing side = case side of
     L -> (Space',Alloc 0)
     R -> (Space',Alloc 0)
 
-newSpacingCavity :: Side -> Cavity Float -> Cavity Float
-newSpacingCavity side cavity = newCavity side (sw,sh) cavity
-  where Cavity (cx,cy) (cw,ch) (sw,sh) = cavity
+-- TODO: use _sw,
+newSpacingCavity :: Side -> Spacer Float -> Cavity Float -> Cavity Float
+newSpacingCavity side (sw,sh) cavity = newCavity side (sw,sh) cavity
+  where Cavity (cx,cy) (cw,ch) = cavity
 
 -----------------------------------------------------------------------------
 
@@ -220,7 +223,7 @@ cavityOfMosaic :: Mosaic a -> (Cavity Float)
 -- Hmm. this should assume zero spacing?
 cavityOfMosaic :: Mosaic a -> Size Float -> Cavity Float
 cavityOfMosaic mosaic@(Mosaic cavity k) (w',h')
-  = snd $ k (0,0) $ Cavity (0,0) (w',h') $ spacingInMosaic mosaic (w',h')
+  = snd $ k (0,0) (spacingInMosaic mosaic (w',h')) $ Cavity (0,0) (w',h')
 
 spacingInMosaic :: Mosaic a -> Size Float -> Size Float
 spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
@@ -247,7 +250,6 @@ spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
 pack :: Mosaic a -> Tile a
 pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
       fst3 $ runMosaic mosaic (x,y) (w',h')
---      k (x,y) $ Cavity (0,0) (w',h') $ spacingInMosaic mosaic (w',h')
   where
     fst3 (x,_,_) = x
     w = foldr spaceSize 0 $ map fst $ cavity
@@ -256,7 +258,7 @@ pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
 runMosaic :: Mosaic a -> Coord Float -> Size Float -> (Act, Coord Float, Size Float)
 runMosaic mosaic@(Mosaic spaces k) (x,y) (w,h) = (act,cavityCorner cavity', cavitySize cavity')
   where
-   (act,cavity') =  k (x,y) $ Cavity (0,0) (w,h) $ spacingInMosaic mosaic (w,h)
+   (act,cavity') =  k (x,y) (spacingInMosaic mosaic (w,h)) $ Cavity (0,0) (w,h)
 
 
 spaceSize :: Spacing' -> Float -> Float
