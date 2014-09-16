@@ -27,6 +27,8 @@ import Graphics.Blank
 -- The tile can choose to put any extra space on the inside or outside
 -- of any border, etc.
 
+-- TODO: use Cavity, rather than Coord Float * Size Float
+
 data Tile a = Tile (Size Float) (Coord Float -> Size Float -> Act)
 
 instance Show (Tile a) where
@@ -36,9 +38,7 @@ instance Show (Tile a) where
 --  fmap f (Tile sz g) = Tile sz $ \ ps sz -> fmap f (g ps sz)
 
 -- | tile requests a specific (minimum) size, and provides
--- a paint routine that takes the *actual* size.
--- The paint routine can assume the canvas starts at (0,0),
--- and is the given size. No masking is done by default.
+-- a paint routine that takes the *actual* cavity to paint in.
 
 tile :: Size Float -> (Coord Float -> Size Float -> Act) -> Tile a
 tile = Tile
