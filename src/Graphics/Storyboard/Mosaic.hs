@@ -15,9 +15,8 @@ module Graphics.Storyboard.Mosaic
   , spacingInMosaic
   , row
   , column
-  , Cavity
-  , cavityCorner
-  , cavitySize
+  , Cavity(..)
+  , runMosaic
   ) where
 
 import qualified Data.Text as Text
@@ -61,6 +60,7 @@ data Spacing'
 
 data Mosaic a = Mosaic
   { mosaicSpace :: [(Spacing',Spacing')]
+          --  This Coords Float argument feels wrong. The cavity has an Coord offset as well.
   , _runMosaic  :: Coord Float -> Spacer Float -> Cavity Float -> (Act,Cavity Float)
   }
 
@@ -206,7 +206,6 @@ fillSpacing side = case side of
     L -> (Space',Alloc 0)
     R -> (Space',Alloc 0)
 
--- TODO: use _sw,
 newSpacingCavity :: Side -> Spacer Float -> Cavity Float -> Cavity Float
 newSpacingCavity side (sw,sh) cavity = newCavity side (sw,sh) cavity
   where Cavity (cx,cy) (cw,ch) = cavity
@@ -249,17 +248,15 @@ spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
 -- TOD: make pack use runMosaic
 pack :: Mosaic a -> Tile a
 pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
-      fst3 $ runMosaic mosaic (x,y) (w',h')
+      fst $ runMosaic mosaic (Cavity (x,y) (w',h'))
   where
-    fst3 (x,_,_) = x
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
 
-runMosaic :: Mosaic a -> Coord Float -> Size Float -> (Act, Coord Float, Size Float)
-runMosaic mosaic@(Mosaic spaces k) (x,y) (w,h) = (act,cavityCorner cavity', cavitySize cavity')
+runMosaic :: Mosaic a -> Cavity Float -> (Act, Cavity Float)
+runMosaic mosaic@(Mosaic spaces k) (Cavity (x,y) (w,h)) = (act,cavity')
   where
-   (act,cavity') =  k (x,y) (spacingInMosaic mosaic (w,h)) $ Cavity (0,0) (w,h)
-
+   (act,cavity') =  k (0,0) (spacingInMosaic mosaic (w,h)) $ Cavity (x,y) (w,h)
 
 spaceSize :: Spacing' -> Float -> Float
 spaceSize (Alloc n)   sz = sz + n
