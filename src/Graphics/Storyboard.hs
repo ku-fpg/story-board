@@ -39,6 +39,8 @@ module Graphics.Storyboard
   , hr
   , Prose
   , prose
+  , leftMargin
+  , rightMargin
     -- * Tiles
   , tile
   , tileSize
@@ -344,11 +346,8 @@ slideShowr st = do
   let cxt = (defaultSlideStyle (eventQueue context) (width context,height context))
           { theSlideNumber = n, theLastSlide = length slides }
   let st0 = defaultSlideState (fullSize cxt)
-  (_,st1) <- send context $ do
-    clearCanvas
-    -- This would double the space of the picture
-    -- scale (0.5,0.5)
-    Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) (eventQueue context)
+  send context $ clearCanvas
+  (_,st1) <- Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) context
   let panels =
          [ let Tile (w,h) m = pack moz
            in m (0,0) (fullSize cxt)--(w,h)
@@ -385,7 +384,8 @@ subSlideShowr st (panel:panels) = do
   send context $ runFirstAct panel
   let outerLoop behEnv0 acts = do
         -- First, animate the frame
-        done <- send context $ runAct behEnv0 acts
+        theAct <- runAct behEnv0 acts
+        done <- send context theAct
         if done
         then return ()
         else do -- next figure out the events

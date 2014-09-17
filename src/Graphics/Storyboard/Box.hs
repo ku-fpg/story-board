@@ -107,8 +107,6 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' ->
     wd = theBorderWidth st
 
     before (x,y) (w',h') = saveRestore $ do
-        liftIO $ print (x,y)
-        liftIO $ print (w',h')
         translate (x,y)
         case theBackground st of
           Background bg -> Style.fillStyle bg

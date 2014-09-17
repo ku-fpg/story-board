@@ -54,7 +54,7 @@ runFirstAct (Act m _ _) = m
 -- run the Act; return True if you are finished
 -- Still considering threading time through here.
 -- it will allow a isClocked :: Act -> Bool function.
-runAct :: TheBehaviorEnv -> Act -> Canvas Bool
+runAct :: TheBehaviorEnv -> Act -> IO (Canvas Bool)
 {-
 runAct env (Act m)         = return True
 runAct env (OnEvent beh k) = do
@@ -68,8 +68,8 @@ runAct env (Acts a1 a2) = do
 runAct env NoAct = return True
 -}
 runAct env (Act _ beh k) = do
-  t <- liftIO $ atomically $ evalBehavior env beh
-  k t
+  t <- atomically $ evalBehavior env beh
+  return $ k t
 
 --listen :: STM a -> Queue a -> Act          -- listen for mouse or keyboard
 --listen stm q = Act $ (:[]) $  Listen stm q

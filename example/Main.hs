@@ -29,7 +29,7 @@ main = storyBoard 3000 $ map brand $ drop 0
   , alignSlide
   , bulletSlide
   , orderedListSlide
-  , actSlide
+--  , actSlide
   , subSuperSlide
   ]
 
@@ -220,7 +220,7 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 --  draw (border 1 "red" t ? top)
 ---  let pic = (colorTile "blue" (100,100) ? left) <> (border 1 "orange" (point bottom right t) ? left) <> gap left
 --  draw (border 1 "green" (pack pic) ? top)
-
+{-
 actSlide :: Slide ()
 actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act"
@@ -261,7 +261,7 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
   let t2 = tile (100,100) $ \ (x,y) (w,h) -> do
               actOnBehavior insideB $ \ n -> do
-                    liftIO $ print n
+--                    liftIO $ print n
                     saveRestore $ do
                       translate(x,y)
                       clearRect(0,0,w,h)
@@ -333,7 +333,7 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             return (n >= 1)
 -}
   return ()
-
+-}
 
 {-
   lg <- bgLinear "yellow" "white"
@@ -368,6 +368,7 @@ subSuperSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
       ]
 
 
+{-
 tileAddress :: Size Float -> IO (Tile (),Behavior (Coord Float,Size Float))
 tileAddress (w,h) = do
   var <- newTVarIO ((0,0),(0,0))
@@ -377,3 +378,4 @@ tileAddress (w,h) = do
   s <- atomically $ sample $ readTVar $ var
 
   return (t,s)
+-}

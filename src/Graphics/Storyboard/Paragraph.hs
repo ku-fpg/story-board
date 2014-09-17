@@ -79,6 +79,9 @@ renderParagraph prose_style par_style w ps = do
 leftMargin :: ParagraphStyle a => Float -> a -> a
 leftMargin n = paragraphStyle $ \ m -> m { theLeftMargin = n }
 
+rightMargin :: ParagraphStyle a => Float -> a -> a
+rightMargin n = paragraphStyle $ \ m -> m { theRightMargin = n }
+
 bullet :: ParagraphStyle a => Bullet -> a -> a
 bullet b = paragraphStyle $ \ m -> m { theBullet = Just b }
 

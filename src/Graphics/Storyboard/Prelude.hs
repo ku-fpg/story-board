@@ -36,7 +36,7 @@ import Data.Text(Text)
 
 -- TODO: perhaps call this the Staging monad?
 
-newtype Prelude a = Prelude { runPrelude :: PreludeEnv -> Canvas a }
+newtype Prelude a = Prelude { runPrelude :: PreludeEnv -> IO a }
 
 instance Functor Prelude where
  fmap f m = pure f <*> m
@@ -52,18 +52,18 @@ instance Monad Prelude where
     runPrelude (k r) q
 
 instance MonadIO Prelude where
-    liftIO = Prelude . const . liftIO
+    liftIO = Prelude . const
 
 ------------------------------------------------------------------------
 
 instance MonadCanvas Prelude where
-  liftCanvas = Prelude . const
+  liftCanvas m = Prelude $ \ env -> send (preludeContext env) m
 
 ------------------------------------------------------------------------
 
 data PreludeEnv = PreludeEnv
   { memoWordWidth     :: Text -> Text -> Maybe Float
-  , preludeEventQueue :: EventQueue
+  , preludeContext    :: DeviceContext
   , recordMemo        :: Memo -> IO ()
   }
 
@@ -76,8 +76,8 @@ deriving instance Eq Memo
 deriving instance Ord Memo
 
 
-startPrelude :: Prelude a -> EventQueue -> Canvas a
-startPrelude p evQ = do
+startPrelude :: Prelude a -> DeviceContext -> IO a
+startPrelude p context = do
   memo <- liftIO $ readMemo
 --  liftIO $ print memo
 
@@ -90,7 +90,7 @@ startPrelude p evQ = do
 
   r <- runPrelude p $ PreludeEnv
     { memoWordWidth = \ t1 t2 -> Map.lookup (t2,t1) dbWordWidth
-    , preludeEventQueue = evQ
+    , preludeContext = context
     , recordMemo = \ memo -> liftIO $ atomically $ modifyTVar' varMemo $ Set.insert memo
     }
 
@@ -121,21 +121,25 @@ readMemo = do
 
 -- | pause for key press
 keyPress :: Prelude ()
-keyPress = Prelude $ \ ch -> liftIO $ atomically $ do
-  event <- readTChan (preludeEventQueue ch)
+keyPress = do
+ liftIO $ print "waiting"
+ Prelude $ \ ch -> liftIO $ atomically $ do
+  event <- readTChan (eventQueue $ preludeContext ch)
   if eType event == "keypress"
   then return ()
   else retry
+ liftIO $ print "waited"
 
 ------------------------------------------------------------------------
 
--- This function should be memoize; it will return
+-- | This function should be memoize; it will return
 -- the same answer for *every* call.
 wordWidth :: Text -> Text -> Prelude Float
 wordWidth font_name txt = Prelude $ \ env -> do
+  -- It should be possible to write this without breaking the monad abstraction
   case memoWordWidth env font_name txt of
     Nothing -> do
-      TextMetrics w <- saveRestore $ do
+      TextMetrics w <- send (preludeContext env) $ saveRestore $ do
         Blank.font $ font_name
         measureText txt
       liftIO $ recordMemo env $ MemoWordWidth font_name txt w
