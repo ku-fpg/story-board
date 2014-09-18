@@ -4,7 +4,7 @@ module Main where
 
 import Diagrams.Prelude as Dia
 import Diagrams.Backend.Canvas
-import Graphics.Storyboard.Diagrams
+import Graphics.Storyboard.Diagrams()
 
 import qualified Graphics.Storyboard as SB
 
