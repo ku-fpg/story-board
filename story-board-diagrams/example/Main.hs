@@ -9,7 +9,7 @@ import Graphics.Storyboard.Diagrams
 import qualified Graphics.Storyboard as SB
 
 main :: IO ()
-main = SB.storyBoard [ slide ]
+main = SB.storyBoard 3000 [ slide ]
 
 slide :: SB.Slide ()
 slide = do
