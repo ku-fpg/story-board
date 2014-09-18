@@ -213,7 +213,7 @@ slideShowr st = do
   let deck = theDeck st1
   print deck
 
-  _ <- runDeck context (pauseDeck deck)
+  next <- runDeck context (pauseDeck deck)
 
   case snapShot opt of
     Nothing -> return ()
@@ -222,10 +222,9 @@ slideShowr st = do
       let fileName = s ++ "/" ++ printf "%04d.png" n
       writeDataURL fileName url
 
-  print "Done"
-  return ()
-
-  slideShowr st { whichSlide = whichSlide st + 1 }
+  case next of
+    ForwardSlide -> slideShowr st { whichSlide = whichSlide st + 1 }
+    BackSlide -> slideShowr st { whichSlide = whichSlide st - 1 }
 
 {-
 
