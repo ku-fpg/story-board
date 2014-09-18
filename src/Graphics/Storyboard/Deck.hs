@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings, ScopedTypeVariables, GADTs #-}
 module Graphics.Storyboard.Deck where
 
 import Graphics.Blank(Canvas,DeviceContext,clearRect,send)
@@ -10,7 +10,47 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 
+data Deck = Deck
+  { _deckCavity  :: Cavity Float
+  , _deckStack   :: DeckStack
+  }
 
+data DeckStack where
+  Empty         ::                DeckStack
+  DrawOnDeck    :: Act -> Deck -> DeckStack
+  PauseDeck     ::        Deck -> DeckStack
+
+drawOnDeck  :: Mosaic () -> Deck -> Deck
+drawOnDeck mos deck = Deck
+  { _deckCavity = cavity1
+  , _deckStack = DrawOnDeck act deck
+  } where (act,cavity1) = runMosaic mos cavity0
+          cavity0 = deckCavity deck
+
+pause :: Deck -> Deck
+pause deck = deck { _deckStack = PauseDeck deck }
+
+deckCavity  :: Deck -> Cavity Float
+deckCavity = _deckCavity
+
+defaultDeck :: Size Float -> Deck
+defaultDeck sz = Deck
+  { _deckCavity = Cavity (0,0) sz
+  , _deckStack  = Empty
+  }
+
+
+runDeck :: DeviceContext -> Deck -> IO (Cavity Float)
+runDeck context (Deck cavity Empty)      = return cavity
+runDeck context (Deck cavity (PauseDeck deck)) = do
+    _cavity' <- runDeck context deck
+    return cavity
+runDeck context (Deck cavity (DrawOnDeck act deck)) = do
+    _cavity' <- runDeck context deck
+    send context $ runFirstAct act
+    return cavity
+
+{-
 newtype Deck a = Deck { unDeck :: DeckEnv -> DeckState -> IO (a,DeckState) }
 
 instance Functor Deck where
@@ -66,6 +106,7 @@ runDeck cxt sz (Deck f) = do
 waitForKey :: Deck ()
 waitForKey = return ()  -- for now
 
+
 -- All comands reflect the internal state on the screen
 pushDeck  :: Mosaic () -> Deck (Cavity Float)  -- draw a mosaic onto the deak, in the cavity
 pushDeck mos = Deck $ \ env st -> do
@@ -84,8 +125,7 @@ popDeck = Deck $ \ env st -> do
       return (deckCavity st,st)
     (cav1,_) : ds -> do
       -- clear the cavity space
-      case cav1 of
-        Cavity (x,y) (w,h) -> send (deckContext env) $ clearRect (x,y,w,h)
+      case cav1 of Cavity (x,y) (w,h) -> send (deckContext env) $ clearRect (x,y,w,h)
       return (cav1,st { deckStack = ds, deckCavity = cav1 })
 
 -- ???
@@ -95,3 +135,4 @@ popDeck = Deck $ \ env st -> do
 
 --popDeck   :: Deck ()               -- remove single Mosaic
 --resetDeak :: Deck ()              -- remove *all* the Mosaics
+-}
