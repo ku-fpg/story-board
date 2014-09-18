@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, GADTs #-}
 module Graphics.Storyboard.Deck where
 
-import Graphics.Blank(Canvas,DeviceContext,clearRect,send)
+import Graphics.Blank(Canvas,DeviceContext,clearRect,send,eventQueue,eType,eWhich)
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Types
@@ -9,6 +9,7 @@ import Graphics.Storyboard.Act
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Concurrent.STM
 
 ------------------------------------------------------------------------
 
@@ -17,10 +18,18 @@ data Deck = Deck
   , _deckStack   :: DeckStack
   }
 
+instance Show Deck where
+  show (Deck cav stk) = show cav ++ ":" ++ show stk
+
 data DeckStack where
   Empty         ::                DeckStack
   DrawOnDeck    :: Act -> Deck -> DeckStack
   PauseDeck     ::        Deck -> DeckStack
+
+instance Show DeckStack where
+  show Empty = "Empty"
+  show (DrawOnDeck _ deck) = "Draw :" ++ show deck
+  show (PauseDeck deck)    = "Pause :" ++ show deck
 
 drawOnDeck  :: Mosaic () -> Deck -> Deck
 drawOnDeck mos deck = Deck
@@ -33,8 +42,8 @@ drawOnDeck mos deck = Deck
 
 -- Our mini-DSL
 
-pause :: Deck -> Deck
-pause deck = deck { _deckStack = PauseDeck deck }
+pauseDeck :: Deck -> Deck
+pauseDeck deck = deck { _deckStack = PauseDeck deck }
 
 deckCavity  :: Deck -> Cavity Float
 deckCavity = _deckCavity
@@ -50,17 +59,44 @@ defaultDeck sz = Deck
 -- This is the heart of story-board, the run function
 -- for the Deck.
 
-runDeck :: DeviceContext -> Deck -> IO (Cavity Float)
-runDeck context (Deck cavity Empty)      = do
+runDeck :: DeviceContext -> Deck -> IO UserEvent
+runDeck context deck = do
+  r <- runDeck' context deck
+  case r of
+    Left msg -> return msg
+    Right _ -> return ForwardSlide
+
+runDeck' :: DeviceContext -> Deck -> IO (Either UserEvent (Cavity Float))
+runDeck' context (Deck cavity Empty)      = do
   case cavity of Cavity (x,y) (w,h) -> send context $ clearRect (x,y,w,h)
-  return cavity
-runDeck context (Deck cavity (PauseDeck deck)) = do
-    _cavity' <- runDeck context deck
-    return cavity
-runDeck context (Deck cavity (DrawOnDeck act deck)) = do
-    _cavity' <- runDeck context deck
+  return (Right cavity)
+runDeck' context (Deck cavity (PauseDeck deck)) = runDecking context deck $ \ _ -> do
+    let loop = do
+          event <- readTChan (eventQueue context)
+          if eType event == "keypress"
+          then return event
+          else loop -- ignore other things, for now
+    event <- atomically $ loop
+    print ("got key",event)
+    case eWhich event of
+      Just 98 -> return (Left BackSlide)
+      _       -> return (Right cavity)
+runDeck' context (Deck cavity (DrawOnDeck act deck)) = runDecking context deck $ \ _ -> do
     send context $ runFirstAct act
-    return cavity
+    return (Right cavity)
+
+data UserEvent
+  = ForwardSlide
+  | BackSlide
+
+runDecking :: DeviceContext -> Deck -> (Cavity Float -> IO (Either UserEvent b)) -> IO (Either UserEvent b)
+runDecking context deck k = do
+  r <- runDeck' context deck
+  case r of
+    Left msg -> return (Left msg)
+    Right cavity -> k cavity
+
+
 
 {-
 newtype Deck a = Deck { unDeck :: DeckEnv -> DeckState -> IO (a,DeckState) }

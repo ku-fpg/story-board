@@ -121,7 +121,7 @@ data TheSlideState = TheSlideState
   { theMosaic        :: Mosaic ()
   , previousMosaics :: [Mosaic ()]
   , theInternalSize  :: Size Float
---  , theDeck          :: Deck ()
+  , theDeck          :: Deck
   , theItemCounter   :: Int
   }
   deriving Show
@@ -132,6 +132,7 @@ defaultSlideState sz = TheSlideState
                     <> (vbrace $ snd $ sz)
   , previousMosaics = []
   , theInternalSize  = sz
+  , theDeck          = defaultDeck sz
   , theItemCounter   = 0
   }
 
@@ -139,8 +140,10 @@ drawMosaic :: Mosaic () -> TheSlideState -> TheSlideState
 drawMosaic moz st = st
   { theMosaic = theMosaic st <> moz
   , theInternalSize = cavityMaxSize moz (theInternalSize st)
-  }
+  , theDeck = deck
+  } where deck = drawOnDeck moz (theDeck st)
 
+-- To remove
 replaceMosaic :: Mosaic () -> TheSlideState -> TheSlideState
 replaceMosaic moz st = st
     { theMosaic = moz
@@ -188,7 +191,7 @@ instance MonadIO Slide where
     liftIO = slidePrelude . liftIO
 
 getCavitySize :: Slide (Size Float)
-getCavitySize = Slide $ \ _ st -> return (theInternalSize st,st)
+getCavitySize = Slide $ \ _ st -> return (cavitySize $ deckCavity $ theDeck st,st)
 
 askSlideStyle :: Slide TheSlideStyle
 askSlideStyle = Slide $ \ env st -> return (env,st)
@@ -229,7 +232,9 @@ place :: Side -> Tile () -> Slide ()
 place s = draw . anchor s
 
 pause :: Slide ()
-pause = Slide $ \ cxt st -> do
+pause = return ()
+{-
+  Slide $ \ cxt st -> do
   let cavity = cavityOfMosaic (theMosaic st) (fullSize cxt)
   liftIO $ print (cavity,"Cavity")
 {-
@@ -248,6 +253,7 @@ let Tile (w,h) m = fillTile (theMosaic st)
   let currBorder = blankMosaic (fullSize cxt) cavity
 
   return ((),replaceMosaic currBorder st)
+-}
 
 -------------------------------------------------------------------------
 -- | 'tileOfSide' creates a tile of a sub-slide, of a specified size.

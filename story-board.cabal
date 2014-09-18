@@ -28,6 +28,7 @@ library
           Graphics.Storyboard.Slide
   other-modules:
           Graphics.Storyboard.Bling,
+          Graphics.Storyboard.Deck,
           Graphics.Storyboard.Images,
           Graphics.Storyboard.Layout,
           Graphics.Storyboard.Literals,
