@@ -151,6 +151,12 @@ replaceMosaic moz st = st
     , theInternalSize = cavityMaxSize moz (theInternalSize st)
     }
 
+pauseSlide :: TheSlideState -> TheSlideState
+pauseSlide st = st
+  { theDeck = pauseDeck (theDeck st)
+  }
+
+
 incItemCount :: TheSlideState -> TheSlideState
 incItemCount m = m { theItemCounter = 1 + theItemCounter m }
 
@@ -232,28 +238,7 @@ place :: Side -> Tile () -> Slide ()
 place s = draw . anchor s
 
 pause :: Slide ()
-pause = return ()
-{-
-  Slide $ \ cxt st -> do
-  let cavity = cavityOfMosaic (theMosaic st) (fullSize cxt)
-  liftIO $ print (cavity,"Cavity")
-{-
-let Tile (w,h) m = fillTile (theMosaic st)
-  ((),cavity) <- Prelude.liftCanvas $ saveRestore $ do
-      m (0,0) (w,h)
-
-  () <- liftCanvas sync
-
-  liftIO $ putStrLn "pausing"
-  Prelude.keyPress
---  liftIO $ Concurrent.threadDelay (1 * 1000 * 1000)
-  liftIO $ putStrLn "paused"
--}
-
-  let currBorder = blankMosaic (fullSize cxt) cavity
-
-  return ((),replaceMosaic currBorder st)
--}
+pause = Slide $ \ cxt st -> return ((),pauseSlide st)
 
 -------------------------------------------------------------------------
 -- | 'tileOfSide' creates a tile of a sub-slide, of a specified size.
