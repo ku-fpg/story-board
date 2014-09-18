@@ -10,6 +10,8 @@ import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 
+------------------------------------------------------------------------
+
 data Deck = Deck
   { _deckCavity  :: Cavity Float
   , _deckStack   :: DeckStack
@@ -27,6 +29,10 @@ drawOnDeck mos deck = Deck
   } where (act,cavity1) = runMosaic mos cavity0
           cavity0 = deckCavity deck
 
+------------------------------------------------------------------------
+
+-- Our mini-DSL
+
 pause :: Deck -> Deck
 pause deck = deck { _deckStack = PauseDeck deck }
 
@@ -39,9 +45,15 @@ defaultDeck sz = Deck
   , _deckStack  = Empty
   }
 
+------------------------------------------------------------------------
+
+-- This is the heart of story-board, the run function
+-- for the Deck.
 
 runDeck :: DeviceContext -> Deck -> IO (Cavity Float)
-runDeck context (Deck cavity Empty)      = return cavity
+runDeck context (Deck cavity Empty)      = do
+  case cavity of Cavity (x,y) (w,h) -> send context $ clearRect (x,y,w,h)
+  return cavity
 runDeck context (Deck cavity (PauseDeck deck)) = do
     _cavity' <- runDeck context deck
     return cavity

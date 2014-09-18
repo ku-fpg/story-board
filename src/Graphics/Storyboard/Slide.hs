@@ -35,6 +35,7 @@ import Graphics.Storyboard.Prose
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Box
+import Graphics.Storyboard.Deck
 import Graphics.Storyboard.Prose
 import qualified Graphics.Storyboard.Prelude as Prelude
 import Graphics.Storyboard.Prelude (Prelude,wordWidth)
@@ -120,6 +121,7 @@ data TheSlideState = TheSlideState
   { theMosaic        :: Mosaic ()
   , previousMosaics :: [Mosaic ()]
   , theInternalSize  :: Size Float
+--  , theDeck          :: Deck ()
   , theItemCounter   :: Int
   }
   deriving Show
