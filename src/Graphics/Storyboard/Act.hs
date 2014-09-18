@@ -26,7 +26,7 @@ data Act where
 
 -- TODO: change to act
 action :: Canvas () -> Act
-action m = Act m (pure ()) $ \ () -> return True
+action m = Act (return ()) (pure ()) $ \ () -> m >> return True
 
 actOnBehavior :: Behavior a -> (a -> Canvas Bool) -> Act
 actOnBehavior = Act (return ())

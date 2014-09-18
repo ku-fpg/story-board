@@ -1,15 +1,18 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, GADTs #-}
 module Graphics.Storyboard.Deck where
 
-import Graphics.Blank(Canvas,DeviceContext,clearRect,send,eventQueue,eType,eWhich)
 import Graphics.Storyboard.Mosaic
 import Graphics.Storyboard.Tile
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Act
+import Graphics.Storyboard.Behavior
+
+import Graphics.Blank(Canvas,DeviceContext,clearRect,send,eventQueue,eType,eWhich)
 import Control.Applicative
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Concurrent.STM
+import Data.Time.Clock
 
 ------------------------------------------------------------------------
 
@@ -82,7 +85,43 @@ runDeck' context (Deck cavity (PauseDeck deck)) = runDecking context deck $ \ _ 
       Just 98 -> return (Left BackSlide)
       _       -> return (Right cavity)
 runDeck' context (Deck cavity (DrawOnDeck act deck)) = runDecking context deck $ \ _ -> do
-    send context $ runFirstAct act
+
+    start_tm <- getCurrentTime
+
+    let loop behEnv0 = do
+          print "looping"
+          -- First, animate the frame
+          theAct <- runAct behEnv0 act
+          done <- send context theAct
+          if done
+          then return ()
+          else do -- next figure out the events
+                  d <- registerDelay (10 * 1000)
+                  let ev = do
+                         event <- readTChan (eventQueue context)
+                         return (Just event)
+                  let pz = do
+                          b <- readTVar d
+                          if b then return Nothing
+                               else retry
+
+                  rz <- atomically $ ev `orElse` pz
+
+                  -- next, reset the env
+                  tm1 <- getCurrentTime
+                  let diff :: Float = realToFrac (diffUTCTime tm1 start_tm)
+                  let behEnv1 = nextBehaviorEnv diff rz behEnv0
+
+                  case rz of
+                    Just event | eType event == "keypress" ->
+                        do atomically $ unGetTChan (eventQueue context) event
+                           return ()
+                    _ -> loop behEnv1
+
+
+    loop defaultBehaviorEnv
+
+--    send context $ runFirstAct act
     return (Right cavity)
 
 data UserEvent
