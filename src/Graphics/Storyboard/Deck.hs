@@ -84,15 +84,19 @@ runDeck' context (Deck cavity (PauseDeck deck)) = runDecking context deck $ \ _ 
     case eWhich event of
       Just 98 -> return (Left BackSlide)
       _       -> return (Right cavity)
-runDeck' context (Deck cavity (DrawOnDeck act deck)) = runDecking context deck $ \ _ -> do
+runDeck' context (Deck cavity (DrawOnDeck act deck)) = runDecking context deck $ \ cavity' -> do
 
     start_tm <- getCurrentTime
 
-    let loop behEnv0 = do
-          print "looping"
+    let loop behEnv0 clr = do
           -- First, animate the frame
           theAct <- runAct behEnv0 act
-          done <- send context theAct
+          print cavity
+          done <- send context $ do
+                  -- We can do better, we need the different between the two cavities
+                    if clr then case cavity' of Cavity (x,y) (w,h) -> clearRect (x,y,w,h)
+                           else return ()
+                    theAct
           if done
           then return ()
           else do -- next figure out the events
@@ -116,10 +120,10 @@ runDeck' context (Deck cavity (DrawOnDeck act deck)) = runDecking context deck $
                     Just event | eType event == "keypress" ->
                         do atomically $ unGetTChan (eventQueue context) event
                            return ()
-                    _ -> loop behEnv1
+                    _ -> loop behEnv1 True
 
 
-    loop defaultBehaviorEnv
+    loop defaultBehaviorEnv False
 
 --    send context $ runFirstAct act
     return (Right cavity)
