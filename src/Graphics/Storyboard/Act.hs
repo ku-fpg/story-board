@@ -27,9 +27,8 @@ data Act where
 action :: Canvas () -> Act
 action m = Act $ \ _ -> return (fmap (const True) m)
 
-actOnBehavior :: Behavior a -> (a -> Canvas Bool) -> Cavity Float -> Act
-actOnBehavior bhr f c = Act $ \ env -> evalBehavior env (fmap f bhr)
-
+actOnBehavior :: Behavior a -> Cavity Float -> (a -> Canvas Bool) -> Act
+actOnBehavior bhr c f = Act $ \ env -> evalBehavior env (fmap f bhr)
 
 runAct :: TheBehaviorEnv -> Act -> IO (Canvas Bool)
 runAct env (Act k) = atomically $ k env
@@ -38,7 +37,6 @@ instance Semigroup Act where
   -- may optimize for PureB.
   Act k1 <> Act k2 = Act $ \ env -> liftM2 (liftM2 (&&)) (k1 env) (k2 env)
 
-
 instance Monoid Act where
   mempty = action (return ())
   mappend = (<>)
@@ -46,8 +44,13 @@ instance Monoid Act where
 -----------------------------------------------------------------
 
 drawAct :: Drawing picture => Cavity Float -> picture -> Act
-drawAct sz pic = action $ drawCanvas sz pic
+drawAct (Cavity loc sz) pic = action $ do
+    translate loc
+    drawCanvas sz pic
 
 drawMovieAct :: (Playing movie, Drawing picture) => Cavity Float -> movie picture -> Act
-drawMovieAct sz movie = case wrapMovie movie of
-    Movie bhr f stop -> actOnBehavior bhr (\ b -> drawCanvas sz (f b) >> return (stop b)) sz
+drawMovieAct cavity@(Cavity loc sz) movie = case wrapMovie movie of
+    Movie bhr f stop -> actOnBehavior bhr cavity $ \ b -> do
+                                  translate loc
+                                  drawCanvas sz (f b)
+                                  return (stop b)

@@ -226,9 +226,8 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act datatype"
   p $ "This box get smaller over time, then stops"
 
-{-
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
-    actOnBehavior timerB $ \ n -> do
+    actOnBehavior timerB (Cavity (x,y) (w,h)) $ \ n -> do
           let n' = min n 1
           saveRestore $ do
             translate(x,y)
@@ -243,7 +242,7 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
   p $ "This box gets smaller and larger over time"
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
-    actOnBehavior timerB $ \ n -> do
+    actOnBehavior timerB (Cavity (x,y) (w,h)) $ \ n -> do
           let n' = (1 + sin n) / 2
           saveRestore $ do
             translate(x,y)
@@ -255,7 +254,6 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             stroke()
             closePath()
             return False
--}
 
 {-
   (t1,b) <- liftIO $ tileAddress (100,100)

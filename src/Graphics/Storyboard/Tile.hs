@@ -116,24 +116,20 @@ instance Monoid a => Monoid (Tile a) where
       c1 ps sz `mappend` c2 ps sz
 
 drawTile :: Drawing picture => Size Float -> picture -> Tile ()
-drawTile = undefined
-{-
 drawTile (w',h') pic = tile (w',h') $ \ (x,y) (w,h) -> action $ saveRestore $ do
-      translate (x,y)   -- required in all primitives
-      drawCanvas (Cavity (x,y) (w',h')) pic
--}
+      drawCanvas (x,y) pic
+
+
 -- It might be possible to combine these two functions
 drawMovieTile :: (Playing movie, Drawing picture) => Size Float -> movie picture -> Tile ()
-drawMovieTile = undefined
-{-
 drawMovieTile (w',h') movie = case wrapMovie movie of
     Movie bhr f stop -> tile (w',h') $ \ (x,y) (w,h) ->
-     actOnBehavior bhr $ \ b ->
+     actOnBehavior bhr (Cavity (x,y) (w,h)) $ \ b ->
       saveRestore $ do
           translate (x,y)
-          clearRect(0,0,w',h')
+--          clearRect(0,0,w',h')
           drawCanvas (w',h') $ f b
           return (stop b)
--}
+
 --mapTileAct :: (Act a -> Act b) -> Tile a -> Tile b
 --mapTileAct f (Tile (w,h) g) = Tile (w,h) $ \ ps sz -> f (g ps sz)
