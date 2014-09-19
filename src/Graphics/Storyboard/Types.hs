@@ -35,7 +35,7 @@ bgColor :: Text -> Background
 bgColor = Background
 
 class Drawing picture where
-   drawCanvas :: Size Float -> picture -> Canvas ()
+   drawCanvas :: Cavity Float -> picture -> Canvas ()
 
 instance Drawing (Canvas ()) where
    drawCanvas _ canvas = canvas

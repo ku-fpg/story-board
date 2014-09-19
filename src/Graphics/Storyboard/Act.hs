@@ -17,8 +17,7 @@ import Graphics.Storyboard.Behavior
 
 data Act where
  -- the bool signifies the finality of the drawing; False = more to draw
-  Act    :: Behavior a -> (a -> Canvas Bool) -> Act
-
+  Act :: (TheBehaviorEnv -> STM (Canvas Bool)) -> Act
 
 -- return True if you are finished.
 --animation :: Canvas Bool -> Act
@@ -26,25 +25,18 @@ data Act where
 
 -- TODO: change to act
 action :: Canvas () -> Act
-action m = Act (pure ()) $ \ () -> m >> return True
+action m = Act $ \ _ -> return (fmap (const True) m)
 
-actOnBehavior :: Behavior a -> (a -> Canvas Bool) -> Act
-actOnBehavior = Act
+actOnBehavior :: Behavior a -> (a -> Canvas Bool) -> Cavity Float -> Act
+actOnBehavior bhr f c = Act $ \ env -> evalBehavior env (fmap f bhr)
 
 
--- run the Act; return True if you are finished
--- Still considering threading time through here.
--- it will allow a isClocked :: Act -> Bool function.
 runAct :: TheBehaviorEnv -> Act -> IO (Canvas Bool)
-runAct env (Act beh k) = do
-  t <- atomically $ evalBehavior env beh
-  return $ k t
+runAct env (Act k) = atomically $ k env
 
 instance Semigroup Act where
   -- may optimize for PureB.
-  Act b1 k1 <> Act b2 k2 =
-      Act (liftA2 (,) b1 b2)
-          (\ (a,b) -> do liftM2 (&&) (k1 a) (k2 b))
+  Act k1 <> Act k2 = Act $ \ env -> liftM2 (liftM2 (&&)) (k1 env) (k2 env)
 
 
 instance Monoid Act where
@@ -53,9 +45,9 @@ instance Monoid Act where
 
 -----------------------------------------------------------------
 
-drawAct :: Drawing picture => Size Float -> picture -> Act
+drawAct :: Drawing picture => Cavity Float -> picture -> Act
 drawAct sz pic = action $ drawCanvas sz pic
 
-drawMovieAct :: (Playing movie, Drawing picture) => Size Float -> movie picture -> Act
+drawMovieAct :: (Playing movie, Drawing picture) => Cavity Float -> movie picture -> Act
 drawMovieAct sz movie = case wrapMovie movie of
-    Movie bhr f stop -> actOnBehavior bhr (\ b -> drawCanvas sz (f b) >> return (stop b))
+    Movie bhr f stop -> actOnBehavior bhr (\ b -> drawCanvas sz (f b) >> return (stop b)) sz

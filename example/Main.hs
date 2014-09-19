@@ -225,6 +225,8 @@ actSlide :: Slide ()
 actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act datatype"
   p $ "This box get smaller over time, then stops"
+
+{-
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
     actOnBehavior timerB $ \ n -> do
           let n' = min n 1
@@ -253,7 +255,7 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             stroke()
             closePath()
             return False
-
+-}
 
 {-
   (t1,b) <- liftIO $ tileAddress (100,100)
