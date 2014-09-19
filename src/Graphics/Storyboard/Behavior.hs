@@ -47,7 +47,7 @@ type Timestamp = Int
 type Historic a = (a,Timestamp,a)
 
 data Behavior :: * -> * where
-  Behavior :: (TheBehaviorEnv -> STM a)
+  Behavior :: (Cavity Float -> TheBehaviorEnv -> STM a)
            -> Behavior a
   TimerB    :: Behavior Float
   EventB    :: Behavior (Maybe Blank.Event)
@@ -63,11 +63,12 @@ eventB = EventB
 cavityB = CavityB
 cavityB   :: Behavior (Cavity Float)
 
-evalBehavior ::TheBehaviorEnv -> Behavior a -> STM a
-evalBehavior env (Behavior fn) = fn env
-evalBehavior env TimerB = return $ evalHistoric env (theTimer env)
-evalBehavior env EventB = return $ evalHistoric env (theEvent env)
-evalBehavior env (PureB a) = return a
+evalBehavior :: Cavity Float -> TheBehaviorEnv -> Behavior a -> STM a
+evalBehavior cavity env (Behavior fn) = fn cavity env
+evalBehavior cavity env TimerB = return $ evalHistoric env (theTimer env)
+evalBehavior cavity env EventB = return $ evalHistoric env (theEvent env)
+evalBehavior cavity env CavityB = return $ cavity
+evalBehavior cavity env (PureB a) = return a
 
 evalHistoric :: TheBehaviorEnv -> Historic a -> a
 evalHistoric env (new,clk,old)
@@ -84,13 +85,13 @@ instance Functor Behavior where
 instance Applicative Behavior where
   pure = PureB
   PureB f <*> PureB x = PureB $ f x
-  f <*> x = Behavior $ \ env -> evalBehavior env f <*> evalBehavior env x
+  f <*> x = Behavior $ \ cav env -> evalBehavior cav env f <*> evalBehavior cav env x
 
 sample :: STM a -> STM (Behavior a)
 sample m = do
   b <- m
   var <- newTVar (b,0,b)
-  return $ Behavior $ \ env -> do
+  return $ Behavior $ \ _ env -> do
       history@(new,clk,_) <- readTVar var
       if clk + 1 == theTimestamp env
       then do
@@ -103,11 +104,11 @@ sample m = do
 switch :: (a -> b -> b) -> b -> Behavior a -> STM (Behavior b)
 switch f b bah = do
   var <- newTVar (b,0,b)
-  return $ Behavior $ \ env -> do
+  return $ Behavior $ \ cav env -> do
         history@(new,clk,_) <- readTVar var
         if clk + 1 == theTimestamp env
         then do
-          a <- evalBehavior env bah
+          a <- evalBehavior cav env bah
           let newest = f a new
           writeTVar var $ consHistoric newest $ history
           return newest

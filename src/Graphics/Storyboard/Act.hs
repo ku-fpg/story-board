@@ -28,7 +28,7 @@ action :: Canvas () -> Act
 action m = Act $ \ _ -> return (fmap (const True) m)
 
 actOnBehavior :: Behavior a -> Cavity Float -> (a -> Canvas Bool) -> Act
-actOnBehavior bhr c f = Act $ \ env -> evalBehavior env (fmap f bhr)
+actOnBehavior bhr c f = Act $ \ env -> evalBehavior c env (fmap f bhr)
 
 runAct :: TheBehaviorEnv -> Act -> IO (Canvas Bool)
 runAct env (Act k) = atomically $ k env

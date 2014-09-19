@@ -239,7 +239,7 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             stroke()
             closePath()
             return (n >= 1)
-
+{-
   p $ "This box gets smaller and larger over time"
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
     actOnBehavior timerB (Cavity (x,y) (w,h)) $ \ n -> do
@@ -254,6 +254,28 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             stroke()
             closePath()
             return False
+-}
+  p $ "And the values"
+  place top $ tile (100,100) $ \ (x,y) (w,h) -> do
+      actOnBehavior ((,,) <$> timerB <*> eventB <*> cavityB)
+             (Cavity (x,y) (w,h)) $ \ (tm,ev,ca) -> do
+            saveRestore $ do
+              translate(x,y)
+    --            clearRect(0,0,w,h)
+              beginPath()
+              rect(1,1,w-2,h-2)
+              strokeStyle "red"
+              lineWidth 1
+              stroke()
+              closePath()
+              fillText ("Hello" <> Text.pack (show (tm,ev,ca)),10,10)
+              return False
+
+  p $ "1"
+  pause
+  p $ "2"
+  pause
+  p $ "3"
 
 {-
   (t1,b) <- liftIO $ tileAddress (100,100)
