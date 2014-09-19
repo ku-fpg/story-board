@@ -66,7 +66,7 @@ import Graphics.Storyboard.Prelude
 
 data Prose
       = ProseItem  Text   -- can include fixed space, but will not usually.
-      | ProseSpace Float  -- normalize to 1 for regular space
+      | ProseSpace Double  -- normalize to 1 for regular space
       | ProseScope (TheProseStyle -> TheProseStyle) Prose
       | ProseConcat [Prose]
 
@@ -105,7 +105,7 @@ instance Monoid Prose where
   mappend xs ys = ProseConcat [xs,ys]
   mconcat = ProseConcat
 
-sizedSpace :: Float -> Prose
+sizedSpace :: Double -> Prose
 sizedSpace n = ProseSpace n
 
 space :: Prose
@@ -127,13 +127,13 @@ p1 </> p2 = p1 <> br <> p2
 data TheProseStyle = TheProseStyle
   { theFont           :: Text       -- ^ which font, "sans-serif"
   , theFontSize       :: Int        -- ^ how big, 32
-  , theSpaceWidth     :: Float      -- ^ size of space, ratio of font size, 0.28 * 32
+  , theSpaceWidth     :: Double      -- ^ size of space, ratio of font size, 0.28 * 32
   , isItalic          :: Bool
   , isBold            :: Bool
   , subSuper          :: Int        -- 0 == regular, 1 == super, 2 == super.super, -1 = sub
   , theColor          :: Text       -- ^ current color, black
   , theLigatures      :: [(Text,Text)]
-  , theDescenderHeight:: Float      -- Extra gap below baseline for descenders, ratio of font size, 0.35
+  , theDescenderHeight:: Double      -- Extra gap below baseline for descenders, ratio of font size, 0.35
   , isBoxy            :: Bool       -- ^ do you surround every word with a box
   } deriving Show
 
@@ -171,7 +171,7 @@ font        f = proseStyle $ \ s -> s { theFont = f }
 fontSize    :: ProseStyle a => Int  ->  a -> a
 fontSize    n = proseStyle $ \ s -> s { theFontSize = n }
 
-scaleFont   :: ProseStyle a => Float ->  a -> a
+scaleFont   :: ProseStyle a => Double ->  a -> a
 scaleFont  sc = proseStyle $ \ s -> s { theFontSize = rounding $ fromIntegral (theFontSize s) * sc }
   where
     rounding = if sc >= 1 then ceiling else floor
@@ -188,7 +188,7 @@ color       c = proseStyle $ \ s -> s { theColor = c }
 plain       :: ProseStyle a =>          a -> a
 plain         = proseStyle $ \ s -> s { isItalic = False, isBold = False }
 
-wordSpacing :: ProseStyle a => Float -> a -> a
+wordSpacing :: ProseStyle a => Double -> a -> a
 wordSpacing w = proseStyle $ \ s -> s { theSpaceWidth = w }
 
 ligature    :: ProseStyle a => Text -> Text -> a -> a
@@ -223,7 +223,7 @@ renderText :: TheProseStyle -> Text -> Prelude (Tile ())
 renderText st txt = do
     let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures st)
     w <- wordWidth (fontName st) txt'
-    let off :: Float
+    let off :: Double
         off = -0.4 * fromIntegral (subSuper st) * fromIntegral (theFontSize st)
     return $ tile (w,fromIntegral
                       $ ceiling
@@ -240,7 +240,7 @@ renderText st txt = do
         strokeStyle "black";
         stroke()
 
-renderProse :: Alignment -> Float -> TheProseStyle -> Prose -> Prelude [Tile ()]
+renderProse :: Alignment -> Double -> TheProseStyle -> Prose -> Prelude [Tile ()]
 renderProse alignment w ps_cxt ps = do
     -- This function feels like it should be in a higher module
 
@@ -273,7 +273,7 @@ renderProse alignment w ps_cxt ps = do
         findS [] (ts,w) = [(ts,w)]
 
 
-    let glyphs2 :: [([Tile ()],Float)] = findT (fixNL proseTiles) []
+    let glyphs2 :: [([Tile ()],Double)] = findT (fixNL proseTiles) []
 {-
     liftIO $ putStrLn "----------------"
     liftIO $ sequence_
@@ -292,7 +292,7 @@ renderProse alignment w ps_cxt ps = do
     -- now finally laydown the tiles
 
     let
-        write :: Bool -> [([Tile ()],Float)] -> Tile ()
+        write :: Bool -> [([Tile ()],Double)] -> Tile ()
         write lastLine xs = pack $ mconcat $
               [ gap left | True <- [just `elem` [ center, right]]] ++
               [ mconcat [ anchor left $ tile | tile <- tiles ] <>
@@ -317,7 +317,7 @@ renderProse alignment w ps_cxt ps = do
 
 -- Given the (min) width of a space, the width of the line,
 -- and a list of word widths, how many words can we accept.
-splitLine :: Float -> [(Float,Float)] -> Int
+splitLine :: Double -> [(Double,Double)] -> Int
 splitLine lineWidth widths = length $ takeWhile (<= lineWidth) szs
   where
     szs = [ sz + sp + rest
@@ -327,14 +327,14 @@ splitLine lineWidth widths = length $ takeWhile (<= lineWidth) szs
                      (0 : szs)
           ]
 
-splitLines :: Float -> [(Float,Float)] -> [Int]
+splitLines :: Double -> [(Double,Double)] -> [Int]
 splitLines lineWidth [] = []
 splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
   where
     n = splitLine lineWidth xs `max` 1 -- hfill warning here
 
 -- internal only?
-renderProse' :: TheProseStyle -> Prose -> Prelude [Either Float (Tile ())]
+renderProse' :: TheProseStyle -> Prose -> Prelude [Either Double (Tile ())]
 renderProse' st (ProseItem txt) | Text.null txt = return []
 renderProse' st (ProseItem txt) = do
     t <- renderText st txt

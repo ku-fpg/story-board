@@ -27,7 +27,7 @@ data Act where
 action :: Canvas () -> Act
 action m = Act $ \ _ -> return (fmap (const True) m)
 
-actOnBehavior :: Behavior a -> Cavity Float -> (a -> Canvas Bool) -> Act
+actOnBehavior :: Behavior a -> Cavity Double -> (a -> Canvas Bool) -> Act
 actOnBehavior bhr c f = Act $ \ env -> evalBehavior c env (fmap f bhr)
 
 runAct :: TheBehaviorEnv -> Act -> IO (Canvas Bool)
@@ -43,12 +43,12 @@ instance Monoid Act where
 
 -----------------------------------------------------------------
 
-drawAct :: Drawing picture => Cavity Float -> picture -> Act
+drawAct :: Drawing picture => Cavity Double -> picture -> Act
 drawAct (Cavity loc sz) pic = action $ do
     translate loc
     drawCanvas sz pic
 
-drawMovieAct :: (Playing movie, Drawing picture) => Cavity Float -> movie picture -> Act
+drawMovieAct :: (Playing movie, Drawing picture) => Cavity Double -> movie picture -> Act
 drawMovieAct cavity@(Cavity loc sz) movie = case wrapMovie movie of
     Movie bhr f stop -> actOnBehavior bhr cavity $ \ b -> do
                                   translate loc

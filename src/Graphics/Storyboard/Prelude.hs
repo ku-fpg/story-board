@@ -62,13 +62,13 @@ instance MonadCanvas Prelude where
 ------------------------------------------------------------------------
 
 data PreludeEnv = PreludeEnv
-  { memoWordWidth     :: Text -> Text -> Maybe Float
+  { memoWordWidth     :: Text -> Text -> Maybe Double
   , preludeContext    :: DeviceContext
   , recordMemo        :: Memo -> IO ()
   }
 
 data Memo where
-  MemoWordWidth :: Text -> Text -> Float -> Memo
+  MemoWordWidth :: Text -> Text -> Double -> Memo
 
 deriving instance Show Memo
 deriving instance Read Memo
@@ -134,7 +134,7 @@ keyPress = do
 
 -- | This function should be memoize; it will return
 -- the same answer for *every* call.
-wordWidth :: Text -> Text -> Prelude Float
+wordWidth :: Text -> Text -> Prelude Double
 wordWidth font_name txt = Prelude $ \ env -> do
   -- It should be possible to write this without breaking the monad abstraction
   case memoWordWidth env font_name txt of

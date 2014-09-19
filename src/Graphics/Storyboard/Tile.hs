@@ -27,9 +27,9 @@ import Graphics.Blank
 -- The tile can choose to put any extra space on the inside or outside
 -- of any border, etc.
 
--- TODO: use Cavity, rather than Coord Float * Size Float
+-- TODO: use Cavity, rather than Coord Double * Size Double
 
-data Tile a = Tile (Size Float) (Coord Float -> Size Float -> Act)
+data Tile a = Tile (Size Double) (Coord Double -> Size Double -> Act)
 
 instance Show (Tile a) where
   show (Tile sz _) = show sz
@@ -40,22 +40,22 @@ instance Show (Tile a) where
 -- | tile requests a specific (minimum) size, and provides
 -- a paint routine that takes the *actual* cavity to paint in.
 
-tile :: Size Float -> (Coord Float -> Size Float -> Act) -> Tile a
+tile :: Size Double -> (Coord Double -> Size Double -> Act) -> Tile a
 tile = Tile
 
-tileWidth :: Tile a -> Float
+tileWidth :: Tile a -> Double
 tileWidth (Tile (w,_) _) = w
 
-tileHeight :: Tile a -> Float
+tileHeight :: Tile a -> Double
 tileHeight (Tile (_,h) _) = h
 
-tileSize :: Tile a -> Size Float
+tileSize :: Tile a -> Size Double
 tileSize (Tile sz _) = sz
 
-blank :: Size Float -> Tile ()
+blank :: Size Double -> Tile ()
 blank sz = tile sz $ const $ const $ mempty
 
-colorTile :: Text -> Size Float -> Tile ()
+colorTile :: Text -> Size Double -> Tile ()
 colorTile col (w',h') = tile (w',h') $ \ (x,y) (w,h) -> do
   action $ saveRestore $ do
     translate (x,y)   -- required in all primitives
@@ -115,13 +115,13 @@ instance Monoid a => Monoid (Tile a) where
   (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ ps sz ->
       c1 ps sz `mappend` c2 ps sz
 
-drawTile :: Drawing picture => Size Float -> picture -> Tile ()
+drawTile :: Drawing picture => Size Double -> picture -> Tile ()
 drawTile (w',h') pic = tile (w',h') $ \ (x,y) (w,h) -> action $ saveRestore $ do
       drawCanvas (x,y) pic
 
 
 -- It might be possible to combine these two functions
-drawMovieTile :: (Playing movie, Drawing picture) => Size Float -> movie picture -> Tile ()
+drawMovieTile :: (Playing movie, Drawing picture) => Size Double -> movie picture -> Tile ()
 drawMovieTile (w',h') movie = case wrapMovie movie of
     Movie bhr f stop -> tile (w',h') $ \ (x,y) (w,h) ->
      actOnBehavior bhr (Cavity (x,y) (w,h)) $ \ b ->

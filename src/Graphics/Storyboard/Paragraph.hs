@@ -16,11 +16,11 @@ import Graphics.Storyboard.Types
 
 data TheParagraphStyle = TheParagraphStyle
   { theAlignment    :: Alignment -- ^ What alignment method are we using, left
-  , theLineWidth    :: Float     -- ^ line width, 1
-  , theLeftMargin   :: Float     -- ^ left margin, 0
-  , theRightMargin  :: Float     -- ^ right margin, 0
-  , theTopMargin    :: Float     -- ^ top margin, 0
-  , theBottomMargin :: Float     -- ^ bottom margin, 0
+  , theLineWidth    :: Double     -- ^ line width, 1
+  , theLeftMargin   :: Double     -- ^ left margin, 0
+  , theRightMargin  :: Double     -- ^ right margin, 0
+  , theTopMargin    :: Double     -- ^ top margin, 0
+  , theBottomMargin :: Double     -- ^ bottom margin, 0
   , theBullet       :: Maybe Bullet
   }
   deriving Show
@@ -53,7 +53,7 @@ instance ParagraphStyle TheParagraphStyle where
 align :: ParagraphStyle a => Alignment -> a -> a
 align j = paragraphStyle $ \ m -> m { theAlignment = j }
 
-renderParagraph :: TheProseStyle -> TheParagraphStyle -> Float -> Prose -> Prelude (Tile ())
+renderParagraph :: TheProseStyle -> TheParagraphStyle -> Double -> Prose -> Prelude (Tile ())
 renderParagraph prose_style par_style w ps = do
 
   tiles <- renderProse (theAlignment par_style)
@@ -76,10 +76,10 @@ renderParagraph prose_style par_style w ps = do
 
               map (anchor top) tiles
 
-leftMargin :: ParagraphStyle a => Float -> a -> a
+leftMargin :: ParagraphStyle a => Double -> a -> a
 leftMargin n = paragraphStyle $ \ m -> m { theLeftMargin = n }
 
-rightMargin :: ParagraphStyle a => Float -> a -> a
+rightMargin :: ParagraphStyle a => Double -> a -> a
 rightMargin n = paragraphStyle $ \ m -> m { theRightMargin = n }
 
 bullet :: ParagraphStyle a => Bullet -> a -> a
@@ -95,7 +95,7 @@ renderMargin par_style = mconcat
     ]
 
 
-theParagraphMarginSize :: TheParagraphStyle -> Size Float
+theParagraphMarginSize :: TheParagraphStyle -> Size Double
 theParagraphMarginSize par_style =
     (theLeftMargin par_style + theRightMargin par_style, 0)
 

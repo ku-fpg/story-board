@@ -38,8 +38,8 @@ import Graphics.Storyboard.Tile
 type Spacer f = (f,f) -- the spacing, take height *or* width, not both
 
 data Spacing'
-  = Alloc Float    -- take up space
-  | AtLeast Float  -- be at least this wide
+  = Alloc Double    -- take up space
+  | AtLeast Double  -- be at least this wide
   | Space'         -- space Mosaic
   deriving (Eq, Ord, Show)
 
@@ -51,7 +51,7 @@ data Spacing'
 
 data Mosaic a = Mosaic
   { mosaicSpace :: [(Spacing',Spacing')]
-  , _runMosaic  :: Spacer Float -> Cavity Float -> (Act,Cavity Float)
+  , _runMosaic  :: Spacer Double -> Cavity Double -> (Act,Cavity Double)
   }
 
 instance Show (Mosaic a) where
@@ -78,11 +78,11 @@ instance Monoid (Mosaic a) where
   mempty = Mosaic [] $ \ _ sz0 -> (mempty,sz0)
   mappend = (<>)
 
-cavityMaxSize :: Mosaic a -> Size Float -> Size Float
+cavityMaxSize :: Mosaic a -> Size Double -> Size Double
 cavityMaxSize moz sz = (fst h,fst w)
     where (h,w) = cavityRange moz sz
 
-cavityRange :: Mosaic a -> Size Float -> Size (Float,Float)
+cavityRange :: Mosaic a -> Size Double -> Size (Double,Double)
 cavityRange (Mosaic sps _) (h,w) = ( foldl f (h,0) $ map fst sps
                                    , foldl f (w,0) $ map snd sps
                                    )
@@ -100,7 +100,7 @@ cavityRange (Mosaic sps _) (h,w) = ( foldl f (h,0) $ map fst sps
 -- and build a mosaic that have the size and shape
 -- of the gap between the outside size, and inner cavity.
 
-blankMosaic :: Size Float -> Cavity Float -> Mosaic ()
+blankMosaic :: Size Double -> Cavity Double -> Mosaic ()
 blankMosaic (w,h) cavity =
     anchor top    (blank (0,cy)) <>
     anchor bottom (blank (0,cy')) <>
@@ -132,10 +132,10 @@ gap side = Mosaic [fillSpacing side] $
 
 -- brace that force the inside to be *at least* this size.
 -- (Think Star Wars IV.)
-vbrace :: Float -> Mosaic ()
+vbrace :: Double -> Mosaic ()
 vbrace h = anchor left (blank (0,h))
 
-hbrace :: Float -> Mosaic ()
+hbrace :: Double -> Mosaic ()
 hbrace w = anchor top (blank (w,0))
 
 column :: [Tile ()] -> Tile ()
@@ -146,14 +146,14 @@ row = pack . mconcat . intersperse (gap top) . map (anchor top)
 
 -----------------------------------------------------------------------------
 
-newSpacing :: Side -> Size Float -> (Spacing',Spacing')
+newSpacing :: Side -> Size Double -> (Spacing',Spacing')
 newSpacing T (w,h) = (AtLeast w, Alloc h)
 newSpacing B (w,h) = (AtLeast w, Alloc h)
 newSpacing L (w,h) = (Alloc w, AtLeast h)
 newSpacing R (w,h) = (Alloc w, AtLeast h)
 
 -- Note that newCavity ignores either the width or height, as appropreate
-newCavity :: Side -> Size Float -> Cavity Float -> Cavity Float
+newCavity :: Side -> Size Double -> Cavity Double -> Cavity Double
 newCavity side (w,h) cavity = case side of
     T -> Cavity (cx,cy + h) (cw,ch - h)
     B -> Cavity (cx,cy)     (cw,ch - h)
@@ -161,7 +161,7 @@ newCavity side (w,h) cavity = case side of
     R -> Cavity (cx,cy)     (cw - w,ch)
   where Cavity (cx,cy) (cw,ch) = cavity
 
-newOffset :: Side -> Size Float -> Cavity Float -> Coord Float
+newOffset :: Side -> Size Double -> Cavity Double -> Coord Double
 newOffset side (w,h) cavity = case side of
     T -> (cx,cy)
     B -> (cx,cy + ch - h)
@@ -169,7 +169,7 @@ newOffset side (w,h) cavity = case side of
     R -> (cx + cw - w,cy)
   where Cavity (cx,cy) (cw,ch) = cavity
 
-realTileSize :: Side -> Size Float -> Cavity Float -> Size Float
+realTileSize :: Side -> Size Double -> Cavity Double -> Size Double
 realTileSize side (w,h) cavity = case side of
     T -> (cw,h)
     B -> (cw,h)
@@ -184,7 +184,7 @@ fillSpacing side = case side of
     L -> (Space',Alloc 0)
     R -> (Space',Alloc 0)
 
-newSpacingCavity :: Side -> Spacer Float -> Cavity Float -> Cavity Float
+newSpacingCavity :: Side -> Spacer Double -> Cavity Double -> Cavity Double
 newSpacingCavity side (sw,sh) cavity = newCavity side (sw,sh) cavity
   where Cavity (cx,cy) (cw,ch) = cavity
 
@@ -194,15 +194,15 @@ newSpacingCavity side (sw,sh) cavity = newCavity side (sw,sh) cavity
 pack :: Mosaic a -> Tile a
 pack = fmap fst . fillTile
 
-cavityOfMosaic :: Mosaic a -> (Cavity Float)
+cavityOfMosaic :: Mosaic a -> (Cavity Double)
 -}
 
 -- Hmm. this should assume zero spacing?
-cavityOfMosaic :: Mosaic a -> Size Float -> Cavity Float
+cavityOfMosaic :: Mosaic a -> Size Double -> Cavity Double
 cavityOfMosaic mosaic@(Mosaic cavity k) (w',h')
   = snd $ k (spacingInMosaic mosaic (w',h')) $ Cavity (0,0) (w',h')
 
-spacingInMosaic :: Mosaic a -> Size Float -> Spacer Float
+spacingInMosaic :: Mosaic a -> Size Double -> Spacer Double
 spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
   where
     sw = if cw + w' < w || w_sps == 0 then 0 else (cw + w' - w) / w_sps
@@ -231,12 +231,12 @@ pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
 
-runMosaic :: Mosaic a -> Cavity Float -> (Act, Cavity Float)
+runMosaic :: Mosaic a -> Cavity Double -> (Act, Cavity Double)
 runMosaic mosaic@(Mosaic spaces k) (Cavity (x,y) (w,h)) = (act,cavity')
   where
    (act,cavity') =  k (spacingInMosaic mosaic (w,h)) $ Cavity (x,y) (w,h)
 
-spaceSize :: Spacing' -> Float -> Float
+spaceSize :: Spacing' -> Double -> Double
 spaceSize (Alloc n)   sz = sz + n
 spaceSize (AtLeast n) sz = sz `max` n
 spaceSize (Space')    sz = sz

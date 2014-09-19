@@ -22,10 +22,10 @@ import Graphics.Storyboard.Types
 -- as the main timestamp.
 
 data TheBehaviorEnv = TheBehaviorEnv
-  { theTimer  :: Historic Float
+  { theTimer  :: Historic Double
   , theEvent  :: Historic (Maybe Blank.Event)
   , theTimestamp :: Timestamp
---  , theBehaviorCavity :: Cavity Float
+--  , theBehaviorCavity :: Cavity Double
   }
 
 defaultBehaviorEnv :: TheBehaviorEnv
@@ -36,7 +36,7 @@ defaultBehaviorEnv = TheBehaviorEnv
 --  , theBehaviorCavity
   }
 
-nextBehaviorEnv :: Float -> Maybe Blank.Event -> TheBehaviorEnv -> TheBehaviorEnv
+nextBehaviorEnv :: Double -> Maybe Blank.Event -> TheBehaviorEnv -> TheBehaviorEnv
 nextBehaviorEnv t e env = TheBehaviorEnv
   { theTimer  = consHistoric t $ theTimer env
   , theEvent  = consHistoric e $ theEvent env
@@ -47,23 +47,23 @@ type Timestamp = Int
 type Historic a = (a,Timestamp,a)
 
 data Behavior :: * -> * where
-  Behavior :: (Cavity Float -> TheBehaviorEnv -> STM a)
+  Behavior :: (Cavity Double -> TheBehaviorEnv -> STM a)
            -> Behavior a
-  TimerB    :: Behavior Float
+  TimerB    :: Behavior Double
   EventB    :: Behavior (Maybe Blank.Event)
-  CavityB   :: Behavior (Cavity Float)
+  CavityB   :: Behavior (Cavity Double)
   PureB     :: a -> Behavior a
 
-timerB    :: Behavior Float
+timerB    :: Behavior Double
 timerB = TimerB
 
 eventB    :: Behavior (Maybe Blank.Event)
 eventB = EventB
 
 cavityB = CavityB
-cavityB   :: Behavior (Cavity Float)
+cavityB   :: Behavior (Cavity Double)
 
-evalBehavior :: Cavity Float -> TheBehaviorEnv -> Behavior a -> STM a
+evalBehavior :: Cavity Double -> TheBehaviorEnv -> Behavior a -> STM a
 evalBehavior cavity env (Behavior fn) = fn cavity env
 evalBehavior cavity env TimerB = return $ evalHistoric env (theTimer env)
 evalBehavior cavity env EventB = return $ evalHistoric env (theEvent env)
@@ -128,5 +128,5 @@ data Movie p = forall b . Movie
 class Playing movie where
   wrapMovie :: movie picture -> Movie picture
 
-instance Playing ((->) Float) where
+instance Playing ((->) Double) where
    wrapMovie f = Movie timerB f (const False)

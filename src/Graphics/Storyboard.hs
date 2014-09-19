@@ -141,7 +141,7 @@ import Graphics.Storyboard.Box
 
 
 -- blank margin around a story.
-margin :: Float -> Slide a -> Slide a
+margin :: Double -> Slide a -> Slide a
 margin m inside = do
   draw (blank (0,m) ?top)
   draw (anchor bottom (blank (0,m)))
@@ -163,7 +163,7 @@ hr = do
               strokeStyle "black"
               stroke()
 
-vspace :: Float -> Slide ()
+vspace :: Double -> Slide ()
 vspace h = do
   draw $ anchor top $ blank (0,h)
 

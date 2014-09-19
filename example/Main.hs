@@ -159,7 +159,7 @@ haskell_code = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   sequence [ do t1 <- tileOfSlide (1000,0) $ do
                   fontSize n $ font ft $ align center $ p $ "Object.prototype WA"
                 place top $ (border 1 "black" t1)
-           | n <- reverse $ take 12 $ map ceiling $ iterate (* 1.2) (10 :: Float)
+           | n <- reverse $ take 12 $ map ceiling $ iterate (* 1.2) (10 :: Double)
            ]
 
   return ()
@@ -294,7 +294,7 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             = return (w'-x,h'-y)
       inside _ _ = Nothing
 
-  let insideB :: Behavior (Maybe (Float,Float))
+  let insideB :: Behavior (Maybe (Double,Double))
       insideB = pure inside
           <*> b
           <*> mm
@@ -409,7 +409,7 @@ subSuperSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 
 
 {-
-tileAddress :: Size Float -> IO (Tile (),Behavior (Coord Float,Size Float))
+tileAddress :: Size Double -> IO (Tile (),Behavior (Coord Double,Size Double))
 tileAddress (w,h) = do
   var <- newTVarIO ((0,0),(0,0))
 

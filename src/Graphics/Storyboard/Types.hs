@@ -36,7 +36,7 @@ bgColor = Background
 
 class Drawing picture where
    -- The drawing canvas can assume it starts at (0,0)
-   drawCanvas :: Size Float -> picture -> Canvas ()
+   drawCanvas :: Size Double -> picture -> Canvas ()
 
 instance Drawing (Canvas ()) where
    drawCanvas _ canvas = canvas

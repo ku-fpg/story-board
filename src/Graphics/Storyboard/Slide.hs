@@ -49,8 +49,8 @@ data TheSlideStyle = TheSlideStyle
   , theBoxStyle         :: TheBoxStyle
   , theItemCounters     :: [Int]
   , theBulletFactory    :: BulletFactory
-  , theTabStop          :: Float
-  , fullSize            :: Size Float
+  , theTabStop          :: Double
+  , fullSize            :: Size Double
   , theSlideNumber      :: Int
   , theLastSlide        :: Int
   , theEventQueue       :: TheEventQueue
@@ -65,7 +65,7 @@ instance Show BulletFactory where
   show _ = "BulletFactory{}"
 
 
-defaultSlideStyle :: EventQueue -> Size Float -> TheSlideStyle
+defaultSlideStyle :: EventQueue -> Size Double -> TheSlideStyle
 defaultSlideStyle eventQ sz = TheSlideStyle
   { theProseStyle     = defaultProseStyle
   , theParagraphStyle = defaultParagraphStyle
@@ -120,13 +120,13 @@ bulletFactory fac = slideStyle $ \ m -> m { theBulletFactory = fac }
 data TheSlideState = TheSlideState
   { theMosaic        :: Mosaic ()
   , previousMosaics :: [Mosaic ()]
-  , theInternalSize  :: Size Float
+  , theInternalSize  :: Size Double
   , theDeck          :: Deck
   , theItemCounter   :: Int
   }
   deriving Show
 
-defaultSlideState :: Size Float -> TheSlideState
+defaultSlideState :: Size Double -> TheSlideState
 defaultSlideState sz = TheSlideState
   { theMosaic        = (hbrace $ fst $ sz)
                     <> (vbrace $ snd $ sz)
@@ -196,7 +196,7 @@ instance Monoid a => Monoid (Slide a) where
 instance MonadIO Slide where
     liftIO = slidePrelude . liftIO
 
-getCavitySize :: Slide (Size Float)
+getCavitySize :: Slide (Size Double)
 getCavitySize = Slide $ \ _ st -> return (cavitySize $ deckCavity $ theDeck st,st)
 
 askSlideStyle :: Slide TheSlideStyle
@@ -243,7 +243,7 @@ pause = Slide $ \ cxt st -> return ((),pauseSlide st)
 -------------------------------------------------------------------------
 -- | 'tileOfSide' creates a tile of a sub-slide, of a specified size.
 
-tileOfSlide :: Size Float -> Slide () -> Slide (Tile ())
+tileOfSlide :: Size Double -> Slide () -> Slide (Tile ())
 tileOfSlide sz (Slide f) = Slide $ \ slide_style slide_state -> do
     let slide_style0 = slide_style
           { theItemCounters = []

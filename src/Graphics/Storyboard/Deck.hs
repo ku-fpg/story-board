@@ -17,7 +17,7 @@ import Data.Time.Clock
 ------------------------------------------------------------------------
 
 data Deck = Deck
-  { _deckCavity  :: Cavity Float
+  { _deckCavity  :: Cavity Double
   , _deckStack   :: DeckStack
   }
 
@@ -48,10 +48,10 @@ drawOnDeck mos deck = Deck
 pauseDeck :: Deck -> Deck
 pauseDeck deck = deck { _deckStack = PauseDeck deck }
 
-deckCavity  :: Deck -> Cavity Float
+deckCavity  :: Deck -> Cavity Double
 deckCavity = _deckCavity
 
-defaultDeck :: Size Float -> Deck
+defaultDeck :: Size Double -> Deck
 defaultDeck sz = Deck
   { _deckCavity = Cavity (0,0) sz
   , _deckStack  = Empty
@@ -69,7 +69,7 @@ runDeck context deck = do
     Left msg -> return msg
     Right _ -> return ForwardSlide
 
-runDeck' :: DeviceContext -> Deck -> IO (Either UserEvent (Cavity Float))
+runDeck' :: DeviceContext -> Deck -> IO (Either UserEvent (Cavity Double))
 runDeck' context (Deck cavity Empty)      = do
   case cavity of Cavity (x,y) (w,h) -> send context $ clearRect (x,y,w,h)
   return (Right cavity)
@@ -113,7 +113,7 @@ runDeck' context (Deck cavity (DrawOnDeck act deck)) = runDecking context deck $
 
                   -- next, reset the env
                   tm1 <- getCurrentTime
-                  let diff :: Float = realToFrac (diffUTCTime tm1 start_tm)
+                  let diff :: Double = realToFrac (diffUTCTime tm1 start_tm)
                   let behEnv1 = nextBehaviorEnv diff rz behEnv0
 
                   case rz of
@@ -132,7 +132,7 @@ data UserEvent
   = ForwardSlide
   | BackSlide
 
-runDecking :: DeviceContext -> Deck -> (Cavity Float -> IO (Either UserEvent b)) -> IO (Either UserEvent b)
+runDecking :: DeviceContext -> Deck -> (Cavity Double -> IO (Either UserEvent b)) -> IO (Either UserEvent b)
 runDecking context deck k = do
   r <- runDeck' context deck
   case r of
@@ -177,17 +177,17 @@ defaultDeckEnv cxt = DeckEnv
   }
 
 data DeckState = DeckState
-  { deckStack   :: [(Cavity Float,Mosaic ())]
-  , deckCavity  :: Cavity Float
+  { deckStack   :: [(Cavity Double,Mosaic ())]
+  , deckCavity  :: Cavity Double
   }
 
-defaultDeckState :: Size Float -> DeckState
+defaultDeckState :: Size Double -> DeckState
 defaultDeckState sz = DeckState
   { deckStack  = []
   , deckCavity = Cavity (0,0) sz
   }
 
-runDeck :: DeviceContext -> Size Float -> Deck a -> IO a
+runDeck :: DeviceContext -> Size Double -> Deck a -> IO a
 runDeck cxt sz (Deck f) = do
     (r,_) <- f (defaultDeckEnv cxt) (defaultDeckState sz)
     return r
@@ -199,7 +199,7 @@ waitForKey = return ()  -- for now
 
 
 -- All comands reflect the internal state on the screen
-pushDeck  :: Mosaic () -> Deck (Cavity Float)  -- draw a mosaic onto the deak, in the cavity
+pushDeck  :: Mosaic () -> Deck (Cavity Double)  -- draw a mosaic onto the deak, in the cavity
 pushDeck mos = Deck $ \ env st -> do
   let (act,cav1) = runMosaic mos (deckCavity st)
   -- And print to the screen, please
@@ -209,7 +209,7 @@ pushDeck mos = Deck $ \ env st -> do
                   , deckCavity  = cav1
                   })
 
-popDeck  :: Deck (Cavity Float)  -- undraw a mosaic onto the deak.
+popDeck  :: Deck (Cavity Double)  -- undraw a mosaic onto the deak.
 popDeck = Deck $ \ env st -> do
   case deckStack st of
     [] ->
@@ -220,7 +220,7 @@ popDeck = Deck $ \ env st -> do
       return (cav1,st { deckStack = ds, deckCavity = cav1 })
 
 -- ???
---cavityOfDeck  :: Deck (Cavity Float)  -- undraw a mosaic onto the deak.
+--cavityOfDeck  :: Deck (Cavity Double)  -- undraw a mosaic onto the deak.
 
 
 

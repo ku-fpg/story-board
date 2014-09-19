@@ -18,7 +18,7 @@ import Graphics.Storyboard.Mosaic
 
 
 data TheBoxStyle = TheBoxStyle
-  { theBorderWidth   :: Float
+  { theBorderWidth   :: Double
   , theBorderColor   :: Color
   , theBackground    :: Background
   , theShadowStyle   :: Maybe TheShadowStyle
@@ -36,9 +36,9 @@ defaultBoxStyle = TheBoxStyle
 
 data TheShadowStyle = TheShadowStyle
   { theShadowColor   :: Text
-  , theShadowOffsetX :: Float
-  , theShadowOffsetY :: Float
-  , theShadowBlur    :: Float
+  , theShadowOffsetX :: Double
+  , theShadowOffsetY :: Double
+  , theShadowBlur    :: Double
   } deriving Show
 
 defaultShadowStyle :: TheShadowStyle
@@ -92,7 +92,7 @@ shadows s = boxStyle $ \ m -> m
         else Nothing
   }
 
-borderWidth :: BoxStyle a => Float -> a -> a
+borderWidth :: BoxStyle a => Double -> a -> a
 borderWidth w = boxStyle $ \ m -> m { theBorderWidth = w }
 borderColor :: BoxStyle a => Color -> a -> a
 borderColor c = boxStyle $ \ m -> m { theBorderColor = c }
