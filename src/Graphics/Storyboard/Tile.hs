@@ -117,7 +117,8 @@ instance Monoid a => Monoid (Tile a) where
 
 drawTile :: Drawing picture => Size Double -> picture -> Tile ()
 drawTile (w',h') pic = tile (w',h') $ \ (x,y) (w,h) -> action $ saveRestore $ do
-      drawCanvas (x,y) pic
+      translate (x,y)
+      drawCanvas (w,h) pic
 
 
 -- It might be possible to combine these two functions
