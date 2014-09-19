@@ -76,7 +76,7 @@ ghciHighlightStyle = defaultHighlightStyle
  }
 
 haskellSymbols :: String
-haskellSymbols = "[:_$!#<>\\.\\+\\*\\/\\^\\-]"
+haskellSymbols = "[:_$&!#<>\\.\\+\\*\\/\\^\\-]"
 
 haskellHighlightStyle :: TheHighlightStyle
 haskellHighlightStyle = defaultHighlightStyle
