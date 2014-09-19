@@ -29,7 +29,7 @@ main = storyBoard 3000 $ map brand $ drop 0
   , alignSlide
   , bulletSlide
   , orderedListSlide
---  , actSlide
+  , actSlide
   , subSuperSlide
   ]
 
@@ -220,10 +220,11 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 --  draw (border 1 "red" t ? top)
 ---  let pic = (colorTile "blue" (100,100) ? left) <> (border 1 "orange" (point bottom right t) ? left) <> gap left
 --  draw (border 1 "green" (pack pic) ? top)
-{-
+
 actSlide :: Slide ()
 actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
-  fontSize 72 $ p $ "The Act"
+  fontSize 72 $ p $ "The Act datatype"
+  p $ "This box get smaller over time, then stops"
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
     actOnBehavior timerB $ \ n -> do
           let n' = min n 1
@@ -238,6 +239,23 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
             closePath()
             return (n >= 1)
 
+  p $ "This box gets smaller and larger over time"
+  place top $ tile (100,100) $ \ (x,y) (w,h) -> do
+    actOnBehavior timerB $ \ n -> do
+          let n' = (1 + sin n) / 2
+          saveRestore $ do
+            translate(x,y)
+--            clearRect(0,0,w,h)
+            beginPath()
+            rect(1,1,w-(n'*1000+2),h-2)
+            strokeStyle "red"
+            lineWidth 1
+            stroke()
+            closePath()
+            return False
+
+
+{-
   (t1,b) <- liftIO $ tileAddress (100,100)
 
   let f a b = case a of
