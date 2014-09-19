@@ -25,6 +25,7 @@ data TheBehaviorEnv = TheBehaviorEnv
   { theTimer  :: Historic Float
   , theEvent  :: Historic (Maybe Blank.Event)
   , theTimestamp :: Timestamp
+--  , theBehaviorCavity :: Cavity Float
   }
 
 defaultBehaviorEnv :: TheBehaviorEnv
@@ -32,6 +33,7 @@ defaultBehaviorEnv = TheBehaviorEnv
   { theTimer  = (0,0,0)
   , theEvent  = (Nothing,0,Nothing)
   , theTimestamp = 0
+--  , theBehaviorCavity
   }
 
 nextBehaviorEnv :: Float -> Maybe Blank.Event -> TheBehaviorEnv -> TheBehaviorEnv
@@ -49,6 +51,7 @@ data Behavior :: * -> * where
            -> Behavior a
   TimerB    :: Behavior Float
   EventB    :: Behavior (Maybe Blank.Event)
+  CavityB   :: Behavior (Cavity Float)
   PureB     :: a -> Behavior a
 
 timerB    :: Behavior Float
@@ -56,6 +59,9 @@ timerB = TimerB
 
 eventB    :: Behavior (Maybe Blank.Event)
 eventB = EventB
+
+cavityB = CavityB
+cavityB   :: Behavior (Cavity Float)
 
 evalBehavior ::TheBehaviorEnv -> Behavior a -> STM a
 evalBehavior env (Behavior fn) = fn env
