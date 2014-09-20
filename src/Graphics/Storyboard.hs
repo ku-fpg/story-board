@@ -72,7 +72,7 @@ module Graphics.Storyboard
 --  , word
   , (?)
   , point
-  , colorTile
+--   , colorTile
   , gap
   , pack
 --  , environment
@@ -153,7 +153,7 @@ margin m inside = do
 hr :: Slide ()
 hr = do
   (_,w) <- getCavitySize
-  draw $ anchor top $ tile (w,2) $ \ (x,y) (w',h') -> action $ do
+  draw $ anchor top $ tile (w,2) $ \ (Cavity (x,y) (w',h')) -> do
           saveRestore $ do
               translate (x,y)
               beginPath()

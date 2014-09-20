@@ -90,7 +90,7 @@ runDeck' context (Deck cavity (DrawOnDeck act deck)) = runDecking context deck $
 
     let loop behEnv0 clr = do
           -- First, animate the frame
-          theAct <- runAct behEnv0 act
+          theAct <- atomically $ runAct behEnv0 act
           print cavity
           done <- send context $ do
                   -- We can do better, we need the different between the two cavities

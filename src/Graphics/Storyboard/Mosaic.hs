@@ -1,6 +1,7 @@
 {-# LANGUAGE KindSignatures, TemplateHaskell, GADTs, GeneralizedNewtypeDeriving, InstanceSigs, OverloadedStrings #-}
 
 module Graphics.Storyboard.Mosaic
+{-
   ( Mosaic
   , cavityMaxSize
   , cavityRange
@@ -16,7 +17,7 @@ module Graphics.Storyboard.Mosaic
   , row
   , column
   , runMosaic
-  ) where
+  ) where -} where
 
 import qualified Data.Text as Text
 import Data.Text(Text)
@@ -27,6 +28,7 @@ import Data.Semigroup
 import Data.Text(Text)
 import Graphics.Blank (Canvas,translate,saveRestore, console_log)
 import Control.Monad.IO.Class
+import Control.Concurrent.STM
 
 import GHC.Exts (IsString(fromString))
 
@@ -34,6 +36,8 @@ import Graphics.Storyboard.Act
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Tile
+import Graphics.Storyboard.Behavior
+
 
 type Spacer f = (f,f) -- the spacing, take height *or* width, not both
 
@@ -68,6 +72,7 @@ instance Applicative Mosaic where
                  in (f' <*> x', sz2)
 
 -}
+
 instance Semigroup (Mosaic a) where
   Mosaic fs f <> Mosaic xs x = Mosaic (fs ++ xs) $ \ sp0 sz0 ->
                 let (f',sz1) = f sp0 sz0
@@ -121,8 +126,8 @@ infix 8 ?
 anchor :: Side -> Tile a -> Mosaic a
 anchor side (Tile (w,h) k) = Mosaic [newSpacing side (w,h)] $
      \ _ cavity ->
-            (k (newOffset side (w,h) cavity)
-               (realTileSize side (w,h) cavity)
+            (k (Cavity (newOffset side (w,h) cavity)
+                       (realTileSize side (w,h) cavity))
             , newCavity side (w,h) cavity
             )
 
@@ -225,7 +230,7 @@ spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
 -- how about a version that does not use spacing?
 -- TOD: make pack use runMosaic
 pack :: Mosaic a -> Tile a
-pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (x,y) (w',h') -> do
+pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (Cavity (x,y) (w',h')) -> do
       fst $ runMosaic mosaic (Cavity (x,y) (w',h'))
   where
     w = foldr spaceSize 0 $ map fst $ cavity

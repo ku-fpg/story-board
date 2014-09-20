@@ -15,7 +15,7 @@ import qualified Graphics.Blank as Blank
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Behavior
 
-data Act where
+newtype Act where
  -- the bool signifies the finality of the drawing; False = more to draw
   Act :: (TheBehaviorEnv -> STM (Canvas Bool)) -> Act
 
@@ -27,11 +27,11 @@ data Act where
 action :: Canvas () -> Act
 action m = Act $ \ _ -> return (fmap (const True) m)
 
-actOnBehavior :: Behavior a -> Cavity Double -> (a -> Canvas Bool) -> Act
-actOnBehavior bhr c f = Act $ \ env -> evalBehavior c env (fmap f bhr)
+actOnBehavior :: (TheBehaviorEnv -> STM (Canvas Bool)) -> Act
+actOnBehavior = Act
 
-runAct :: TheBehaviorEnv -> Act -> IO (Canvas Bool)
-runAct env (Act k) = atomically $ k env
+runAct :: TheBehaviorEnv -> Act -> STM (Canvas Bool)
+runAct env (Act k) = k env
 
 instance Semigroup Act where
   -- may optimize for PureB.
@@ -42,15 +42,16 @@ instance Monoid Act where
   mappend = (<>)
 
 -----------------------------------------------------------------
-
+{-
 drawAct :: Drawing picture => Cavity Double -> picture -> Act
-drawAct (Cavity loc sz) pic = action $ do
+drawAct (Cavity loc sz) pic = action $ saveRestore $ do
     translate loc
     drawCanvas sz pic
 
 drawMovieAct :: (Playing movie, Drawing picture) => Cavity Double -> movie picture -> Act
 drawMovieAct cavity@(Cavity loc sz) movie = case wrapMovie movie of
-    Movie bhr f stop -> actOnBehavior bhr cavity $ \ b -> do
+    Movie bhr f stop -> actOnBehavior bhr cavity $ \ b -> saveRestore $ do
                                   translate loc
                                   drawCanvas sz (f b)
                                   return (stop b)
+-}

@@ -98,7 +98,7 @@ borderColor :: BoxStyle a => Color -> a -> a
 borderColor c = boxStyle $ \ m -> m { theBorderColor = c }
 
 box :: TheBoxStyle -> Tile a -> Tile a
-box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' ->
+box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ (Cavity ps' sz') ->
     action (before ps' sz') <>
     during ps' sz'          <>
     action (after ps' sz')
@@ -125,7 +125,7 @@ box st (Tile (w,h) act) = Tile (w+wd*2,h+wd*2) $ \ ps' sz' ->
             shadowBlur (theShadowBlur s_st)
         fill()
     during (x,y) (w',h') =
-        act (x+wd,y+wd) (w' - wd * 2,h' - wd * 2)
+        act (Cavity (x+wd,y+wd) (w' - wd * 2,h' - wd * 2))
     after (x,y) (w',h')
       | wd == 0 = return ()
       | otherwise = saveRestore $ do

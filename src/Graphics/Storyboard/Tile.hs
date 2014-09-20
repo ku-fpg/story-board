@@ -13,6 +13,7 @@ import Graphics.Blank (Canvas)
 import Control.Monad.IO.Class
 
 import GHC.Exts (IsString(fromString))
+import Control.Concurrent.STM
 
 import Graphics.Storyboard.Types
 import Graphics.Storyboard.Literals
@@ -29,7 +30,9 @@ import Graphics.Blank
 
 -- TODO: use Cavity, rather than Coord Double * Size Double
 
-data Tile a = Tile (Size Double) (Coord Double -> Size Double -> Act)
+data Tile a = Tile (Size Double)
+--                    (Coord Double -> Size Double -> Act)
+                    (Cavity Double -> Act)
 
 instance Show (Tile a) where
   show (Tile sz _) = show sz
@@ -40,8 +43,11 @@ instance Show (Tile a) where
 -- | tile requests a specific (minimum) size, and provides
 -- a paint routine that takes the *actual* cavity to paint in.
 
-tile :: Size Double -> (Coord Double -> Size Double -> Act) -> Tile a
-tile = Tile
+tile :: Size Double -> (Cavity Double -> Canvas ()) -> Tile a
+tile sz f = Tile sz $ \ cavity -> action (f cavity)
+
+btile :: Size Double -> Behavior (Canvas Bool) -> Tile a
+btile sz bhr = Tile sz $ \ cavity -> actOnBehavior (\ env -> evalBehavior cavity env bhr)
 
 tileWidth :: Tile a -> Double
 tileWidth (Tile (w,_) _) = w
@@ -52,11 +58,12 @@ tileHeight (Tile (_,h) _) = h
 tileSize :: Tile a -> Size Double
 tileSize (Tile sz _) = sz
 
-blank :: Size Double -> Tile ()
-blank sz = tile sz $ const $ const $ mempty
+blank :: Size Double -> Tile a
+blank sz = tile sz $ const $ return ()
 
+{-
 colorTile :: Text -> Size Double -> Tile ()
-colorTile col (w',h') = tile (w',h') $ \ (x,y) (w,h) -> do
+colorTile col (w',h') = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> do
   action $ saveRestore $ do
     translate (x,y)   -- required in all primitives
     globalAlpha 0.2
@@ -71,10 +78,12 @@ colorTile col (w',h') = tile (w',h') $ \ (x,y) (w,h) -> do
     strokeStyle "black";
     stroke()
     globalAlpha 1.0
+-}
+
 
 -- compress a tile into a point.
 point :: Vertical -> Horizontal -> Tile a -> Tile a
-point ver hor (Tile (w,h) f) = Tile (0,0) $ \ (x,y) _ -> do
+point ver hor (Tile (w,h) f) = Tile (0,0) $ \ (Cavity (x,y) _) -> do
   let w' = case hor of
             HL -> 0
             HC -> -w / 2
@@ -83,15 +92,10 @@ point ver hor (Tile (w,h) f) = Tile (0,0) $ \ (x,y) _ -> do
             VT -> 0
             VC -> -h / 2
             VB -> -h
-  f (x+w',y+h') (w,h)
-{-
-  saveRestore $ do
-    translate (w',h')
--}
-
+  f (Cavity (x+w',y+h') (w,h))
 -- nudge the tile into a specific corner of its enclosure
 nudge :: Vertical -> Horizontal -> Tile a -> Tile a
-nudge ver hor (Tile (w,h) f) = Tile (w,h) $ \ (x,y) (w',h') ->
+nudge ver hor (Tile (w,h) f) = Tile (w,h) $ \ (Cavity (x,y) (w',h')) ->
     let w'' = case hor of
                 HL -> 0
                 HC -> (w' - w) / 2
@@ -101,30 +105,27 @@ nudge ver hor (Tile (w,h) f) = Tile (w,h) $ \ (x,y) (w',h') ->
                 VC -> (h' - h) / 2
                 VB -> h' - h
     in
---       saveRestore $ do
---         translate (w'',h'')     -- nudge
-         f (x+w'',y+h'') (w,h)   -- and pretend there is no extra space
+         f (Cavity (x+w'',y+h'') (w,h))   -- and pretend there is no extra space
 
+instance Semigroup (Tile a) where
+  (Tile (x1,y1) c1) <> (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) (c1 <> c2)
 
-instance Semigroup a => Semigroup (Tile a) where
-  (Tile (x1,y1) c1) <> (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ ps sz ->
-        c1 ps sz <> c2 ps sz
-
-instance Monoid a => Monoid (Tile a) where
-  mempty = Tile (0,0) (\ _ _ -> mempty)
-  (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) $ \ ps sz ->
-      c1 ps sz `mappend` c2 ps sz
+instance Monoid (Tile a) where
+  mempty = blank (0,0)
+  (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) (c1 `mappend` c2)
 
 drawTile :: Drawing picture => Size Double -> picture -> Tile ()
-drawTile (w',h') pic = tile (w',h') $ \ (x,y) (w,h) -> action $ saveRestore $ do
+drawTile (w',h') pic = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> do
       translate (x,y)
       drawCanvas (w,h) pic
-
+      return ()
 
 -- It might be possible to combine these two functions
 drawMovieTile :: (Playing movie, Drawing picture) => Size Double -> movie picture -> Tile ()
+drawMovieTile (w',h') movie = error "drawMovieTile"
+{-
 drawMovieTile (w',h') movie = case wrapMovie movie of
-    Movie bhr f stop -> tile (w',h') $ \ (x,y) (w,h) ->
+    Movie bhr f stop -> tile (w',h') $ \ (Canvas (x,y) (w,h)) ->
      actOnBehavior bhr (Cavity (x,y) (w,h)) $ \ b ->
       saveRestore $ do
           translate (x,y)
@@ -134,3 +135,4 @@ drawMovieTile (w',h') movie = case wrapMovie movie of
 
 --mapTileAct :: (Act a -> Act b) -> Tile a -> Tile b
 --mapTileAct f (Tile (w,h) g) = Tile (w,h) $ \ ps sz -> f (g ps sz)
+-}

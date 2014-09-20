@@ -224,6 +224,7 @@ example1 = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
 actSlide :: Slide ()
 actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   fontSize 72 $ p $ "The Act datatype"
+{-
   p $ "This box get smaller over time, then stops"
 
   place top $ tile (100,100) $ \ (x,y) (w,h) -> do
@@ -277,6 +278,7 @@ actSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   pause
   p $ "3"
 
+-}
 {-
   (t1,b) <- liftIO $ tileAddress (100,100)
 

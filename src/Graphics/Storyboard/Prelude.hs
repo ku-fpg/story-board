@@ -151,8 +151,7 @@ wordWidth font_name txt = Prelude $ \ env -> do
 imageTile :: FilePath -> Prelude (Tile ())
 imageTile filePath = liftCanvas $ do
     img <- newImage ("/" <> pack filePath)
-    return $ tile (width img, height img) $ \ (x,y) (w,h) -> action $ do
-            drawImage (img,[x,y])
+    return $ tile (width img, height img) $ \ (Cavity (x,y) (w,h)) -> drawImage (img,[x,y])
 
 ------------------------------------------------------------------------
 

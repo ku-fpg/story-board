@@ -228,7 +228,7 @@ renderText st txt = do
     return $ tile (w,fromIntegral
                       $ ceiling
                       $ fromIntegral (theFontSize st) * (1 + theDescenderHeight st))
-           $ \ (x,y) _  -> action $ saveRestore $ do
+           $ \ (Cavity (x,y) _) -> saveRestore $ do
       translate (x,y)
       Blank.font $ fontName st
       fillStyle (theColor st)
