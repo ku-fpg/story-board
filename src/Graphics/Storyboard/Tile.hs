@@ -115,24 +115,16 @@ instance Monoid (Tile a) where
   (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) (c1 `mappend` c2)
 
 drawTile :: Drawing picture => Size Double -> picture -> Tile ()
-drawTile (w',h') pic = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> do
+drawTile (w',h') pic = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> saveRestore $ do
       translate (x,y)
       drawCanvas (w,h) pic
       return ()
 
--- It might be possible to combine these two functions
 drawMovieTile :: (Playing movie, Drawing picture) => Size Double -> movie picture -> Tile ()
-drawMovieTile (w',h') movie = error "drawMovieTile"
-{-
 drawMovieTile (w',h') movie = case wrapMovie movie of
-    Movie bhr f stop -> tile (w',h') $ \ (Canvas (x,y) (w,h)) ->
-     actOnBehavior bhr (Cavity (x,y) (w,h)) $ \ b ->
-      saveRestore $ do
-          translate (x,y)
---          clearRect(0,0,w',h')
-          drawCanvas (w',h') $ f b
-          return (stop b)
-
---mapTileAct :: (Act a -> Act b) -> Tile a -> Tile b
---mapTileAct f (Tile (w,h) g) = Tile (w,h) $ \ ps sz -> f (g ps sz)
--}
+    Movie bhr f stop -> btile (w',h')
+        ((\ (Cavity (x,y) (w,h)) b ->
+                saveRestore $ do
+                    translate (x,y)
+                    drawCanvas (w',h') $ f b
+                    return (stop b)) <$> cavityB <*> bhr)
