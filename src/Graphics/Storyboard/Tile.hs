@@ -44,10 +44,14 @@ instance Show (Tile a) where
 -- a paint routine that takes the *actual* cavity to paint in.
 
 tile :: Size Double -> (Cavity Double -> Canvas ()) -> Tile a
-tile sz f = Tile sz $ \ cavity -> action (f cavity)
+tile sz f = Tile sz $ \ cavity@(Cavity pos _) -> action $ saveRestore $ do
+          translate pos
+          f cavity
 
 btile :: Size Double -> Behavior (Canvas Bool) -> Tile a
-btile sz bhr = Tile sz $ \ cavity -> actOnBehavior (\ env -> evalBehavior cavity env bhr)
+btile sz bhr = Tile sz $ \ cavity@(Cavity pos _) ->
+               actOnBehavior $ \ env ->
+               evalBehavior cavity env $ translateBehavior pos bhr
 
 tileWidth :: Tile a -> Double
 tileWidth (Tile (w,_) _) = w

@@ -17,13 +17,10 @@ import Graphics.Storyboard.Behavior
 
 newtype Act where
  -- the bool signifies the finality of the drawing; False = more to draw
+ -- The Canvas actions are scoped with a saveRestore, and are translated
+ -- (in Tile) so that you can assume the top corner is (0,0)
   Act :: (TheBehaviorEnv -> STM (Canvas Bool)) -> Act
 
--- return True if you are finished.
---animation :: Canvas Bool -> Act
---animation = Action
-
--- TODO: change to act
 action :: Canvas () -> Act
 action m = Act $ \ _ -> return (fmap (const True) m)
 
@@ -40,18 +37,3 @@ instance Semigroup Act where
 instance Monoid Act where
   mempty = action (return ())
   mappend = (<>)
-
------------------------------------------------------------------
-{-
-drawAct :: Drawing picture => Cavity Double -> picture -> Act
-drawAct (Cavity loc sz) pic = action $ saveRestore $ do
-    translate loc
-    drawCanvas sz pic
-
-drawMovieAct :: (Playing movie, Drawing picture) => Cavity Double -> movie picture -> Act
-drawMovieAct cavity@(Cavity loc sz) movie = case wrapMovie movie of
-    Movie bhr f stop -> actOnBehavior bhr cavity $ \ b -> saveRestore $ do
-                                  translate loc
-                                  drawCanvas sz (f b)
-                                  return (stop b)
--}

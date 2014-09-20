@@ -70,6 +70,11 @@ evalBehavior cavity env EventB = return $ evalHistoric env (theEvent env)
 evalBehavior cavity env CavityB = return $ cavity
 evalBehavior cavity env (PureB a) = return a
 
+translateBehavior :: Coord Double -> Behavior (Canvas a) -> Behavior (Canvas a)
+translateBehavior (x,y) b = (\ m -> saveRestore $ do { translate (x,y) ; m }
+                            ) <$> b
+
+
 evalHistoric :: TheBehaviorEnv -> Historic a -> a
 evalHistoric env (new,clk,old)
     | clk - 1 == theTimestamp env = old
