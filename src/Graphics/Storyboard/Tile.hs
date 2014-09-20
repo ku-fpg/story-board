@@ -119,16 +119,11 @@ instance Monoid (Tile a) where
   (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) (c1 `mappend` c2)
 
 drawTile :: Drawing picture => Size Double -> picture -> Tile ()
-drawTile (w',h') pic = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> saveRestore $ do
-      translate (x,y)
-      drawCanvas (w,h) pic
-      return ()
+drawTile (w',h') pic = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> drawCanvas (w,h) pic
 
 drawMovieTile :: (Playing movie, Drawing picture) => Size Double -> movie picture -> Tile ()
 drawMovieTile (w',h') movie = case wrapMovie movie of
     Movie bhr f stop -> btile (w',h')
-        ((\ (Cavity (x,y) (w,h)) b ->
-                saveRestore $ do
-                    translate (x,y)
+        ((\ (Cavity (x,y) (w,h)) b -> do
                     drawCanvas (w',h') $ f b
                     return (stop b)) <$> cavityB <*> bhr)

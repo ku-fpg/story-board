@@ -11,4 +11,4 @@ import Diagrams.Prelude
 instance Drawing (Diagram Canvas R2) where
    drawCanvas (w,h) d = renderDia Canvas opts d
     where opts = CanvasOptions $ Dims (fromIntegral $ round w)
-    	       	 	       	      (fromIntegral $ round h)
+    	       	 	       	               (fromIntegral $ round h)
