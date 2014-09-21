@@ -48,8 +48,8 @@ tile sz f = Tile sz $ \ cavity@(Cavity pos _) -> action $ saveRestore $ do
           translate pos
           f cavity
 
-btile :: Size Double -> Behavior (Canvas Bool) -> Tile a
-btile sz bhr = Tile sz $ \ cavity@(Cavity pos _) ->
+actile :: Size Double -> Behavior (Canvas Bool) -> Tile a
+actile sz bhr = Tile sz $ \ cavity@(Cavity pos _) ->
                actOnBehavior $ \ env ->
                evalBehavior cavity env $ translateBehavior pos bhr
 
@@ -123,7 +123,7 @@ drawTile (w',h') pic = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> drawCanvas (w,h)
 
 drawMovieTile :: (Playing movie, Drawing picture) => Size Double -> movie picture -> Tile ()
 drawMovieTile (w',h') movie = case wrapMovie movie of
-    Movie bhr f stop -> btile (w',h')
+    Movie bhr f stop -> actile (w',h')
         ((\ (Cavity (x,y) (w,h)) b -> do
                     drawCanvas (w',h') $ f b
                     return (stop b)) <$> cavityB <*> bhr)
