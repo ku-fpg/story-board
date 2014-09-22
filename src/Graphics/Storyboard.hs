@@ -101,44 +101,31 @@ module Graphics.Storyboard
   , drawMovieTile
   , Movie -- not sure about this; do we need to export this?
   , Options(..)
-  )
+  ) where
 
+import           Data.Text (Text)
+import           Data.Time.Clock
 
-where
-
-import Graphics.Blank hiding (eval,font, port, Options)
-import qualified Graphics.Blank as Blank
-import Data.Semigroup
-import Control.Applicative
-import Control.Monad
-import Data.Text(Text)
-import qualified Data.Text as Text
-import Data.String
-import Data.List
-import Data.Maybe
-import Text.Printf
-import Control.Monad.IO.Class
-import Data.Time.Clock
-import Control.Concurrent.STM
-
-import Graphics.Storyboard.Act
-import Graphics.Storyboard.Behavior
-import Graphics.Storyboard.Deck      as Deck
-import Graphics.Storyboard.Slide
-import Graphics.Storyboard.Layout
-import Graphics.Storyboard.Bling
-import Graphics.Storyboard.Highlight
-import Graphics.Storyboard.Markup
-import Graphics.Storyboard.Types
-import Graphics.Storyboard.Images
-import Graphics.Storyboard.Tile
-import Graphics.Storyboard.Literals
-import Graphics.Storyboard.Prose
+import           Graphics.Blank hiding (eval,font, port, Options)
+import           Graphics.Storyboard.Act
+import           Graphics.Storyboard.Behavior
+-- import           Graphics.Storyboard.Bling
+import           Graphics.Storyboard.Box
+import           Graphics.Storyboard.Deck as Deck
+import           Graphics.Storyboard.Highlight
+import           Graphics.Storyboard.Images
+-- import           Graphics.Storyboard.Layout
+import           Graphics.Storyboard.Literals
+import           Graphics.Storyboard.Markup
+import           Graphics.Storyboard.Mosaic
+import           Graphics.Storyboard.Paragraph
 import qualified Graphics.Storyboard.Prelude as Prelude
-import Graphics.Storyboard.Paragraph
-import Graphics.Storyboard.Mosaic
-import Graphics.Storyboard.Box
+import           Graphics.Storyboard.Prose
+import           Graphics.Storyboard.Slide
+import           Graphics.Storyboard.Tile
+import           Graphics.Storyboard.Types
 
+import           Text.Printf
 
 -- blank margin around a story.
 margin :: Double -> Slide a -> Slide a
@@ -153,7 +140,7 @@ margin m inside = do
 hr :: Slide ()
 hr = do
   (_,w) <- getCavitySize
-  draw $ anchor top $ tile (w,2) $ \ (Cavity (x,y) (w',h')) -> do
+  draw $ anchor top $ tile (w,2) $ \ (Cavity _ (w',_)) -> do
               beginPath()
               moveTo(0,1)
               lineTo(w',0)
@@ -199,9 +186,9 @@ storyBoard opt
 -- Never finishes
 slideShowr :: StoryBoardState -> IO ()
 slideShowr st = do
-  tm0 <- getCurrentTime
-  let StoryBoardState slides n context debug opt = st
-  print ("slideShowr",n)
+  _ <- getCurrentTime
+  let StoryBoardState slides n context _ opt = st
+  print ("slideShowr" :: Text,n)
   let cxt = (defaultSlideStyle (eventQueue context) (width context,height context))
           { theSlideNumber = n, theLastSlide = length slides }
   let st0 = defaultSlideState (fullSize cxt)

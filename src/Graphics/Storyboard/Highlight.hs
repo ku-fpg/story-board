@@ -5,11 +5,12 @@ module Graphics.Storyboard.Highlight where
 import Data.List
 import Data.Function
 import Data.Monoid
-import Text.Regex -- regex-compat
 
-import Debug.Trace
+-- import Debug.Trace
 
 import Graphics.Storyboard.Prose
+
+import Text.Regex -- regex-compat
 
 data TheHighlightStyle = TheHighlightStyle
   { highlightKeyword  :: TheProseStyle -> TheProseStyle
@@ -21,6 +22,7 @@ data TheHighlightStyle = TheHighlightStyle
   , theNextHighlight :: Maybe TheHighlightStyle
   }
 
+defaultHighlightStyle :: TheHighlightStyle
 defaultHighlightStyle = TheHighlightStyle
   { highlightKeyword  = b
   , highlightLiteral  = color "blue"
@@ -63,9 +65,9 @@ ghciHighlightStyle = defaultHighlightStyle
       , ("\n",\ st str rest -> prose str <> highlight st rest)
       , (".",\ st str rest -> prose str <>
             let ghci_st = st
-                  { theREs = matches [("\n",\ st this rest ->
+                  { theREs = matches [("\n",\ st' this rest' ->
                                            prose this <>
-                                           highlight (pop st) rest)
+                                           highlight (pop st') rest')
                                      ,(".+",accept highlightLess)
                                      ]
                   , theNextHighlight = Just st
@@ -113,9 +115,9 @@ haskellHighlightStyle = defaultHighlightStyle
    , ("\"", \ st this rest -> proseStyle (highlightString st) (prose this) <>
                 let str_st = st
                       { theREs = matches [("\\\\\"",accept highlightString)
-                                         ,("\"",\ st this rest ->
-                                               proseStyle (highlightString st) (prose this) <>
-                                               highlight (pop st) rest)
+                                         ,("\"",\ st' this' rest' ->
+                                               proseStyle (highlightString st') (prose this') <>
+                                               highlight (pop st') rest')
                                          ,("[^\\\"]+",accept highlightString)
                                          ,("\\\\",accept highlightString)
                                          ]
@@ -125,9 +127,9 @@ haskellHighlightStyle = defaultHighlightStyle
     , ("\'", \ st this rest -> proseStyle (highlightString st) (prose this) <>
                  let str_st = st
                        { theREs = matches [("\\\\\'",accept highlightString)
-                                          ,("\'",\ st this rest ->
-                                                proseStyle (highlightString st) (prose this) <>
-                                                highlight (pop st) rest)
+                                          ,("\'",\ st' this' rest' ->
+                                                proseStyle (highlightString st') (prose this') <>
+                                                highlight (pop st') rest')
                                           ,("[^\\\']+",accept highlightString)
                                           ,("\\\\",accept highlightString)
                                           ]

@@ -12,37 +12,27 @@ module Graphics.Storyboard.Slide where
   , runSlide
   ) where
 -}
-import qualified Data.Text as Text
-import Data.Text(Text)
-import Data.List as List
-import Control.Applicative
-import Control.Monad (liftM2)
-import Data.Semigroup
-import Data.Text(Text)
-import Graphics.Blank (Canvas,saveRestore,sync)
-import Control.Monad.IO.Class
-import Control.Concurrent as Concurrent
 
-import Graphics.Blank(EventQueue)
+import           Control.Applicative
+import           Control.Monad (liftM2)
+import           Control.Monad.IO.Class
 
-import GHC.Exts (IsString(fromString))
+import           Data.Semigroup
 
-import Graphics.Storyboard.Behavior
-import Graphics.Storyboard.Types
-import Graphics.Storyboard.Literals
-import Graphics.Storyboard.Paragraph
-import Graphics.Storyboard.Prose
-import Graphics.Storyboard.Mosaic
-import Graphics.Storyboard.Tile
-import Graphics.Storyboard.Box
-import Graphics.Storyboard.Deck
-import Graphics.Storyboard.Prose
+import           Graphics.Blank (EventQueue)
+import           Graphics.Storyboard.Box
+import           Graphics.Storyboard.Deck
+import           Graphics.Storyboard.Literals
+import           Graphics.Storyboard.Mosaic
+import           Graphics.Storyboard.Paragraph
 import qualified Graphics.Storyboard.Prelude as Prelude
-import Graphics.Storyboard.Prelude (Prelude,wordWidth)
-
-
+import           Graphics.Storyboard.Prelude (Prelude, wordWidth)
+import           Graphics.Storyboard.Prose
+import           Graphics.Storyboard.Tile
+import           Graphics.Storyboard.Types
 
 -----------------------------------------------------------------------------
+
 data TheSlideStyle = TheSlideStyle
   { theProseStyle       :: TheProseStyle
   , theParagraphStyle   :: TheParagraphStyle
@@ -212,7 +202,7 @@ modSlideState :: (TheSlideState -> TheSlideState) -> Slide ()
 modSlideState f = Slide $ \ _ st -> return ((),f st)
 
 slidePrelude :: Prelude a -> Slide a
-slidePrelude m = Slide $ \ cxt st -> do
+slidePrelude m = Slide $ \ _ st -> do
       a <- m
       return (a,st)
 
@@ -231,14 +221,14 @@ instance BoxStyle (Slide a) where
 
 -- Draw a mosaic onto a slide
 draw :: Mosaic () -> Slide ()
-draw moz = Slide $ \ cxt st -> return ((),drawMosaic moz st)
+draw moz = Slide $ \ _ st -> return ((),drawMosaic moz st)
 
 -- | you 'place' a 'Tile' onto the 'Slide', on a specific side of your slide.
 place :: Side -> Tile () -> Slide ()
 place s = draw . anchor s
 
 pause :: Slide ()
-pause = Slide $ \ cxt st -> return ((),pauseSlide st)
+pause = Slide $ \ _ st -> return ((),pauseSlide st)
 
 -------------------------------------------------------------------------
 -- | 'tileOfSide' creates a tile of a sub-slide, of a specified size.
@@ -252,7 +242,7 @@ tileOfSlide sz (Slide f) = Slide $ \ slide_style slide_state -> do
           }
     let slide_state0 = defaultSlideState sz
 
-    (a, slide_state1) <- f slide_style0 slide_state0
+    (_, slide_state1) <- f slide_style0 slide_state0
 
     return (pack (theMosaic slide_state1),slide_state)
 

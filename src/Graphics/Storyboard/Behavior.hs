@@ -4,16 +4,12 @@
 
 module Graphics.Storyboard.Behavior where
 
-import Control.Applicative
-import Control.Concurrent.STM
-import Control.Monad
-import Control.Monad.IO.Class
-import Data.Semigroup
-import Graphics.Blank hiding (Event)
+import           Control.Applicative
+import           Control.Concurrent.STM
+
 import qualified Graphics.Blank as Blank
-
-
-import Graphics.Storyboard.Types
+import           Graphics.Blank hiding (Event)
+import           Graphics.Storyboard.Types
 
 -----------------------------------------------------------------
 
@@ -65,10 +61,10 @@ cavityB   :: Behavior (Cavity Double)
 
 evalBehavior :: Cavity Double -> TheBehaviorEnv -> Behavior a -> STM a
 evalBehavior cavity env (Behavior fn) = fn cavity env
-evalBehavior cavity env TimerB = return $ evalHistoric env (theTimer env)
-evalBehavior cavity env EventB = return $ evalHistoric env (theEvent env)
-evalBehavior cavity env CavityB = return $ cavity
-evalBehavior cavity env (PureB a) = return a
+evalBehavior _      env TimerB        = return $ evalHistoric env (theTimer env)
+evalBehavior _      env EventB        = return $ evalHistoric env (theEvent env)
+evalBehavior cavity _   CavityB       = return $ cavity
+evalBehavior _      _   (PureB a)     = return a
 
 translateBehavior :: Coord Double -> Behavior (Canvas a) -> Behavior (Canvas a)
 translateBehavior (x,y) b = (\ m -> saveRestore $ do { translate (x,y) ; m }
@@ -82,7 +78,7 @@ evalHistoric env (new,clk,old)
     | otherwise                   = error "not enough history for behaviour"
 
 consHistoric :: a -> Historic a -> Historic a
-consHistoric a2 (a1,t,a0) = (a2,t+1,a1)
+consHistoric a2 (a1,t,_) = (a2,t+1,a1)
 
 instance Functor Behavior where
   fmap f b = pure f <*> b
@@ -97,7 +93,7 @@ sample m = do
   b <- m
   var <- newTVar (b,0,b)
   return $ Behavior $ \ _ env -> do
-      history@(new,clk,_) <- readTVar var
+      history@(_,clk,_) <- readTVar var
       if clk + 1 == theTimestamp env
       then do
         a <- m
