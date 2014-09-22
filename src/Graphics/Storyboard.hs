@@ -106,7 +106,7 @@ module Graphics.Storyboard
 import           Data.Text (Text)
 import           Data.Time.Clock
 
-import           Graphics.Blank hiding (eval,font, port, Options)
+import           Graphics.Blank hiding (eval, font, port, Options)
 import           Graphics.Storyboard.Act
 import           Graphics.Storyboard.Behavior
 -- import           Graphics.Storyboard.Bling

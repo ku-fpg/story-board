@@ -2,11 +2,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Diagrams.Prelude as Dia
-import Diagrams.Backend.Canvas
-import Graphics.Storyboard.Diagrams()
+import           Diagrams.Backend.Canvas
+import           Diagrams.Prelude as Dia
 
 import qualified Graphics.Storyboard as SB
+import           Graphics.Storyboard.Diagrams()
 
 main :: IO ()
 main = SB.storyBoard 3000 [ slide ]
@@ -19,9 +19,9 @@ slide = do
 
       SB.place SB.top (SB.nudge SB.top SB.center t)
 
-      let t = SB.drawMovieTile (200,200) (pad 1.05 . tournament . succ. (`mod` 10) . (floor :: (Double -> Int)))
+      let t' = SB.drawMovieTile (200,200) (pad 1.05 . tournament . succ. (`mod` 10) . (floor :: (Double -> Int)))
 
-      SB.place SB.top (SB.nudge SB.top SB.center t)
+      SB.place SB.top (SB.nudge SB.top SB.center t')
 
       return ()
 
@@ -32,6 +32,7 @@ node :: Int -> Diagram B R2
 node n = text (show n) # fontSizeN 0.1 # fc white
       <> circle 0.2 # fc green # named n
 
+arrowOpts :: ArrowOpts
 arrowOpts = with & gaps  .~ small
                  & headLength .~ Global 0.2
 
