@@ -1,25 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Data.Monoid
-import Control.Monad
 import Control.Monad.IO.Class
-import Data.Text (Text)
-import Control.Applicative
-import qualified Data.Text as Text
-import Graphics.Blank hiding (font)
-import Control.Concurrent.STM
-
+import Data.Monoid
 import Graphics.Storyboard
-
-import Graphics.Storyboard.Act
-import Graphics.Storyboard.Behavior
-import Graphics.Storyboard.Tile
-import Graphics.Storyboard.Box
-import Graphics.Storyboard.Slide
-import Graphics.Storyboard.Types
-import Graphics.Storyboard.Highlight
-
 
 main :: IO ()
 main = storyBoard 3000 $ map brand $ drop 0
@@ -129,7 +113,7 @@ slide_background = do
 -}
 haskell_code :: Slide ()
 haskell_code = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
-  txt <- liftIO $ readFile "example/Main.hs"
+  _ <- liftIO $ readFile "example/Main.hs"
   let txt = "Hello, World\nPrelude> 1 + 2\n For 1 + 2 now"
   liftIO $ print $ highlight ghciHighlightStyle
                 $ unlines

@@ -4,9 +4,10 @@
 
 module Graphics.Storyboard.Types where
 
-import Data.Text(Text)
-import Graphics.Blank(Canvas)
-import Graphics.Blank.Style(Style)
+import Data.Text (Text)
+
+import Graphics.Blank (Canvas)
+import Graphics.Blank.Style (Style)
 
 type Size  f = (f,f)
 type Coord f = (f,f)

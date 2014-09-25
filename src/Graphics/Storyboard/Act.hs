@@ -3,16 +3,12 @@
 
 module Graphics.Storyboard.Act where
 
-import Control.Applicative
 import Control.Concurrent.STM
 import Control.Monad
-import Control.Monad.IO.Class
+
 import Data.Semigroup
+
 import Graphics.Blank hiding (Event)
-import qualified Graphics.Blank as Blank
-
-
-import Graphics.Storyboard.Types
 import Graphics.Storyboard.Behavior
 
 newtype Act where

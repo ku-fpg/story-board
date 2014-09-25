@@ -7,27 +7,26 @@ module Graphics.Storyboard.Prelude
   , liftCanvas
   , keyPress
   , bgLinear
+  , mimeTypes
   , PreludeEnv(..)
   ) where
 
-import Control.Applicative
-import Control.Monad.IO.Class
-import Data.Text(Text,pack)
-import Data.Monoid((<>))
-import Graphics.Blank as Blank
-import Control.Applicative
-import Control.Monad
-import Control.Concurrent.STM
-import System.IO
-import System.Directory
-import qualified Data.Map as Map
-import qualified Data.Set as Set
+import           Control.Applicative
+import           Control.Concurrent.STM
+import           Control.Monad
+import           Control.Monad.IO.Class
 
-import Graphics.Storyboard.Act
-import Graphics.Storyboard.Tile
-import Graphics.Storyboard.Types
-import Data.List
-import Data.Text(Text)
+import           Data.List
+import qualified Data.Map as Map
+import           Data.Monoid ((<>))
+import qualified Data.Set as Set
+import           Data.Text (Text, pack)
+
+import           Graphics.Blank as Blank
+import           Graphics.Storyboard.Tile
+import           Graphics.Storyboard.Types
+
+import           System.Directory
 
 ------------------------------------------------------------------------
 -- The idea behind the Prelude monad is that we can cache
@@ -91,7 +90,7 @@ startPrelude p context = do
   r <- runPrelude p $ PreludeEnv
     { memoWordWidth = \ t1 t2 -> Map.lookup (t2,t1) dbWordWidth
     , preludeContext = context
-    , recordMemo = \ memo -> liftIO $ atomically $ modifyTVar' varMemo $ Set.insert memo
+    , recordMemo = \ memo' -> liftIO $ atomically $ modifyTVar' varMemo $ Set.insert memo'
     }
 
   memoSet <- liftIO $ atomically $ readTVar varMemo
@@ -122,13 +121,13 @@ readMemo = do
 -- | pause for key press
 keyPress :: Prelude ()
 keyPress = do
- liftIO $ print "waiting"
+ liftIO $ putStrLn "waiting"
  Prelude $ \ ch -> liftIO $ atomically $ do
   event <- readTChan (eventQueue $ preludeContext ch)
   if eType event == "keypress"
   then return ()
   else retry
- liftIO $ print "waited"
+ liftIO $ putStrLn "waited"
 
 ------------------------------------------------------------------------
 
@@ -151,7 +150,7 @@ wordWidth font_name txt = Prelude $ \ env -> do
 imageTile :: FilePath -> Prelude (Tile ())
 imageTile filePath = liftCanvas $ do
     img <- newImage ("/" <> pack filePath)
-    return $ tile (width img, height img) $ \ (Cavity (x,y) (w,h)) -> drawImage (img,[0,0])
+    return $ tile (width img, height img) $ \ (Cavity _ _) -> drawImage (img,[0,0])
 
 ------------------------------------------------------------------------
 

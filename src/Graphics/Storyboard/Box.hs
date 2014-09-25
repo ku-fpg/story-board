@@ -2,20 +2,18 @@
 
 module Graphics.Storyboard.Box where
 
-import Data.Monoid
-import Data.Text (Text)
-import Data.Set (Set)
+import           Data.Monoid
 import qualified Data.Set as Set
-import Graphics.Blank as Blank
+import           Data.Set (Set)
+import           Data.Text (Text)
+
+import           Graphics.Blank as Blank
 import qualified Graphics.Blank.Style as Style
-import Control.Monad.IO.Class
-
-import Graphics.Storyboard.Act
-import Graphics.Storyboard.Literals
-import Graphics.Storyboard.Tile
-import Graphics.Storyboard.Types
-import Graphics.Storyboard.Mosaic
-
+import           Graphics.Storyboard.Act
+import           Graphics.Storyboard.Literals
+import           Graphics.Storyboard.Mosaic
+import           Graphics.Storyboard.Tile
+import           Graphics.Storyboard.Types
 
 data TheBoxStyle = TheBoxStyle
   { theBorderWidth   :: Double

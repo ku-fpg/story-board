@@ -2,25 +2,15 @@
 
 module Graphics.Storyboard.Tile where
 
-import qualified Data.Text as Text
-import Data.Text(Text)
-import Data.List as List
 import Control.Applicative
-import Control.Monad (liftM2)
+
 import Data.Semigroup
-import Data.Text(Text)
-import Graphics.Blank (Canvas)
-import Control.Monad.IO.Class
-
-import GHC.Exts (IsString(fromString))
-import Control.Concurrent.STM
-
-import Graphics.Storyboard.Types
-import Graphics.Storyboard.Literals
-import Graphics.Storyboard.Act
-import Graphics.Storyboard.Behavior
 
 import Graphics.Blank
+import Graphics.Storyboard.Act
+import Graphics.Storyboard.Behavior
+import Graphics.Storyboard.Literals
+import Graphics.Storyboard.Types
 
 -- | A Tile has a specific, fixed size.
 -- When rendered, it is given a specific size to operate inside of,
@@ -119,11 +109,11 @@ instance Monoid (Tile a) where
   (Tile (x1,y1) c1) `mappend` (Tile (x2,y2) c2) = Tile (max x1 x2,max y1 y2) (c1 `mappend` c2)
 
 drawTile :: Drawing picture => Size Double -> picture -> Tile ()
-drawTile (w',h') pic = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> drawCanvas (w,h) pic
+drawTile (w',h') pic = tile (w',h') $ \ (Cavity _ (w,h)) -> drawCanvas (w,h) pic
 
 drawMovieTile :: (Playing movie, Drawing picture) => Size Double -> movie picture -> Tile ()
 drawMovieTile (w',h') movie = case wrapMovie movie of
     Movie bhr f stop -> actile (w',h')
-        ((\ (Cavity (x,y) (w,h)) b -> do
+        ((\ (Cavity _ _) b -> do
                     drawCanvas (w',h') $ f b
                     return (stop b)) <$> cavityB <*> bhr)

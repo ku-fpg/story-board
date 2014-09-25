@@ -19,24 +19,13 @@ module Graphics.Storyboard.Mosaic
   , runMosaic
   ) where -} where
 
-import qualified Data.Text as Text
-import Data.Text(Text)
-import Data.List as List
-import Control.Applicative
-import Control.Monad (liftM2)
-import Data.Semigroup
-import Data.Text(Text)
-import Graphics.Blank (Canvas,translate,saveRestore, console_log)
-import Control.Monad.IO.Class
-import Control.Concurrent.STM
+import           Data.List as List
+import           Data.Semigroup
 
-import GHC.Exts (IsString(fromString))
-
-import Graphics.Storyboard.Act
-import Graphics.Storyboard.Types
-import Graphics.Storyboard.Literals
-import Graphics.Storyboard.Tile
-import Graphics.Storyboard.Behavior
+import           Graphics.Storyboard.Act
+import           Graphics.Storyboard.Literals
+import           Graphics.Storyboard.Tile
+import           Graphics.Storyboard.Types
 
 
 type Spacer f = (f,f) -- the spacing, take height *or* width, not both
@@ -94,7 +83,7 @@ cavityRange (Mosaic sps _) (h,w) = ( foldl f (h,0) $ map fst sps
     where
           f (x,x') (Alloc n)   = (x - n,(x' - n) `max` 0)
           f (x,x') (AtLeast n) = (n `max` x,n `max` x')
-          f (x,x') (Space')    = (x,0) -- assumes you want the max cavity??
+          f (x,_)  (Space')    = (x,0) -- assumes you want the max cavity??
 
 
 -- Make a simple blank frame from a mosaic
@@ -114,7 +103,7 @@ blankMosaic (w,h) cavity =
     hbrace cw <>
     vbrace ch
   where Cavity (cx,cy) (cw,ch) = cavity
-        (cx',cy') = (w - (cx + cw), h - (cy + ch))
+        (_,cy') = (w - (cx + cw), h - (cy + ch))
 
 
 -----------------------------------------------------------------------------
@@ -180,7 +169,7 @@ realTileSize side (w,h) cavity = case side of
     B -> (cw,h)
     L -> (w,ch)
     R -> (w,ch)
-  where Cavity (cx,cy) (cw,ch) = cavity
+  where Cavity _ (cw,ch) = cavity
 
 fillSpacing :: Side -> (Spacing',Spacing')
 fillSpacing side = case side of
@@ -191,7 +180,6 @@ fillSpacing side = case side of
 
 newSpacingCavity :: Side -> Spacer Double -> Cavity Double -> Cavity Double
 newSpacingCavity side (sw,sh) cavity = newCavity side (sw,sh) cavity
-  where Cavity (cx,cy) (cw,ch) = cavity
 
 -----------------------------------------------------------------------------
 
@@ -204,17 +192,19 @@ cavityOfMosaic :: Mosaic a -> (Cavity Double)
 
 -- Hmm. this should assume zero spacing?
 cavityOfMosaic :: Mosaic a -> Size Double -> Cavity Double
-cavityOfMosaic mosaic@(Mosaic cavity k) (w',h')
+cavityOfMosaic mosaic@(Mosaic _ k) (w',h')
   = snd $ k (spacingInMosaic mosaic (w',h')) $ Cavity (0,0) (w',h')
 
 spacingInMosaic :: Mosaic a -> Size Double -> Spacer Double
-spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
+spacingInMosaic mosaic@(Mosaic cavity _) (w',h') =  (sw,sh)
   where
     sw = if cw + w' < w || w_sps == 0 then 0 else (cw + w' - w) / w_sps
     sh = if ch + h' < h || h_sps == 0 then 0 else (ch + h' - h) / h_sps
-
+    
+    {-
     show' :: Show a => a -> Text
     show' = Text.pack . show
+    -}
 
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
@@ -230,16 +220,16 @@ spacingInMosaic mosaic@(Mosaic cavity k) (w',h') =  (sw,sh)
 -- how about a version that does not use spacing?
 -- TOD: make pack use runMosaic
 pack :: Mosaic a -> Tile a
-pack mosaic@(Mosaic cavity k) = Tile (w,h) $ \ (Cavity (x,y) (w',h')) -> do
+pack mosaic@(Mosaic cavity _) = Tile (w,h) $ \ (Cavity (x,y) (w',h')) -> do
       fst $ runMosaic mosaic (Cavity (x,y) (w',h'))
   where
     w = foldr spaceSize 0 $ map fst $ cavity
     h = foldr spaceSize 0 $ map snd $ cavity
 
 runMosaic :: Mosaic a -> Cavity Double -> (Act, Cavity Double)
-runMosaic mosaic@(Mosaic spaces k) (Cavity (x,y) (w,h)) = (act,cavity')
+runMosaic mosaic@(Mosaic _ k) (Cavity (x,y) (w,h)) = (act,cavity')
   where
-   (act,cavity') =  k (spacingInMosaic mosaic (w,h)) $ Cavity (x,y) (w,h)
+   (act,cavity') = k (spacingInMosaic mosaic (w,h)) $ Cavity (x,y) (w,h)
 
 spaceSize :: Spacing' -> Double -> Double
 spaceSize (Alloc n)   sz = sz + n

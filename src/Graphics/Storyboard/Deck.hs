@@ -1,18 +1,16 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables, GADTs #-}
 module Graphics.Storyboard.Deck where
 
-import Graphics.Storyboard.Mosaic
-import Graphics.Storyboard.Tile
-import Graphics.Storyboard.Types
+import Control.Concurrent.STM
+
+import Data.Text (Text)
+import Data.Time.Clock
+
+import Graphics.Blank (DeviceContext, clearRect, send, eventQueue, eType, eWhich)
 import Graphics.Storyboard.Act
 import Graphics.Storyboard.Behavior
-
-import Graphics.Blank(Canvas,DeviceContext,clearRect,send,eventQueue,eType,eWhich)
-import Control.Applicative
-import Control.Monad
-import Control.Monad.IO.Class
-import Control.Concurrent.STM
-import Data.Time.Clock
+import Graphics.Storyboard.Mosaic
+import Graphics.Storyboard.Types
 
 ------------------------------------------------------------------------
 
@@ -80,7 +78,7 @@ runDeck' context (Deck cavity (PauseDeck deck)) = runDecking context deck $ \ _ 
           then return event
           else loop -- ignore other things, for now
     event <- atomically $ loop
-    print ("got key",event)
+    print ("got key" :: Text, event)
     case eWhich event of
       Just 98 -> return (Left BackSlide)
       _       -> return (Right cavity)

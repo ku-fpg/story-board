@@ -2,8 +2,8 @@
 
 module Graphics.Storyboard.Paragraph where
 
+import Data.Text (Text)
 import Data.Monoid
-import Data.Text(Text)
 
 import Graphics.Storyboard.Literals
 import Graphics.Storyboard.Mosaic
@@ -30,7 +30,7 @@ data TheParagraphStyle = TheParagraphStyle
 newtype Bullet = Bullet { runBullet :: TheProseStyle -> Prelude (Tile ()) }
 
 instance Show Bullet where
-  show (Bullet t) = "Bullet{}"
+  show (Bullet _) = "Bullet{}"
 
 defaultParagraphStyle :: TheParagraphStyle
 defaultParagraphStyle = TheParagraphStyle
@@ -83,7 +83,7 @@ rightMargin :: ParagraphStyle a => Double -> a -> a
 rightMargin n = paragraphStyle $ \ m -> m { theRightMargin = n }
 
 bullet :: ParagraphStyle a => Bullet -> a -> a
-bullet b = paragraphStyle $ \ m -> m { theBullet = Just b }
+bullet b' = paragraphStyle $ \ m -> m { theBullet = Just b' }
 
 noBullet :: ParagraphStyle a => a -> a
 noBullet = paragraphStyle $ \ m -> m { theBullet = Nothing }

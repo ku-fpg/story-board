@@ -16,26 +16,24 @@ extra-source-files:  README.md, README.md~
 cabal-version:       >=1.10
 
 library
-  exposed-modules:
-          Graphics.Storyboard
-          Graphics.Storyboard.Act,
-          Graphics.Storyboard.Behavior,
-          Graphics.Storyboard.Box,
-          Graphics.Storyboard.Highlight,
-          Graphics.Storyboard.Markup,
-          Graphics.Storyboard.Tile,
-          Graphics.Storyboard.Types,
-          Graphics.Storyboard.Slide
-  other-modules:
-          Graphics.Storyboard.Bling,
-          Graphics.Storyboard.Deck,
-          Graphics.Storyboard.Images,
-          Graphics.Storyboard.Layout,
-          Graphics.Storyboard.Literals,
-          Graphics.Storyboard.Mosaic,
-          Graphics.Storyboard.Paragraph,
-          Graphics.Storyboard.Prelude,
-          Graphics.Storyboard.Prose
+  exposed-modules:     Graphics.Storyboard,
+                       Graphics.Storyboard.Act,
+                       Graphics.Storyboard.Behavior,
+                       Graphics.Storyboard.Box,
+                       Graphics.Storyboard.Highlight,
+                       Graphics.Storyboard.Markup,
+                       Graphics.Storyboard.Slide,
+                       Graphics.Storyboard.Tile,
+                       Graphics.Storyboard.Types
+  other-modules:       Graphics.Storyboard.Bling,
+                       Graphics.Storyboard.Deck,
+                       Graphics.Storyboard.Images,
+                       Graphics.Storyboard.Layout,
+                       Graphics.Storyboard.Literals,
+                       Graphics.Storyboard.Mosaic,
+                       Graphics.Storyboard.Paragraph,
+                       Graphics.Storyboard.Prelude,
+                       Graphics.Storyboard.Prose
   other-extensions:    OverloadedStrings
   build-depends:       base         >= 4.5 && < 4.8,
                        blank-canvas >= 0.5 && < 0.6,
@@ -49,10 +47,11 @@ library
                        transformers >= 0.3 && < 0.5
   hs-source-dirs:      src
   default-language:    Haskell2010
+  ghc-options:         -Wall
 
 flag example
-  Description: Build the examples
-  Default:     False
+  Description:         Build the examples
+  Default:             False
 
 executable story-board-example
   if flag(example)
@@ -60,14 +59,9 @@ executable story-board-example
   else
     buildable:         False
   main-is:             Main.hs
-  build-depends:       base         >= 4.7 && < 4.8,
-                       blank-canvas >= 0.4.0.1,
-                       containers   >= 0.5,
-                       semigroups,
-                       stm          >= 2.4,
-                       story-board,
-                       text         >= 1.1 && <1.3,
+  build-depends:       base         >= 4.5 && < 4.8,
+                       story-board  == 0.1.*,
                        transformers >= 0.3 && < 0.5
   hs-source-dirs:      example
   default-language:    Haskell2010
-  GHC-options:         -threaded -Wall
+  ghc-options:         -threaded -Wall

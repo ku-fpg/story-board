@@ -2,15 +2,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Graphics.Storyboard.Active() -- for the instance
+import Data.Active
 
 import Graphics.Blank             as B
 import Graphics.Storyboard        as SB
-
-import Data.Active
+import Graphics.Storyboard.Active () -- for the instance
 
 main :: IO ()
-main = SB.storyBoard [ slide ]
+main = SB.storyBoard 3000 [ slide ]
 
 slide :: SB.Slide ()
 slide = do

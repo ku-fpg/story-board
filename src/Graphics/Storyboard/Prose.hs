@@ -37,30 +37,23 @@ module Graphics.Storyboard.Prose
   , boxy
   ) where
 
+import Control.Monad (when)
+
+import           Data.Char (isSpace)
 import qualified Data.Text as Text
-import Data.Text(Text)
-import Data.List as List
-import Control.Applicative
-import Control.Monad (liftM2, when)
-import Data.Semigroup
-import Data.Text(Text)
-import Data.Char(isSpace)
-import Graphics.Blank hiding (font, Alignment)
+import           Data.Text (Text)
+import           Data.List as List
+import           Data.Semigroup
+import           Data.String (IsString(fromString))
+
 import qualified Graphics.Blank as Blank
-import Control.Monad.IO.Class
-
-import Data.String (IsString(fromString))
-
-import Graphics.Storyboard.Act
-import Graphics.Storyboard.Tile
-import Graphics.Storyboard.Types
-import Graphics.Storyboard.Literals
-import Graphics.Storyboard.Mosaic
-import Graphics.Storyboard.Prelude
-
-
---import Graphics.Storyboard.TextStyle
-
+import           Graphics.Blank hiding (font)
+import           Graphics.Storyboard.Literals
+import           Graphics.Storyboard.Mosaic
+import           Graphics.Storyboard.Prelude
+-- import           Graphics.Storyboard.TextStyle
+import           Graphics.Storyboard.Tile
+import           Graphics.Storyboard.Types
 
 ------------------------------------------------------------------------
 
@@ -82,10 +75,10 @@ instance IsString Prose where
 
 -- concat (interperse ' ' (parts isSpace xs)) == xs
 parts :: (a -> Bool) -> [a] -> [[a]]
-parts p [] = []
+parts _ [] = []
 parts p xs = case span (not . p) xs of
-               (before,[y])    -> before : [[]]
-               (before,(y:ys)) -> before : parts p ys
+               (before,[_])    -> before : [[]]
+               (before,(_:ys)) -> before : parts p ys
                (before,[])     -> [before]
 
 prose :: String -> Prose
@@ -125,18 +118,19 @@ p1 </> p2 = p1 <> br <> p2
 
 
 data TheProseStyle = TheProseStyle
-  { theFont           :: Text       -- ^ which font, "sans-serif"
-  , theFontSize       :: Int        -- ^ how big, 32
-  , theSpaceWidth     :: Double      -- ^ size of space, ratio of font size, 0.28 * 32
-  , isItalic          :: Bool
-  , isBold            :: Bool
-  , subSuper          :: Int        -- 0 == regular, 1 == super, 2 == super.super, -1 = sub
-  , theColor          :: Text       -- ^ current color, black
-  , theLigatures      :: [(Text,Text)]
-  , theDescenderHeight:: Double      -- Extra gap below baseline for descenders, ratio of font size, 0.35
-  , isBoxy            :: Bool       -- ^ do you surround every word with a box
+  { theFont            :: Text       -- ^ which font, "sans-serif"
+  , theFontSize        :: Int        -- ^ how big, 32
+  , theSpaceWidth      :: Double      -- ^ size of space, ratio of font size, 0.28 * 32
+  , isItalic           :: Bool
+  , isBold             :: Bool
+  , subSuper           :: Int        -- 0 == regular, 1 == super, 2 == super.super, -1 = sub
+  , theColor           :: Text       -- ^ current color, black
+  , theLigatures       :: [(Text,Text)]
+  , theDescenderHeight :: Double      -- Extra gap below baseline for descenders, ratio of font size, 0.35
+  , isBoxy             :: Bool       -- ^ do you surround every word with a box
   } deriving Show
 
+defaultProseStyle :: TheProseStyle
 defaultProseStyle = TheProseStyle
   { theFont            = "sans-serif"
   , theFontSize        = 32
@@ -204,7 +198,7 @@ sub         :: ProseStyle a =>          a -> a
 sub           = proseStyle $ \ s -> s { subSuper = subSuper s - 1 }
 
 boxy        :: ProseStyle a => Bool -> a -> a
-boxy b        = proseStyle $ \ s -> s { isBoxy = b }
+boxy b'       = proseStyle $ \ s -> s { isBoxy = b' }
 
 ------------------------------------------------------------------------
 
@@ -215,9 +209,10 @@ fontName cxt = Text.intercalate " " $
     [ "bold"    | isBold cxt ] ++
     [Text.pack $ show realFontSize, theFont cxt]
   where
+      realFontSize :: Int
       realFontSize = round
                    $ fromIntegral (theFontSize cxt)
-                   * (0.7 ^ abs (subSuper cxt))
+                   * (0.7 ^ abs (subSuper cxt) :: Double)
 
 renderText :: TheProseStyle -> Text -> Prelude (Tile ())
 renderText st txt = do
@@ -225,10 +220,13 @@ renderText st txt = do
     w <- wordWidth (fontName st) txt'
     let off :: Double
         off = -0.4 * fromIntegral (subSuper st) * fromIntegral (theFontSize st)
-    return $ tile (w,fromIntegral
-                      $ ceiling
-                      $ fromIntegral (theFontSize st) * (1 + theDescenderHeight st))
-           $ \ (Cavity (x,y) _) -> do
+        
+        h :: Double
+        h = fromIntegral $ (ceiling
+                         $ fromIntegral (theFontSize st)
+                         * (1 + theDescenderHeight st) :: Int)
+    return . tile (w,h)
+           $ \ (Cavity _ _) -> do
       Blank.font $ fontName st
       fillStyle (theColor st)
       fillText (txt',0,fromIntegral (theFontSize st) + off)    -- time will tell for this offset
@@ -267,9 +265,9 @@ renderProse alignment w ps_cxt ps = do
         findT (Right t:xs) ts = findT xs (ts++[t])
         findT [] ts = [(ts,0)]
 
-        findS (Left n:xs) (ts,w) = findS xs (ts,w + n)
-        findS (Right t:xs) (ts,w) = (ts,w) : findT xs [t]
-        findS [] (ts,w) = [(ts,w)]
+        findS (Left n:xs) (ts,w') = findS xs (ts,w' + n)
+        findS (Right t:xs) (ts,w') = (ts,w') : findT xs [t]
+        findS [] (ts,w') = [(ts,w')]
 
 
     let glyphs2 :: [([Tile ()],Double)] = findT (fixNL proseTiles) []
@@ -283,7 +281,7 @@ renderProse alignment w ps_cxt ps = do
 
 --    liftIO $ print ("glyphs2",glyphs2)
 
-    let splits = splitLines w [ (sum $ map tileWidth ts,w) | (ts,w) <- glyphs2 ]
+    let splits = splitLines w [ (sum $ map tileWidth ts,w') | (ts,w') <- glyphs2 ]
 
 
 --    liftIO $ print $ splits
@@ -294,7 +292,7 @@ renderProse alignment w ps_cxt ps = do
         write :: Bool -> [([Tile ()],Double)] -> Tile ()
         write lastLine xs = pack $ mconcat $
               [ gap left | True <- [just `elem` [ center, right]]] ++
-              [ mconcat [ anchor left $ tile | tile <- tiles ] <>
+              [ mconcat [ anchor left $ tile' | tile' <- tiles ] <>
                 (if sp == 0
                  then mempty
                  else if just == justified
@@ -317,7 +315,7 @@ renderProse alignment w ps_cxt ps = do
 -- Given the (min) width of a space, the width of the line,
 -- and a list of word widths, how many words can we accept.
 splitLine :: Double -> [(Double,Double)] -> Int
-splitLine lineWidth widths = length $ takeWhile (<= lineWidth) szs
+splitLine lineWidth' widths = length $ takeWhile (<= lineWidth') szs
   where
     szs = [ sz + sp + rest
           | (sz,sp,rest) <-
@@ -327,14 +325,14 @@ splitLine lineWidth widths = length $ takeWhile (<= lineWidth) szs
           ]
 
 splitLines :: Double -> [(Double,Double)] -> [Int]
-splitLines lineWidth [] = []
-splitLines lineWidth xs = n : splitLines lineWidth (drop n xs)
+splitLines _          [] = []
+splitLines lineWidth' xs = n : splitLines lineWidth' (drop n xs)
   where
-    n = splitLine lineWidth xs `max` 1 -- hfill warning here
+    n = splitLine lineWidth' xs `max` 1 -- hfill warning here
 
 -- internal only?
 renderProse' :: TheProseStyle -> Prose -> Prelude [Either Double (Tile ())]
-renderProse' st (ProseItem txt) | Text.null txt = return []
+renderProse' _  (ProseItem txt) | Text.null txt = return []
 renderProse' st (ProseItem txt) = do
     t <- renderText st txt
     return [Right t]

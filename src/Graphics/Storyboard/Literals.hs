@@ -5,8 +5,6 @@
  -}
 module Graphics.Storyboard.Literals where
 
-import Data.Text(Text)
-
 -----------------------------------------------------------------------------
 
 -- Short cut literal/DSL-keyword classes

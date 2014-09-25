@@ -1,28 +1,18 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Graphics.Storyboard.Markup where
 
+import           Control.Applicative
+
+import           Data.Semigroup
 import qualified Data.Text as Text
-import Data.Text(Text)
-import Data.Semigroup
-import qualified Graphics.Blank as Blank
-import Graphics.Blank(Canvas,fillStyle,fillText,saveRestore,measureText,TextMetrics(..))
-import Data.List as List
-import Control.Applicative
 
-import Graphics.Storyboard.Slide
-import Graphics.Storyboard.Layout
-import Graphics.Storyboard.Bling
-import Graphics.Storyboard.Tile
-import Graphics.Storyboard.Literals
-import Graphics.Storyboard.Prose
-import Graphics.Storyboard.Paragraph
-import Graphics.Storyboard.Mosaic
-import Graphics.Storyboard.Bling
-import Graphics.Storyboard.Prelude
-import Graphics.Storyboard.Box
-
-import Control.Monad.IO.Class
-
+import           Graphics.Storyboard.Slide
+import           Graphics.Storyboard.Tile
+import           Graphics.Storyboard.Literals
+import           Graphics.Storyboard.Prose
+import           Graphics.Storyboard.Paragraph
+import           Graphics.Storyboard.Mosaic
+import           Graphics.Storyboard.Box
 
 ------------------------------------------------------------------------
 
@@ -55,13 +45,13 @@ item txt prose = do
 
 indent :: Slide a -> Slide a
 indent m = do
-  i <- theItemCounter <$> getSlideState
+  i' <- theItemCounter <$> getSlideState
   modSlideState (setItemCount 0)
-  r <- consItemCounters i $ do
+  r <- consItemCounters i' $ do
       indLevel <- length <$> theItemCounters <$> askSlideStyle
       tabStop <- theTabStop <$> askSlideStyle
       leftMargin (fromIntegral indLevel * tabStop) $ m
-  modSlideState (setItemCount i)
+  modSlideState (setItemCount i')
   return r
 
 --  incIndentLevel $
@@ -76,22 +66,22 @@ ul = indent
 
 ol :: Slide a -> Slide a
 ol = indent
-   . bulletFactory (BulletFactory $ \ i _ -> bulletText (Text.pack (show i) <> ". "))
+   . bulletFactory (BulletFactory $ \ i' _ -> bulletText (Text.pack (show i') <> ". "))
 
 -- t <- slidePrelude $ renderText par_st "\x2022 "
 
 li :: Prose -> Slide ()
 li ps = do
   modSlideState incItemCount
-  i <- theItemCounter <$> getSlideState
+  i' <- theItemCounter <$> getSlideState
   is <- theItemCounters <$> askSlideStyle
-  par_st  <- theProseStyle <$> askSlideStyle
+  _  <- theProseStyle <$> askSlideStyle
   BulletFactory fac <- theBulletFactory <$> askSlideStyle
-  bullet (fac i is) $ p ps
+  bullet (fac i' is) $ p ps
 
 p :: Prose -> Slide ()
 p ps = do
-    (w,h)       <- getCavitySize
+    (w,_)       <- getCavitySize
     slide_style <- askSlideStyle
     let prose_style = theProseStyle slide_style
     let par_style = theParagraphStyle slide_style
@@ -122,8 +112,8 @@ table :: [TR] -> Slide ()
 table rows = do
   (w,_) <- getCavitySize
 
-  paragraphStyle <- theParagraphStyle <$> askSlideStyle
-  let (w',_) = theParagraphMarginSize paragraphStyle
+  paragraphStyle' <- theParagraphStyle <$> askSlideStyle
+  let (w',_) = theParagraphMarginSize paragraphStyle'
   ln_wd <- theBorderWidth <$> theBoxStyle <$> askSlideStyle
 
   let gaps n = (w - w') / n - ln_wd * 2
@@ -136,11 +126,11 @@ table rows = do
                  ]
       | TR tds <- rows
       ]
-  boxStyle <- theBoxStyle <$> askSlideStyle
+  boxStyle' <- theBoxStyle <$> askSlideStyle
 
   place top $ pack $ mconcat
-      [ renderMargin paragraphStyle
-      , anchor top $ boxes boxStyle tss
+      [ renderMargin paragraphStyle'
+      , anchor top $ boxes boxStyle' tss
       ]
 
   return ()
