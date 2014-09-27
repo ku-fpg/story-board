@@ -1,8 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings, KindSignatures, GADTs, StandaloneDeriving, TypeFamilies, DataKinds #-}
 module Graphics.Storyboard
-  ( Slide
-    -- * Markup
-  , p
+  ( -- * Markup
+    p
   , ul
   , ol
   , li
@@ -22,6 +21,7 @@ module Graphics.Storyboard
   , noLigatures
   , super
   , sub
+  , space
   , boxy
     -- * Spacing
   , vspace
@@ -42,6 +42,7 @@ module Graphics.Storyboard
   , leftMargin
   , rightMargin
     -- * Tiles
+  , Tile
   , tile
   , tileSize
   , tileWidth
@@ -80,6 +81,9 @@ module Graphics.Storyboard
   , tileOfSlide
   , place
   , module Graphics.Storyboard.Box
+   -- * Slide
+   , cacheTile
+   , Slide
    -- * adjusting sizes
   , trueSpace
    -- * timing
