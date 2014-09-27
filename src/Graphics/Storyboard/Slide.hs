@@ -263,5 +263,5 @@ bgLinear c0 c1 = Slide $ \ _ st -> fmap (,st) $ Prelude.bgLinear c0 c1
 
 -- store a tile in a named cache location, and use the cache if it exists.
 
-cacheTile :: String -> Tile -> Slide Tile
+cacheTile :: String -> Tile () -> Slide (Tile ())
 cacheTile fileName tile = return tile
