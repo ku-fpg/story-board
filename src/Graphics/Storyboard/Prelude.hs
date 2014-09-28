@@ -3,7 +3,6 @@ module Graphics.Storyboard.Prelude
   ( Prelude
   , startPrelude
   , wordWidth
-  , imageTile
   , liftCanvas
   , keyPress
   , bgLinear
@@ -144,13 +143,6 @@ wordWidth font_name txt = Prelude $ \ env -> do
       liftIO $ recordMemo env $ MemoWordWidth font_name txt w
       return w
     Just w -> return w
-
--- This function should be memoize; it should return
--- the same answer for *every* call.
-imageTile :: FilePath -> Prelude (Tile ())
-imageTile filePath = liftCanvas $ do
-    img <- newImage ("/" <> pack filePath)
-    return $ tile (width img, height img) $ \ (Cavity _ _) -> drawImage (img,[0,0])
 
 ------------------------------------------------------------------------
 
