@@ -16,6 +16,7 @@ module Graphics.Storyboard.Slide where
 import           Control.Applicative
 import           Control.Monad (liftM2)
 import           Control.Monad.IO.Class
+import           System.Directory
 
 import           Data.Semigroup
 
@@ -23,6 +24,7 @@ import           Graphics.Blank (EventQueue, newCanvas, with, toDataURL,writeDat
 import           Graphics.Storyboard.Act
 import           Graphics.Storyboard.Box
 import           Graphics.Storyboard.Deck
+import           Graphics.Storyboard.Images
 import           Graphics.Storyboard.Literals
 import           Graphics.Storyboard.Mosaic
 import           Graphics.Storyboard.Paragraph
@@ -267,11 +269,15 @@ bgLinear c0 c1 = Slide $ \ _ st -> fmap (,st) $ Prelude.bgLinear c0 c1
 
 -- store a tile in a named cache location, and use the cache if it exists.
 
-cacheTile :: String -> Tile () -> Slide (Tile ())
-cacheTile fileName tile@(Tile (w,h) act) =
-    case getScenery $ act (Cavity (0,0) (w,h)) of
+cacheTile :: FilePath -> Tile () -> Slide (Tile ())
+cacheTile fileName tile@(Tile (w,h) act) = do
+    b <- liftIO $ doesFileExist fileName
+    if b then do
+      imageTile fileName
+    else case getScenery $ act (Cavity (0,0) (w,h)) of
       Nothing -> return tile
       Just m -> do
+        liftIO $ print $ "pre-record the tile"
         url <- liftCanvas $ do
                   cvs <- newCanvas (round w,round h)
                   with cvs $ do
