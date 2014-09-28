@@ -132,11 +132,11 @@ vbrace h = anchor left (blank (0,h))
 hbrace :: Double -> Mosaic ()
 hbrace w = anchor top (blank (w,0))
 
-column :: [Tile ()] -> Tile ()
-column = pack . mconcat . intersperse (gap left) . map (anchor left)
-
 row :: [Tile ()] -> Tile ()
-row = pack . mconcat . intersperse (gap top) . map (anchor top)
+row = pack . mconcat . intersperse (gap left) . map (anchor left)
+
+column :: [Tile ()] -> Tile ()
+column = pack . mconcat . intersperse (gap top) . map (anchor top)
 
 -----------------------------------------------------------------------------
 
@@ -200,7 +200,7 @@ spacingInMosaic mosaic@(Mosaic cavity _) (w',h') =  (sw,sh)
   where
     sw = if cw + w' < w || w_sps == 0 then 0 else (cw + w' - w) / w_sps
     sh = if ch + h' < h || h_sps == 0 then 0 else (ch + h' - h) / h_sps
-    
+
     {-
     show' :: Show a => a -> Text
     show' = Text.pack . show
