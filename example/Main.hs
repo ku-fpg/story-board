@@ -115,11 +115,11 @@ slide_background = do
 -}
 haskell_code :: Slide ()
 haskell_code = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
-  _ <- liftIO $ readFile "example/Main.hs"
-  let txt = "Hello, World\nPrelude> 1 + 2\n For 1 + 2 now"
+  txt <- liftIO $ readFile "example/Main.hs"
+  --let txt = "Hello, World\nPrelude> 1 + 2\n For 1 + 2 now"
   liftIO $ print $ highlight ghciHighlightStyle
                 $ unlines
---                $ take 15
+                $ take 15
 --                $ drop 100
                 $ map (take 72)
                 $ lines
@@ -131,7 +131,7 @@ haskell_code = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
     background lg $ frame $ margin 10 $ do
       p $ highlight ghciHighlightStyle
             $ unlines
---            $ take 15
+            $ take 15
 --            $ drop 100
             $ map (take 72)
             $ lines
