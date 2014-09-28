@@ -407,8 +407,16 @@ tileAddress (w,h) = do
   return (t,s)
 -}
 
+rec :: Int -> Tile ()
+rec 0 = box defaultBoxStyle $ blank (1,1)
+rec n = do
+  let t = nudge top left $ rec (n-1)
+  if odd n then column [t,t] else row [t,t]
+
 cachingTiles :: Slide ()
 cachingTiles = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
-  t <- tileOfSlide (100,100) $ p "Hello, World!"
-  t' <- cacheTile "foo.png" t
-  place left t'
+  t1 <- cacheTile ".cache/slow-tile.png" $ rec 12
+  p $ "1"
+  place top $ row [t1,t1,t1,t1,t1]
+  p $ "2"
+  place top $ row [t1,t1,t1,t1,t1]
