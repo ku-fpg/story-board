@@ -19,7 +19,8 @@ import           Control.Monad.IO.Class
 
 import           Data.Semigroup
 
-import           Graphics.Blank (EventQueue)
+import           Graphics.Blank (EventQueue, newCanvas, with, toDataURL,writeDataURL)
+import           Graphics.Storyboard.Act
 import           Graphics.Storyboard.Box
 import           Graphics.Storyboard.Deck
 import           Graphics.Storyboard.Literals
@@ -267,4 +268,14 @@ bgLinear c0 c1 = Slide $ \ _ st -> fmap (,st) $ Prelude.bgLinear c0 c1
 -- store a tile in a named cache location, and use the cache if it exists.
 
 cacheTile :: String -> Tile () -> Slide (Tile ())
-cacheTile fileName tile = return tile
+cacheTile fileName tile@(Tile (w,h) act) =
+    case getScenery $ act (Cavity (0,0) (w,h)) of
+      Nothing -> return tile
+      Just m -> do
+        url <- liftCanvas $ do
+                  cvs <- newCanvas (round w,round h)
+                  with cvs $ do
+                    m
+                    toDataURL()
+        liftIO $ writeDataURL fileName url
+        return tile
