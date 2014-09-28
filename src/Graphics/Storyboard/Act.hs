@@ -28,6 +28,10 @@ runAct :: TheBehaviorEnv -> Act -> STM (Canvas Bool)
 runAct env (Act k) = k env
 runAct env (Scenery m) = return (m >> return True)
 
+getScenery :: Act -> Maybe (Canvas ())
+getScenery (Scenery m) = Just m
+getScenery _           = Nothing
+
 instance Semigroup Act where
   -- may optimize for PureB.
   Scenery m1 <> Scenery m2 = Scenery (m1 >> m2)
