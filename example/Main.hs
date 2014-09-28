@@ -6,9 +6,9 @@ import Data.Monoid
 import Graphics.Storyboard
 
 main :: IO ()
-main = storyBoard 3000 $ map brand $ drop 8
-  [ haskell_code
-  , titleSlide
+main = storyBoard 3000 $ map brand $ drop 0
+  [ titleSlide
+  , haskell_code
   , bigBackground
   , alignSlide
   , bulletSlide
