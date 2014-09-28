@@ -16,6 +16,7 @@ main = storyBoard 3000 $ map brand $ drop 8
   , actSlide
   , subSuperSlide
   , cachingTiles
+  , scalingTiles
   ]
 
 brand :: Slide () -> Slide ()
@@ -420,3 +421,13 @@ cachingTiles = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
   place top $ row [t1,t1,t1,t1,t1]
   p $ "2"
   place top $ row [t1,t1,t1,t1,t1]
+
+scalingTiles :: Slide ()
+scalingTiles = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
+  i1 <- scaledImageTile "example/images/KU.png" 0.1
+  i2 <- scaledImageTile "example/images/KUlogo1C.png" 0.9
+  i3 <- scaledImageTile "example/images/KU.png" 0.2
+  p $ "1"
+  place top i2
+  p $ "2"
+  place top $ row [i1,i2,i3]
