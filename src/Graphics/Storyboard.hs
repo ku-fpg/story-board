@@ -30,6 +30,7 @@ module Graphics.Storyboard
   , align
   , getCavitySize
   , imageTile
+  , scaledImageTile
   , draw
   , anchor
   , blank
