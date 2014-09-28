@@ -186,6 +186,9 @@ instance Monoid a => Monoid (Slide a) where
 instance MonadIO Slide where
     liftIO = slidePrelude . liftIO
 
+instance MonadCanvas Slide where
+  liftCanvas = slidePrelude . liftCanvas
+
 getCavitySize :: Slide (Size Double)
 getCavitySize = Slide $ \ _ st -> return (cavitySize $ deckCavity $ theDeck st,st)
 
