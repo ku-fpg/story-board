@@ -214,6 +214,11 @@ fontName cxt = Text.intercalate " " $
                    $ fromIntegral (theFontSize cxt)
                    * (0.7 ^ abs (subSuper cxt) :: Double)
 
+renderTextHeight :: TheProseStyle -> Double
+renderTextHeight st = fromIntegral $ (ceiling
+                    $ fromIntegral (theFontSize st)
+                    * (1 + theDescenderHeight st) :: Int)
+
 renderText :: TheProseStyle -> Text -> Prelude (Tile ())
 renderText st txt = do
     let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures st)
