@@ -202,7 +202,7 @@ slideShowr st = do
   (_,st1) <- Prelude.startPrelude (runSlide (slides !! (n-1)) cxt st0) context
 
   let deck = theDeck st1
-  print deck
+--  print deck
 
   next <- runDeck context (pauseDeck deck)
 
