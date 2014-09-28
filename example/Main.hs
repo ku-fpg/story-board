@@ -6,7 +6,7 @@ import Data.Monoid
 import Graphics.Storyboard
 
 main :: IO ()
-main = storyBoard 3000 $ map brand $ drop 0
+main = storyBoard 3000 $ map brand $ drop 8
   [ haskell_code
   , titleSlide
   , bigBackground
@@ -15,6 +15,7 @@ main = storyBoard 3000 $ map brand $ drop 0
   , orderedListSlide
   , actSlide
   , subSuperSlide
+  , cachingTiles
   ]
 
 brand :: Slide () -> Slide ()
@@ -405,3 +406,9 @@ tileAddress (w,h) = do
 
   return (t,s)
 -}
+
+cachingTiles :: Slide ()
+cachingTiles = margin 20 $ fontSize 20 $ font "Gill Sans" $ do
+  t <- tileOfSlide (100,100) $ p "Hello, World!"
+  t' <- cacheTile "foo.png" t
+  place left t'
