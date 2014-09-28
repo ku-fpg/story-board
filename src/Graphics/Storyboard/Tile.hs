@@ -117,3 +117,7 @@ drawMovieTile (w',h') movie = case wrapMovie movie of
         ((\ (Cavity _ _) b -> do
                     drawCanvas (w',h') $ f b
                     return (stop b)) <$> cavityB <*> bhr)
+
+
+--scaleTile :: Double -> Tile () -> Tile ()
+--scaleTile n (Tile (w,h) act) = Tile (w * n,h * n) $ \ (Cavity pos loc) ->
