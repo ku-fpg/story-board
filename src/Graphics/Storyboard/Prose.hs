@@ -39,6 +39,9 @@ module Graphics.Storyboard.Prose
 
 import Control.Monad (when)
 
+-- When debugging
+import           Control.Monad.IO.Class
+
 import           Data.Char (isSpace)
 import qualified Data.Text as Text
 import           Data.Text (Text)
@@ -225,12 +228,8 @@ renderText st txt = do
     w <- wordWidth (fontName st) txt'
     let off :: Double
         off = -0.4 * fromIntegral (subSuper st) * fromIntegral (theFontSize st)
-        
-        h :: Double
-        h = fromIntegral $ (ceiling
-                         $ fromIntegral (theFontSize st)
-                         * (1 + theDescenderHeight st) :: Int)
-    return . tile (w,h)
+
+    return . tile (w,renderTextHeight st)
            $ \ (Cavity _ _) -> do
       Blank.font $ fontName st
       fillStyle (theColor st)
@@ -261,7 +260,7 @@ renderProse alignment w ps_cxt ps = do
 
         fixNL (Left n:Left m:xs)
             | alignment == left && isInfinite n
-            = fixNL (Left n:Right (blank (0,0)):Left m:xs)
+            = fixNL (Left n:Right (blank (0,renderTextHeight ps_cxt)):Left m:xs)
         fixNL (x:xs) = x : fixNL xs
         fixNL [] = []
 
@@ -276,13 +275,12 @@ renderProse alignment w ps_cxt ps = do
 
 
     let glyphs2 :: [([Tile ()],Double)] = findT (fixNL proseTiles) []
-{-
-    liftIO $ putStrLn "----------------"
-    liftIO $ sequence_
-        [ print (map tileWidth ts,w)
-        | (ts,w) <- glyphs2
-        ]
--}
+
+--    liftIO $ putStrLn "----------------"
+--    liftIO $ sequence_
+--        [ print (map tileWidth ts,w)
+--        | (ts,w) <- glyphs2
+--        ]
 
 --    liftIO $ print ("glyphs2",glyphs2)
 
@@ -315,6 +313,7 @@ renderProse alignment w ps_cxt ps = do
         loop (n:ns) xs = write (null ns) (take n xs)
                        : loop ns (drop n xs)
 
+--    liftIO $ print $ map tileWidth $ loop splits glyphs2
     return $ loop splits glyphs2
 
 -- Given the (min) width of a space, the width of the line,
