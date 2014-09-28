@@ -214,5 +214,8 @@ slideShowr st = do
       writeDataURL fileName url
 
   case next of
-    ForwardSlide -> slideShowr st { whichSlide = whichSlide st + 1 }
-    BackSlide -> slideShowr st { whichSlide = whichSlide st - 1 }
+    ForwardSlide | whichSlide st < length (theSlides st)
+                -> slideShowr st { whichSlide = whichSlide st + 1 }
+    BackSlide    | whichSlide st > 1
+                -> slideShowr st { whichSlide = whichSlide st - 1 }
+    _ -> slideShowr st
