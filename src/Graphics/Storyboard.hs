@@ -34,6 +34,7 @@ module Graphics.Storyboard
   , draw
   , anchor
   , blank
+  , filled
   , storyBoard
   , indent
   , margin

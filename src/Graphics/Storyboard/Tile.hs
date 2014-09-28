@@ -3,6 +3,7 @@
 module Graphics.Storyboard.Tile where
 
 import Control.Applicative
+import Data.Text (Text)
 
 import Data.Semigroup
 
@@ -55,11 +56,9 @@ tileSize (Tile sz _) = sz
 blank :: Size Double -> Tile a
 blank sz = tile sz $ const $ return ()
 
-{-
-colorTile :: Text -> Size Double -> Tile ()
-colorTile col (w',h') = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> do
-  action $ saveRestore $ do
-    translate (x,y)   -- required in all primitives
+-- Used mainly for debugging blank tiles.
+filled :: Text -> Size Double -> Tile ()
+filled col (w',h') = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> saveRestore $ do
     globalAlpha 0.2
     beginPath()
     rect(0, 0, w, h)
@@ -72,8 +71,6 @@ colorTile col (w',h') = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> do
     strokeStyle "black";
     stroke()
     globalAlpha 1.0
--}
-
 
 -- compress a tile into a point.
 point :: Vertical -> Horizontal -> Tile a -> Tile a
