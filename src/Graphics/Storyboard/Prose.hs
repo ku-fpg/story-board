@@ -54,7 +54,6 @@ import           Graphics.Blank hiding (font)
 import           Graphics.Storyboard.Literals
 import           Graphics.Storyboard.Mosaic
 import           Graphics.Storyboard.Prelude
--- import           Graphics.Storyboard.TextStyle
 import           Graphics.Storyboard.Tile
 import           Graphics.Storyboard.Types
 
