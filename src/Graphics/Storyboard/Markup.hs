@@ -118,7 +118,7 @@ table rows = do
 
   let gaps n = (w - w') / n - ln_wd * 2
 
-  -- Right now, we divide the width evenly amoung all the elements in each row
+  -- Right now, we divide the width evenly among all the elements in each row
   tss :: [[(TheBoxStyle -> TheBoxStyle, Tile ())]] <- sequence
       [ sequence [ do t <- tileOfSlide (gaps (fromIntegral (length tds)),0) s
                       return (f,t)
