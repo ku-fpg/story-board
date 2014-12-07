@@ -158,7 +158,7 @@ setItemCount n m = m { theItemCounter = n }
 
 
 -----------------------------------------------------------------------------
--- | The Slide Monad is intentually transparent. It is just a convenence.
+-- | The Slide Monad is intentionally transparent. It is just a convenience.
 
 newtype Slide a = Slide { runSlide :: TheSlideStyle -> TheSlideState -> Prelude (a,TheSlideState) }
 
