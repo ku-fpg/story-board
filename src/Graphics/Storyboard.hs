@@ -22,6 +22,7 @@ module Graphics.Storyboard
   , super
   , sub
   , space
+  , br
   , boxy
     -- * Spacing
   , vspace
