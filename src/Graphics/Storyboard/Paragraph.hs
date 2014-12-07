@@ -63,7 +63,7 @@ renderParagraph prose_style par_style w ps = do
 
   -- Todo. Add decorations
 
-  bullet_mosiac :: Mosaic () <- case theBullet par_style of
+  bullet_mosaic :: Mosaic () <- case theBullet par_style of
             Nothing -> return mempty
             Just (Bullet f)-> do
                 r <- f prose_style
@@ -72,7 +72,7 @@ renderParagraph prose_style par_style w ps = do
   return $ pack $ mconcat $
               [ anchor left $ blank (theLeftMargin par_style,0)
               ] ++
-              [ bullet_mosiac ] ++
+              [ bullet_mosaic ] ++
 
               map (anchor top) tiles
 
