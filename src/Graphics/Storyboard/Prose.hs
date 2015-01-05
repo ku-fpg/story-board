@@ -207,7 +207,7 @@ boxy b'       = proseStyle $ \ s -> s { isBoxy = b' }
 -- figure out the full font from the style
 fontName :: TheProseStyle -> Text
 fontName cxt = Text.intercalate " " $
-    [ "italics" | isItalic cxt ] ++
+    [ "italic" | isItalic cxt ] ++
     [ "bold"    | isBold cxt ] ++
     [Text.pack $ show realFontSize, theFont cxt]
   where
