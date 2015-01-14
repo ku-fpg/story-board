@@ -162,4 +162,5 @@ mimeTypes filePath
   | ".jpg" `isSuffixOf` filePath = "image/jpeg"
   | ".png" `isSuffixOf` filePath = "image/png"
   | ".gif" `isSuffixOf` filePath = "image/gif"
+  | ".svg" `isSuffixOf` filePath = "image/svg+xml"
   | otherwise = error $ "do not understand mime type for : " ++ show filePath
