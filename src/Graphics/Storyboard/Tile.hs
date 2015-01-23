@@ -19,11 +19,7 @@ import Graphics.Storyboard.Types
 -- The tile can choose to put any extra space on the inside or outside
 -- of any border, etc.
 
--- TODO: use Cavity, rather than Coord Double * Size Double
-
-data Tile a = Tile (Size Double)
---                    (Coord Double -> Size Double -> Act)
-                    (Cavity Double -> Act)
+data Tile a = Tile (Size Double) (Cavity Double -> Act)
 
 instance Show (Tile a) where
   show (Tile sz _) = show sz
@@ -72,7 +68,7 @@ filled col (w',h') = tile (w',h') $ \ (Cavity (x,y) (w,h)) -> saveRestore $ do
     stroke()
     globalAlpha 1.0
 
--- compress a tile into a point.
+-- Compress a tile into a point.
 point :: Vertical -> Horizontal -> Tile a -> Tile a
 point ver hor (Tile (w,h) f) = Tile (0,0) $ \ (Cavity (x,y) _) -> do
   let w' = case hor of
@@ -84,7 +80,8 @@ point ver hor (Tile (w,h) f) = Tile (0,0) $ \ (Cavity (x,y) _) -> do
             VC -> -h / 2
             VB -> -h
   f (Cavity (x+w',y+h') (w,h))
--- nudge the tile into a specific corner of its enclosure
+
+-- Nudge the tile into a specific corner of its enclosure.
 nudge :: Vertical -> Horizontal -> Tile a -> Tile a
 nudge ver hor (Tile (w,h) f) = Tile (w,h) $ \ (Cavity (x,y) (w',h')) ->
     let w'' = case hor of

@@ -54,7 +54,6 @@ import           Graphics.Blank hiding (font)
 import           Graphics.Storyboard.Literals
 import           Graphics.Storyboard.Mosaic
 import           Graphics.Storyboard.Prelude
--- import           Graphics.Storyboard.TextStyle
 import           Graphics.Storyboard.Tile
 import           Graphics.Storyboard.Types
 
@@ -208,9 +207,9 @@ boxy b'       = proseStyle $ \ s -> s { isBoxy = b' }
 -- figure out the full font from the style
 fontName :: TheProseStyle -> Text
 fontName cxt = Text.intercalate " " $
-    [ "italics" | isItalic cxt ] ++
+    [ "italic" | isItalic cxt ] ++
     [ "bold"    | isBold cxt ] ++
-    [Text.pack $ show realFontSize, theFont cxt]
+    [Text.pack $ show realFontSize ++ "px", theFont cxt]
   where
       realFontSize :: Int
       realFontSize = round
