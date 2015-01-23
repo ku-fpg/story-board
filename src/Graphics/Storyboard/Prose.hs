@@ -209,7 +209,7 @@ fontName :: TheProseStyle -> Text
 fontName cxt = Text.intercalate " " $
     [ "italic" | isItalic cxt ] ++
     [ "bold"    | isBold cxt ] ++
-    [Text.pack $ show realFontSize, theFont cxt]
+    [Text.pack $ show realFontSize ++ "px", theFont cxt]
   where
       realFontSize :: Int
       realFontSize = round
