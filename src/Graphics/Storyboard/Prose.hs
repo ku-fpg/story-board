@@ -50,7 +50,7 @@ import           Data.Semigroup
 import           Data.String (IsString(fromString))
 
 import qualified Graphics.Blank as Blank
-import           Graphics.Blank hiding (font)
+import           Graphics.Blank hiding (font, left, right, top, center)
 import           Graphics.Storyboard.Literals
 import           Graphics.Storyboard.Mosaic
 import           Graphics.Storyboard.Prelude
@@ -210,7 +210,7 @@ fontName :: TheProseStyle -> Text
 fontName cxt = Text.intercalate " " $
     [ "italics" | isItalic cxt ] ++
     [ "bold"    | isBold cxt ] ++
-    [Text.pack $ show realFontSize, theFont cxt]
+    [Text.pack $ show realFontSize ++ "pt", theFont cxt]
   where
       realFontSize :: Int
       realFontSize = round
