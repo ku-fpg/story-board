@@ -112,7 +112,7 @@ module Graphics.Storyboard
 import           Data.Text (Text)
 import           Data.Time.Clock
 
-import           Graphics.Blank hiding (eval, font, port, Options)
+import           Graphics.Blank hiding (eval, font, port, Options, left, right, top, bottom)
 import           Graphics.Storyboard.Act
 import           Graphics.Storyboard.Behavior
 -- import           Graphics.Storyboard.Bling
@@ -186,7 +186,7 @@ instance Num Options where
 
 storyBoard :: Options -> [Slide ()] -> IO ()
 storyBoard opt
-        = blankCanvas (fromIntegral (port opt)) { middleware = [], events = ["keypress","mousemove"] }
+        = blankCanvas (fromIntegral (port opt)) { middleware = [], events = ["keypress","mousemove","keydown"] }
         . blankCanvasStoryBoard opt
 
 -- Never finishes
@@ -194,7 +194,7 @@ slideShowr :: StoryBoardState -> IO ()
 slideShowr st = do
   _ <- getCurrentTime
   let StoryBoardState slides n context _ opt = st
-  print ("slideShowr" :: Text,n)
+--  print ("slideShowr" :: Text,n)
   let cxt = (defaultSlideStyle (eventQueue context) (width context,height context))
           { theSlideNumber = n, theLastSlide = length slides }
   let st0 = defaultSlideState (fullSize cxt)

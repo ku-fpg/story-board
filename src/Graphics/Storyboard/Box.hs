@@ -7,7 +7,7 @@ import qualified Data.Set as Set
 import           Data.Set (Set)
 import           Data.Text (Text)
 
-import           Graphics.Blank as Blank
+import           Graphics.Blank as Blank hiding (left,top)
 import qualified Graphics.Blank.Style as Style
 import           Graphics.Storyboard.Act
 import           Graphics.Storyboard.Literals

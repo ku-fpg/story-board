@@ -6,7 +6,7 @@ import Data.Monoid
 import Graphics.Storyboard
 
 main :: IO ()
-main = storyBoard 3000 $ map brand $ drop 0
+main = storyBoard 3000 $ (sizeSlide :) $ map brand $ drop 0
   [ titleSlide
   , haskell_code
   , bigBackground
@@ -39,6 +39,10 @@ titleSlide = margin 20 $ fontSize 20 $ font "Gill Sans" $ align center $ do
   vspace 100
   fontSize 18 $ p $ "\xa9" <+> "2014 Andrew Gill"
 
+sizeSlide :: Slide ()
+sizeSlide = do
+  (x,y) <- getCavitySize
+  p $ prose $ "Slide cavity size: " ++ show (x,y)
 
 bigBackground :: Slide ()
 bigBackground = do

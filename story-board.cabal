@@ -35,8 +35,8 @@ library
                        Graphics.Storyboard.Prelude,
                        Graphics.Storyboard.Prose
   other-extensions:    OverloadedStrings
-  build-depends:       base         >= 4.5 && < 4.8,
-                       blank-canvas >= 0.5 && < 0.6,
+  build-depends:       base         >= 4.5 && < 4.9,
+                       blank-canvas >= 0.6 && < 0.7,
                        containers   >= 0.5,
                        directory    >= 1.2,
                        regex-compat >= 0.95,
@@ -59,7 +59,7 @@ executable story-board-example
   else
     buildable:         False
   main-is:             Main.hs
-  build-depends:       base         >= 4.5 && < 4.8,
+  build-depends:       base         >= 4.5 && < 4.9,
                        story-board  == 0.1.*,
                        transformers >= 0.3 && < 0.5
   hs-source-dirs:      example
