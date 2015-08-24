@@ -74,13 +74,14 @@ runDeck' context (Deck cavity Empty)      = do
 runDeck' context (Deck cavity (PauseDeck deck)) = runDecking context deck $ \ _ -> do
     let loop = do
           event <- readTChan (eventQueue context)
-          if eType event == "keydown"
+          if eType event == "keypress"
           then return event
           else loop -- ignore other things, for now
     event <- atomically $ loop
---    print ("got key" :: Text, event)
+    print ("got key" :: Text, event)
     case eWhich event of
       Just 98 -> return (Left BackSlide)
+      Just 66 -> return (Left BackSlide)         -- Hack
       Just 33 -> return (Left BackSlide)
       _       -> return (Right cavity)
 runDeck' context (Deck cavity (DrawOnDeck act deck)) = runDecking context deck $ \ cavity' -> do
