@@ -227,7 +227,8 @@ renderText st txt = do
     let txt' = foldr (\ (f,t) -> Text.replace f t) txt (theLigatures st)
     w <- wordWidth (fontName st) txt'
     let off :: Double
-        off = -0.4 * fromIntegral (subSuper st) * fromIntegral (theFontSize st)
+        off =  (theDescenderHeight st * fromIntegral (theFontSize st))/2
+            + (-0.4 * fromIntegral (subSuper st) * fromIntegral (theFontSize st))
 
     return . tile (w,renderTextHeight st)
            $ \ (Cavity _ _) -> do
