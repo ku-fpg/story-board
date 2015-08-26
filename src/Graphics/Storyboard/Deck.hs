@@ -78,7 +78,7 @@ runDeck' context (Deck cavity (PauseDeck deck)) = runDecking context deck $ \ _ 
           then return event
           else loop -- ignore other things, for now
     event <- atomically $ loop
-    print ("got key" :: Text, event)
+--    print ("got key" :: Text, event)
     case eWhich event of
       Just 98 -> return (Left BackSlide)
       Just 66 -> return (Left BackSlide)         -- Hack

@@ -35,6 +35,7 @@ module Graphics.Storyboard.Prose
   , super
   , sub
   , boxy
+  , descenderHeight
   ) where
 
 import Control.Monad (when)
@@ -202,6 +203,9 @@ sub           = proseStyle $ \ s -> s { subSuper = subSuper s - 1 }
 
 boxy        :: ProseStyle a => Bool -> a -> a
 boxy b'       = proseStyle $ \ s -> s { isBoxy = b' }
+
+descenderHeight :: ProseStyle a =>  (Double -> Double) -> a -> a
+descenderHeight f = proseStyle $ \ s -> s { theDescenderHeight = f (theDescenderHeight s) }
 
 ------------------------------------------------------------------------
 

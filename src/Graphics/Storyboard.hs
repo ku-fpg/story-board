@@ -23,6 +23,7 @@ module Graphics.Storyboard
   , sub
   , space
   , boxy
+  , descenderHeight
     -- * Spacing
   , vspace
   , (<+>)
