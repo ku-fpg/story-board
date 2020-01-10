@@ -20,7 +20,7 @@ import           System.Directory
 
 import           Data.Semigroup
 
-import           Graphics.Blank (EventQueue, newCanvas, with, toDataURL,writeDataURL)
+import           Graphics.Blank (EventQueue, newCanvas, with, toDataURL,writeDataURL, readDataURL)
 import           Graphics.Storyboard.Act
 import           Graphics.Storyboard.Box
 import           Graphics.Storyboard.Deck

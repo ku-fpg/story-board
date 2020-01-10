@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 module Graphics.Storyboard.Images where
 
+import           Control.Monad.IO.Class
 import           Data.Monoid ((<>))
 import           Data.Text (pack)
 
@@ -10,17 +11,19 @@ import           Graphics.Storyboard.Types
 
 
 -- | Load an image; do not place it anywhere yet.
-imageTile :: MonadCanvas m => FilePath -> m (Tile ())
-imageTile filePath = liftCanvas $ do
-    -- From the canvas' point of view, we need to fix the absolute path with "/"
-    img <- newImage ("/" <> pack filePath)
+imageTile :: (MonadIO m, MonadCanvas m) => FilePath -> m (Tile ())
+imageTile fileName = do
+  url <- liftIO $ readDataURL "image/png" fileName
+  liftCanvas $ do
+    img <- newImage url
     return $ tile (width img, height img) $ \ (Cavity _ _) -> drawImage (img,[0,0])
 
 -- | Load an scaled image; do not place it anywhere yet.
-scaledImageTile :: MonadCanvas m => FilePath -> Double -> m (Tile ())
-scaledImageTile filePath s = liftCanvas $ do
-    -- From the canvas' point of view, we need to fix the absolute path with "/"
-    img <- newImage ("/" <> pack filePath)
+scaledImageTile :: (MonadIO m, MonadCanvas m) => FilePath -> Double -> m (Tile ())
+scaledImageTile fileName s = do
+  url <- liftIO $ readDataURL "image/png" fileName
+  liftCanvas $ do
+    img <- newImage url
     return $ tile (width img * s, height img * s) $ \ (Cavity _ _) -> saveRestore $ do
           scale (s,s)
           drawImage (img,[0,0])

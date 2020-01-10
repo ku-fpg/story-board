@@ -15,7 +15,7 @@ main = storyBoard 3000 $ (sizeSlide :) $ map brand $ drop 0
   , orderedListSlide
   , actSlide
   , subSuperSlide
-  , cachingTiles
+--  , cachingTiles
   , scalingTiles
   ]
 

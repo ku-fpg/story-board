@@ -11,3 +11,4 @@ slides/
 .\#*
 tmp/
 .cache/
+.stack-work/
