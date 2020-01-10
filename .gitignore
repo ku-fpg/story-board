@@ -12,3 +12,4 @@ slides/
 tmp/
 .cache/
 .stack-work/
+stack.yaml.lock
